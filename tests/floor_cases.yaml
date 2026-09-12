@@ -1,8 +1,9 @@
 # 床（scripts/check_draft.py）が RED になる fixture（凍結・f2-648.2 の受入・P-10.1 の day-1 代替＝床の入力ではない）。runner = tests/run_floor_cases.py。
 # 各 case は design-intent/ の写し（一時 dir）に mutate を順に当てて床を回す（正本は触らない）。段の種類と期待の欄は runner の冒頭を見る。
 # 敵対レビュー 1 周目（B1〜B3 / M1〜M7 / m1）・2 周目（fc-1〜fc-9 / fp-1〜fp-7 / loophole-1〜13 / content-1・2・5・11 / fixrun-1〜6）・
-# 3 周目（loophole-v3-1〜6・9〜11・15 / fp3-2・4〜7・9・10 / content-limits-1・2・6・13）の再現と、正の経路（欄の決まりの写し・範囲の増減・空の値・貼れる差分）を含む。
-expected_cases: 106
+# 3 周目（loophole-v3-1〜6・9〜11・15 / fp3-2・4〜7・9・10 / content-limits-1・2・6・13）と 4 周目（loophole-v4-1〜5・7 / F-1〜F-3）の再現と、正の経路（欄の決まりの写し・範囲の増減・空の値・貼れる差分・改行入りの値）を含む。
+# 写しは既定で git の 1 commit（床は版管理の無い写しを「まだ分からない」に落とす）。no_git: true の case だけ版管理なし。
+expected_cases: 120
 
 shared:
   p8_title_old: &p8_title_old 撤退条件を決定と同時に書く
@@ -318,6 +319,34 @@ shared:
     grill: *grill_fx
     approval: *approval_owner
     plain: 検査のための一覧の差し替えです。
+  adr18_narrow: &adr18_narrow
+    id: ADR-18
+    title: 改訂の範囲から北極星の節を外す（fixture・範囲の縮小）
+    status: accepted
+    date: 2026-09-12
+    context: fixture。写しの範囲（amendment_scope）を下限まで戻す改訂が欄単位の（削除）で記録できることの検査。
+    decision: 改訂の範囲（schema.amendment_scope）から北極星の節（north_star）を外す。
+    options: *opts_fx
+    basis: [A-2]
+    retreat: *retreat_fx
+    amends:
+      - {target: schema, field: amendment_scope, version: v1.2, previous_text: *scope_new, new_text: *scope_old}
+      - {target: north_star, field: statement, version: v1.2, previous_text: *ns_statement, new_text: （削除）}
+      - {target: north_star, field: for_whom, version: v1.2, previous_text: *ns_for_whom, new_text: （削除）}
+      - {target: north_star, field: judged_by, version: v1.2, previous_text: *ns_judged_by, new_text: （削除）}
+    grill: *grill_fx
+    approval: *approval_owner
+    plain: 検査のための範囲の縮小です。
+  art_shadow: &art_shadow
+    id: precedence
+    title: 前文と同じ名前の条（fixture・名前の衝突）
+    tier: always
+    binds: both
+    statements: [{id: precedence.1, pattern: ubiquitous, strength: must, text: 前文を上書きする。}]
+    plain: 検査用の条です。
+    rationale: [{kind: folio2-ruling, ref: fixture}]
+    mechanism: {kind: none, live: now, note: fixture}
+  ab3_title: &ab3_title [{adr: ADR-3, date: 2026-09-12, approved_by: 持ち主, ruling: *ruling, previous_text: *p8_title_old, rationale: fixture}]
   p20: &p20
     id: P-20
     title: 検査の結果を記帳する
@@ -384,6 +413,10 @@ cases_single:
   - {id: version-bumped-without-anchor, why: 版を上げたのに凍結していない（A-2）, mutate: [{file: constitution.yaml, path: meta.version, value: v1.1}], expect_rc: 1, expect_msg: 版を上げたのに凍結していない}
   - {id: amendment-scope-shrunk, why: 改訂の範囲（amendment_scope）を A-2.2 の下限より狭められない（fc-2）, mutate: [{file: constitution.yaml, path: schema.amendment_scope, value: [articles]}], expect_rc: 1, expect_msg: A-2.2 の範囲の下限}
   - {id: meta-approval-tampered, why: 発効の承認の逐語を書き換えると anchor の写しと食い違う（loophole-9・P-12.2）, mutate: [{file: constitution.yaml, path: meta.approval.verbatim, value: いいよ、全部まかせる}], expect_rc: 1, expect_msg: 憲法 meta.approval と一致しない}
+  - {id: article-id-shadows-section, why: 条 id を改訂の範囲の節名（precedence）にすると節が差分検査から消える手口は条 id の形で落ちる（loophole-v4-1）, mutate: [{file: constitution.yaml, path: "articles[27]", value: *art_shadow, add: true}, {file: constitution.yaml, path: meta.counts.always, value: 18}], expect_rc: 1, expect_msg: 条 id の形（P-n / A-n / N-n）でない}
+  - {id: dotted-key-in-schema, why: 「.」入りの欄名で欄の道を衝突させる手口は落ちる（loophole-v4-2）, mutate: [{file: constitution.yaml, path: schema, raw_key: mechanism.stage_polarity_required_for, value: [reject, build-check]}], expect_rc: 1, expect_msg: 「.」を含む（欄の道が衝突する）}
+  - {id: constitution-symlink, why: 正本 4 file も symlink なら読めない（loophole-v4-4・rc 2）, mutate: [{symlink_file: constitution.yaml}], expect_rc: 2, expect_stderr: symlink}
+  - {id: authoring-article-deleted, why: 版を上げて未凍結でも条の消失は測る（loophole-v4-5・P-7）, mutate: [{file: constitution.yaml, path: articles, pop: true}, {file: constitution.yaml, path: meta.counts.never, value: 5}, {file: constitution.yaml, path: meta.version, value: v1.1}], expect_rc: 1, expect_msg: 条 N-6 が anchor v1.0 に在って現行に無い}
 
 cases_floor_constants:
   - {id: owner-knob, why: 承認者の定義（owner）を data 側で動かせない（content-limits-1・loophole-v3-3）, mutate: [{file: adr/schema.yaml, path: schema.owner, value: planner 席}], expect_rc: 1, expect_msg: schema.owner が床の定数と違う}
@@ -400,12 +433,13 @@ cases_floor_constants:
   - {id: projection-widened, why: 写しの取り方を data 側で広げられない（B1・広げるのは床の script の改訂）, mutate: [{file: adr/schema.yaml, path: schema.anchor.projection_article_fields, value: [id, title, tier, binds, statements, plain]}], expect_rc: 1, expect_msg: schema.anchor.projection_article_fields が床の定数と違う}
   - {id: statement-fields-tampered, why: 規範文の写しの欄を data 側で変えられない, mutate: [{file: adr/schema.yaml, path: schema.anchor.statement_fields, value: [id, text]}], expect_rc: 1, expect_msg: schema.anchor.statement_fields が床の定数と違う}
   - {id: schema-extra-field, why: 機械が読まない欄は *_note で終える（content-limits-8）, mutate: [{file: adr/schema.yaml, path: schema.limits, value: [x], add: true}], expect_rc: 1, expect_msg: schema.limits（未知の欄}
+  - {id: floor-type-knob, why: 床の定数との照合は型も見る（2.0 は 2 でない・loophole-v4-7）, mutate: [{file: adr/schema.yaml, path: schema.options_rule, value: {min: 2.0, adopted: 1}}], expect_rc: 1, expect_msg: schema.options_rule.min が床の定数と違う}
 
 cases_anchor:
-  - {id: anchor-file-missing, why: 索引にある anchor file が無ければ「まだ分からない」（B3・rc 2）, mutate: [{file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: 列が切れている}
-  - {id: anchors-all-deleted, why: anchor が 0 本で記録も無ければ「まだ分からない」（P-10.3・rc 2）, mutate: [{dir: anchors, delete_dir: true}], expect_rc: 2, expect_stderr: 凍結 anchor が 0 本}
+  - {id: anchor-file-missing, no_git: true, why: 索引にある anchor file が無ければ「まだ分からない」（B3・rc 2）, mutate: [{file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: 列が切れている}
+  - {id: anchors-all-deleted, no_git: true, why: anchor が 0 本で記録も無ければ「まだ分からない」（P-10.3・rc 2）, mutate: [{dir: anchors, delete_dir: true}], expect_rc: 2, expect_stderr: 凍結 anchor が 0 本}
   - {id: index-missing, why: 索引だけ消すと落ちる（content-limits-11・不合格）, mutate: [{file: anchors/index.yaml, delete: true}], expect_rc: 1, expect_msg: 索引（index.yaml）が無い}
-  - {id: index-entries-empty, why: 索引が在って entries が空なら機構は黙らず「まだ分からない」（loophole-v3-1・rc 2）, mutate: [{file: anchors/index.yaml, path: entries, value: []}, {file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: entries が空}
+  - {id: index-entries-empty, no_git: true, why: 索引が在って entries が空なら機構は黙らず「まだ分からない」（loophole-v3-1・rc 2）, mutate: [{file: anchors/index.yaml, path: entries, value: []}, {file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: entries が空}
   - {id: index-entries-empty-file-present, why: 索引を空にしても残った anchor は列の外として落ちる（loophole-v3-1）, mutate: [{file: anchors/index.yaml, path: entries, value: []}], expect_rc: 1, expect_msg: 索引に無い}
   - {id: index-tampered, why: 索引の digest を書き換えると落ちる, mutate: [{file: anchors/index.yaml, path: "entries[0].digest", value: abc}], expect_rc: 1, expect_msg: anchor の digest が索引の記載と違う}
   - {id: anchor-not-in-index, why: 索引に無い anchor は落ちる, mutate: [{file: anchors/constitution-v0.9.yaml, create: {kind: constitution-anchor, digest_algo: sha256-json-1, version: v0.9, previous: null, projection: {scope: [schema, precedence, articles], article_fields: [id, title, tier, binds, statements], statement_fields: [id, text, pattern, strength]}, meta_approval: {}, approvals: [{adr: null, who: 持ち主, date: 2026-09-12, ruling: *ruling, verbatim: 承認する, surface: R-8}], content: {schema: {}, precedence: {}, articles: []}, digest: x}}], expect_rc: 1, expect_msg: 索引に無い}
@@ -419,6 +453,10 @@ cases_anchor:
   - {id: bump-without-change, why: 差分の無い版上げは凍結しない（loophole-7）, mutate: [{file: constitution.yaml, path: meta.version, value: v1.1}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 差分が無い（意味の無い版上げ, expect_no_file: [anchors/constitution-v1.1.yaml]}
   - {id: reorder-statements-without-record, why: 規範文の並びを変えるだけでも記録が要る（loophole-7）, mutate: [{file: constitution.yaml, path: "articles[id=P-2].statements", swap: [0, 1]}, {file: constitution.yaml, path: meta.version, value: v1.1}, {freeze_anchor: true}], expect_rc: 1, expect_msg: P-2.statements.order が anchor v1.0 から変わったが}
   - {id: reorder-articles-without-record, why: 条の並びを変えるだけでも記録が要る（loophole-7）, mutate: [{file: constitution.yaml, path: articles, swap: [0, 1]}, {file: constitution.yaml, path: meta.version, value: v1.1}, {freeze_anchor: true}], expect_rc: 1, expect_msg: articles.order が anchor v1.0 から変わったが}
+  - {id: anchors-all-deleted-tracked, why: 版管理にある anchor を作業ツリーで消すと落ちる（HEAD 照合）, mutate: [{dir: anchors, delete_dir: true}], expect_rc: 1, expect_msg: 版管理（HEAD）にあるが作業ツリーに無い}
+  - {id: anchors-deleted-committed, why: anchor の削除を commit してから同じ版で凍結し直す手口は版管理の履歴で落ちる（loophole-v4-3）, mutate: [{dir: anchors, delete_dir: true}, {git_commit: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 版管理の履歴に在ったが作業ツリーに無い, expect_no_file: [anchors/constitution-v1.0.yaml]}
+  - {id: anchors-gitignored, why: anchors/ を版管理から除外すると落ちる（loophole-v4-3 の変種）, mutate: [{git_ignore_anchors: true}], expect_rc: 1, expect_msg: 版管理から除外（ignore）されている}
+  - {id: nested-git-root, why: design-intent 自体を版管理の根にすると落ちる（loophole-v4-3 の変種・床の script と別の版管理）, mutate: [{git_nested: true}], expect_rc: 1, expect_msg: design-intent 自体が版管理の根}
 
 cases_amendment:
   - id: amendment-complete
@@ -571,13 +609,18 @@ cases_amendment:
     expect_msg: 持つ発効した判断の記録が無い
     expect_no_file: [anchors/constitution-v1.2.yaml]
   - id: older-anchor-deleted
-    why: 列の途中の anchor を消すと差分検査は「まだ分からない」（B3・rc 2）
-    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.0.yaml, delete: true}]
+    why: 列の途中の anchor（版管理に未追跡）を消すと差分検査は「まだ分からない」（B3・rc 2）
+    mutate: [*step3, {freeze_anchor: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}, {file: anchors/constitution-v1.1.yaml, delete: true}]
     expect_rc: 2
     expect_stderr: 列が切れている
+  - id: older-anchor-deleted-tracked
+    why: 列の途中の anchor が版管理に追跡されていれば、消すと落ちる（HEAD 照合・rc 1）
+    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.0.yaml, delete: true}]
+    expect_rc: 1
+    expect_msg: 版管理（HEAD）にあるが作業ツリーに無い
   - id: freeze-over-broken-chain
-    why: 列が切れたまま新しい anchor は凍結しない（fixrun-4）
-    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.0.yaml, delete: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}]
+    why: 列が切れたまま（最新の anchor file が無い）新しい anchor は凍結しない（fixrun-4）
+    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.1.yaml, delete: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}]
     expect_rc: 2
     expect_stderr: 凍結しない
     expect_no_file: [anchors/constitution-v1.2.yaml]
@@ -681,3 +724,23 @@ cases_amendment:
     expect_rc: 1
     expect_msg: north_star.statement が anchor v1.0 から変わったが
     expect_no_file: [anchors/constitution-v1.1.yaml]
+  - id: scope-narrowed-recorded
+    why: 改訂の範囲を下限まで戻す改訂は、外す節の全欄を（削除）で記録すれば緑（F-1・過去の版の記録も落ちない）
+    mutate: [{file: adr/ADR-14.yaml, create: *adr14_scope}, {file: constitution.yaml, path: schema.amendment_scope, value: *scope_widened}, {file: constitution.yaml, path: meta.version, value: v1.1}, {freeze_anchor: true}, {file: adr/ADR-18.yaml, create: *adr18_narrow}, {file: constitution.yaml, path: schema.amendment_scope, value: [schema, precedence, articles]}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}]
+    expect_rc: 0
+    expect_file: [anchors/constitution-v1.1.yaml, anchors/constitution-v1.2.yaml]
+  - id: rollback-newest-anchor
+    why: 最新版の anchor と索引の項を消して前の版へ戻す細工は、発効した判断の記録が名指す版で落ちる（F-2・列の頭の固定）
+    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.1.yaml, delete: true}, {file: anchors/index.yaml, path: entries, pop: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_old}, {file: constitution.yaml, path: meta.version, value: v1.0}]
+    expect_rc: 1
+    expect_msg: 発効した判断の記録が名指す版 v1.1 の anchor が列に無い
+  - id: history-rewrite-after-freeze
+    why: 次の版を凍結した後で前の版の amends / amended_by を書き換えると、列の全区間の消し込みで落ちる（F-3）
+    mutate: [*step3, {freeze_anchor: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}, {file: adr/ADR-3.yaml, path: "amends[0].previous_text", value: まったく別の前の文。}, {file: adr/ADR-3.yaml, path: "amends[0].new_text", value: まったく別の今の文。}, {file: constitution.yaml, path: "articles[id=P-8].amended_by[0].previous_text", value: まったく別の前の文。}]
+    expect_rc: 1
+    expect_msg: anchor v1.0 と anchor v1.1 の値に完全一致しない
+  - id: emit-newline-value
+    why: 改行を含む値も --emit-amends の出力は 1 行 1 件で、貼れば緑（loophole-v4-10）
+    mutate: [{file: adr/ADR-3.yaml, create: *adr3_emit}, {file: constitution.yaml, path: "articles[id=P-8].title", value: "撤退条件を\n決定と同時に書く"}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab3_title, add: true}, {file: constitution.yaml, path: meta.version, value: v1.1}, {emit_amends_into: adr/ADR-3.yaml}, {freeze_anchor: true}]
+    expect_rc: 0
+    expect_file: [anchors/constitution-v1.1.yaml]

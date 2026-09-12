@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""床（scripts/check_draft.py）が RED になる fixture を回す runner（f2-648.2 の受入）。fixture の正本は tests/floor_cases.yaml（凍結・P-10.1）。
-使い方: python3 tests/run_floor_cases.py（repo root で）。各 case: design-intent/ を一時 dir へ写し、mutate を順に当て、床を回して
-終了コード・出力の語（expect_msg・rc が非 0 なら必須）・出て**いけない**語（expect_not_msg）・stderr の語・file の有無・違反件数（expect_n）を照合する。正本は触らない。
-mutate の 1 段: {file, path, value[, add: true]} = 欄を置き換える（欄が無ければ落とす・add で新設）/ {file, delete: true} = file を消す /
-{dir, delete_dir: true} = dir を消す / {file, create: <文書>} = file を新しく置く / {file, write_text: <生の文字列>} = 生で書く /
-{symlink_dir: <dir>} = dir を design-intent の外へ動かして symlink に置き換える / {git_snapshot: true} = 写しを git の 1 commit にする /
+"""床（scripts/check_draft.py）が RED になる fixture を回す runner（f2-648.2 の受入）。fixture の正本は tests/floor_cases.yaml（凍結・P-10.1 の day-1 代替）。
+使い方: python3 tests/run_floor_cases.py（repo root で）。各 case: design-intent/ を一時 dir へ写し、**既定でその一時 dir を git の 1 commit にし**（床は版管理の無い写しを「まだ分からない」に落とすため・case に no_git: true で外す）、
+mutate を順に当て、床を回して終了コード・出力の語（expect_msg・rc が非 0 なら必須）・出て**いけない**語（expect_not_msg）・stderr の語・file の有無・違反件数（expect_n）を照合する。正本は触らない。
+mutate の 1 段: {file, path, value[, add: true]} = 欄を置き換える（欄が無ければ落とす・add で新設）/ {file, path, raw_key, value} = path の表に鍵 raw_key（「.」入り等の生の鍵）を置く /
+{file, path, pop: true} = path の一覧の末尾を 1 つ消す / {file, delete: true} = file を消す / {dir, delete_dir: true} = dir を消す / {file, create: <文書>} = file を新しく置く / {file, write_text: <生の文字列>} = 生で書く /
+{symlink_dir: <dir>} = dir を design-intent の外へ動かして symlink に置き換える / {symlink_file: <file>} = file を外へ動かして symlink に置き換える /
+{git_snapshot: true} / {git_commit: true} = 写しの現状を git の 1 commit にする / {git_ignore_anchors: true} = anchors/ を版管理から除外して commit / {git_nested: true} = design-intent 自体を版管理の根にする /
 {freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor）。途中の凍結は rc 0 を要る（freeze_rc で上書き）/
 {emit_amends_into: <adr file>} = --emit-amends の出力（# 行を除く）をそのまま YAML として読み、その判断の記録の amends に置く（貼れる形の検査）。
 凍結が最後の段なら、その実行が case の結果。凍結が rc 0 なら続けて素の床も回し rc 0 を要る。expected_cases（件数）を pin する。
@@ -48,6 +49,8 @@ def mutate(doc, path, value, add):
     cur[last] = value
 def dump(doc): return yaml.safe_dump(doc, allow_unicode=True, sort_keys=False, width=10**6)
 def run(work, *flags): return subprocess.run([sys.executable, str(CHECK), '--dir', str(work), *flags], capture_output=True, text=True)
+def gitc(cwd, *cmd): subprocess.run(['git', '-c', 'user.email=fx@example', '-c', 'user.name=fx', *cmd], cwd=cwd, capture_output=True, check=True)
+def git_commit(cwd): gitc(cwd, 'add', '-A'); gitc(cwd, 'commit', '-q', '--allow-empty', '-m', 'fixture')
 def judge(cs, pr):
     ok = pr.returncode == cs['expect_rc']
     if cs.get('expect_msg') and cs['expect_msg'] not in pr.stdout + pr.stderr: ok = False
@@ -62,6 +65,7 @@ for cs in cases:
         last = None; note = ''
         muts = [x for m in (cs.get('mutate') or []) for x in (m if isinstance(m, list) else [m])]   # 共通の段（alias の一覧）を 1 段ずつに開く
         try:
+            if not cs.get('no_git'): gitc(td, 'init', '-q'); git_commit(td)
             for mu in muts:
                 if mu.get('freeze_anchor'):
                     last = run(work, '--freeze-anchor')
@@ -70,14 +74,17 @@ for cs in cases:
                 last = None
                 if mu.get('emit_amends_into'):
                     em = run(work, '--emit-amends')
-                    if em.returncode != 0: note += f' ／ emit が rc {em.returncode}'; continue
+                    if em.returncode == 2: note += f' ／ emit が rc {em.returncode}（読めない）'; continue   # 執筆中は違反があって当然（rc 1）＝差分は stdout に出る
                     lst = yaml.safe_load('\n'.join(l for l in em.stdout.splitlines() if not l.startswith('#'))) or []
                     f = work / mu['emit_amends_into']; doc = yaml.safe_load(f.read_text(encoding='utf-8')); doc['amends'] = lst; f.write_text(dump(doc), encoding='utf-8'); continue
-                if mu.get('git_snapshot'):
-                    for cmd in (['git', 'init', '-q'], ['git', 'add', '-A'], ['git', '-c', 'user.email=fx@example', '-c', 'user.name=fx', 'commit', '-q', '-m', 'fixture']): subprocess.run(cmd, cwd=td, capture_output=True, check=True)
-                    continue
-                if mu.get('symlink_dir'):
-                    src_ = work / mu['symlink_dir']; outside = pathlib.Path(td) / 'outside'; outside.mkdir(exist_ok=True); dst = outside / src_.name
+                if mu.get('git_snapshot') or mu.get('git_commit'):
+                    if not (pathlib.Path(td) / '.git').exists(): gitc(td, 'init', '-q')
+                    git_commit(td); continue
+                if mu.get('git_ignore_anchors'):
+                    (pathlib.Path(td) / '.gitignore').write_text('design-intent/anchors/\n', encoding='utf-8'); gitc(td, 'rm', '-r', '-q', '--cached', 'design-intent/anchors'); git_commit(td); continue
+                if mu.get('git_nested'): gitc(work, 'init', '-q'); git_commit(work); continue
+                if mu.get('symlink_dir') or mu.get('symlink_file'):
+                    src_ = work / (mu.get('symlink_dir') or mu.get('symlink_file')); outside = pathlib.Path(td) / 'outside'; outside.mkdir(exist_ok=True); dst = outside / src_.name
                     shutil.move(str(src_), str(dst)); src_.symlink_to(dst); continue
                 if mu.get('delete_dir'): shutil.rmtree(work / mu['dir']); continue
                 f = work / mu['file']
@@ -89,6 +96,14 @@ for cs in cases:
                     cur = doc
                     for x in steps(mu['path']): cur = get(cur, x)
                     i_, j_ = mu['swap']; cur[i_], cur[j_] = cur[j_], cur[i_]
+                elif 'raw_key' in mu:   # 生の鍵（「.」入り等）を表に置く
+                    cur = doc
+                    for x in steps(mu['path']): cur = get(cur, x)
+                    cur[mu['raw_key']] = mu['value']
+                elif mu.get('pop'):   # 一覧の末尾を 1 つ消す
+                    cur = doc
+                    for x in steps(mu['path']): cur = get(cur, x)
+                    cur.pop()
                 else: mutate(doc, mu['path'], mu['value'], mu.get('add', False))
                 f.write_text(dump(doc), encoding='utf-8')
         except Exception as ex:
