@@ -7,8 +7,9 @@ meta: {id: folio2-adr-schema, version: 1, date: 2026-09-12, decided_by: [ADR-1, 
 
 schema:
   version: 1
-  id_pattern: '^ADR-[1-9][0-9]*$'                 # folio2 の他の id（P-1・R-7・FR1）と同じくゼロ詰めしない。4 桁（ADR-0047）は前の版（v1）か scribe2 の記録＝外部の参照
+  id_pattern: '^ADR-[1-9][0-9]*$'                 # folio2 の他の id（P-1・R-7・FR1）と同じくゼロ詰めしない。4 桁（ADR-0047）は前の版（v1）か scribe2 の記録＝外部の参照で、床は内部 id としては数えない
   file_name: '<id>.yaml'                           # file 名 = id
+  date_format: '^\d{4}-\d{2}-\d{2}$'               # date・approval.date・grill.when・amended_by.date は年-月-日
   top_level: [id, title, status, date, context, decision, options, basis, retreat, amends, grill, approval, plain, consequences, supersedes, superseded_by, note]
   required: [id, title, status, date, context, decision, options, basis, retreat, plain]
   optional: [amends, grill, approval, consequences, supersedes, superseded_by, note]
@@ -21,37 +22,58 @@ schema:
   status_meaning:
     proposed: 提案中・拘束力なし（承認欄は空でよい）
     accepted: 発効（承認欄が必須。条文を改訂する判断なら承認者は持ち主・N-4）
-    retired: 廃止（番号は空けたまま・superseded_by に後継の id・P-7.2）
+    retired: 廃止（番号は空けたまま・superseded_by に後継の id・P-7.2）。承認欄を持つ retired は「発効していた」判断として amended_by から参照し続けられる
+  effective_status: [accepted, retired]            # amended_by / amends の照合で「発効した判断」と見る status（承認欄が在ることも要る）
+  retreat_kind_meaning:
+    spike: 小さな試し（spike）の結果が条件に当たったら捨てる
+    measure: 数えた値（回数・件数・byte）が条件に達したら捨てる
+    ruling: 持ち主の裁定で捨てる（条件は「何を持ち主に問うか」を書く）
   option: {required: [id, name, text, verdict, reason], optional: []}
   options_rule: {min: 2, adopted: 1}               # 退けた案を 1 つ以上含み、採用は 1 つ
-  retreat: {required: [kind, condition], optional: [], condition_non_empty: true}   # P-8.1（空なら落ちる）
-  basis: {non_empty: true, note: 条・要件・rules 行の id。未解決は R-4 の検査（母集団に判断の記録を足す・id 空間は 3 つのまま）が落とす}
-  amends_entry: {required: [target, previous_text, new_text], optional: [], targets_extra: [schema, precedence]}   # target = 条 id か schema / precedence
+  retreat: {required: [kind, condition], optional: [], condition_non_empty: true}   # P-8.1（空なら落ちる）。床は非空と kind の値域だけを見る＝「誰が数えるか」は本文に書く（人が見る）
+  basis: {non_empty: true, note: 条・要件・rules 行・判断の記録の id。未解決は R-4 の検査（母集団に判断の記録を足す・外部の id 空間は増やさない）が落とす}
+  amends_entry:
+    required: [target, version, previous_text, new_text]
+    optional: []
+    targets_extra: [schema, precedence]           # target = 条 id か schema / precedence
+    version: 改訂で上がる憲法の版（meta.version の値・例 v1.1）。差分検査はこの版の amends だけを見る＝1 本の判断が後の版の改訂まで許すことはない
+    match_article: 条の改訂では previous_text は直前 anchor の条の欄の値（見出し・段・縛る相手・規範文のどれか）と完全一致し、かつ現行に無い。new_text は現行の欄の値と完全一致し、かつ直前 anchor に無い
+    match_section: schema 節・前文の改訂では previous_text / new_text は各節の flow 形式の写し（yaml の default_flow_style）の部分文字列で、同じく「前に在って今に無い」「今に在って前に無い」
+    new_article_marker: （新設）                    # 条を新設するときの previous_text
   grill: {required: [when, who, where, summary], optional: []}                     # A-2.3 の記録
   approval: {required: [who, date, ruling, verbatim, surface], optional: []}       # P-12.2（逐語・日付・裁定 id・対話面）
   approval_rule:
     accepted_requires_approval: true               # accepted なのに approval が無い → N-4
-    amends_requires_owner: true                    # amends を持つ accepted な判断の approval.who は 持ち主 → N-4
+    amends_requires_owner: true                    # amends を持つ発効した判断の approval.who は 持ち主 → N-4
     amends_requires_grill: true                    # amends を持つ判断は grill 必須 → A-2.3
     surface_prefix: 持ち主と planner 席の対話面     # approval.surface はこの語で始まる。rules 行 R-8 の value も同じ語で始まる（食い違えば落ちる）
     surface_rules_row: R-8
+    verbatim_note: 床は逐語の非空だけを見る。台帳 notes の逐語との突合は人が行う（P-12.2）
   amended_by_entry: {required: [adr, date, approved_by, ruling, previous_text, rationale], optional: []}   # 憲法 各条 amended_by[] の欄（A-2 の機構 note）
-  bidirectional: accepted な判断の amends[].target（条）⇔ その条の amended_by[].adr。片方だけなら落とす。previous_text は両側で同じ文字列
+  bidirectional: 発効した判断の amends[].target（条）⇔ その条の amended_by[].adr。片方だけなら落とす。previous_text は両側で同じ文字列。来歴は累積し、差分検査は「その版の amends と対になる 1 件」が合えばよい
   supersede_rule: superseded_by を持つ判断は status retired、後継の supersedes に自分の id（双方向）
   anchor:                                          # ADR-2 — A-2 / N-4 の差分検査の比較元
     dir: anchors
-    file_name: 'constitution-<version>.yaml'            # version は憲法 meta.version の値そのまま（v1.0 → constitution-v1.0.yaml）
+    file_name: 'constitution-<version>.yaml'      # version は憲法 meta.version の値そのまま（v1.0 → constitution-v1.0.yaml）
+    first_version: v1.0                            # 鎖の根。最初の anchor はこの版。鎖を別の版から始め直すことはできない
+    file_keys: [kind, version, previous, projection_article_fields, digest, approval, schema, precedence, articles]
     projection_sections: [schema, precedence, articles]              # 憲法 schema.amendment_scope と同じ
-    projection_article_fields: [id, title, tier, binds, statements]  # 条文 = 5 欄
+    projection_article_fields: [id, title, tier, binds, statements]  # 条文 = 5 欄。anchor 側も同じ一覧を持ち、床は両方の一致を見る
+    article_fields_minimum: [id, title, tier, binds, statements]     # A-2.2 が名指す条文の定義。射影をこれより狭めることはできない（床の下限）
+    digest: 射影（schema 節・前文・条の 5 欄）の canonical な写し（yaml・キー順固定）の sha256。anchor の中身と一致しなければ落ちる
+    approval: 凍結時の承認欄の写し（who・date・ruling・verbatim・adr）。改訂の凍結ではその版の amends を持つ判断の記録の承認、初回は憲法 meta.approval
     rules:
       - 現行の射影は最新 anchor と一致する（不一致 = 判断の記録と承認を伴わない改憲 → N-4）
       - 最新 anchor の版は憲法 meta.version と同じ（違えば「版を上げたのに凍結していない」→ A-2）
-      - 直前 anchor との差分は、変わった各条の amended_by（accepted な判断・裁定 id・逐語）で説明される。previous_text は直前 anchor の条文に見つかる（無ければ N-4 / A-2）
+      - anchor は previous で鎖をなし、根は first_version。鎖が切れている（削除された）なら差分検査は「まだ分からない」（P-10.3・終了コード 2）。鎖に無い anchor は落とす
+      - 直前 anchor との差分は、変わった各条の amended_by（発効した判断・その版の amends・裁定 id・逐語）で説明される。previous_text / new_text は match_article / match_section のとおり
       - anchor に在って現行に無い条は落とす（番号は消さない・廃止は状態で・P-7）
       - anchor が 0 本なら差分検査は「まだ分からない」（P-10.3・終了コード 2）
-      - 同じ版の anchor は上書きしない（凍結）。生成は check_draft.py --freeze-anchor（検査と同じ射影関数・P-15.2）
+      - 同じ版の anchor は上書きしない・anchor は消さない（凍結）。生成は check_draft.py --freeze-anchor（検査と同じ射影関数・P-15.2）で、全検査が 0 違反のときだけ書く。凍結する版は最新 anchor より新しい
   limits:
-    - 前文（precedence）と schema 節の差分は amended_by を持てない（憲法 schema の precedence.optional が空）ので、それを amends に持つ accepted な判断の記録の実在だけを確かめる。前文に amended_by を足すのは A-2 の改訂で行う。
+    - 前文（precedence）と schema 節の差分は amended_by を持てない（憲法 schema の precedence.optional が空）ので、それを amends に持つ発効した判断の記録の実在と前後の写しの一致だけを確かめる。前文に amended_by を足すのは A-2 の改訂で行う。
     - 「番号を再利用していないか」（P-7.1）は履歴が要るので床では見ない。id の重複と形だけを見る。
+    - anchor・この schema・床の script は同じ作業ツリーの書き込める file である。床が保証するのは「記録の無い改訂が黙って通らない」ことまでで、3 つを揃えて書き換える改竄は版管理の履歴と取り込みの審査（PR）が受け持つ。
+    - 条の mechanism（live・kind・note）・plain・rationale は A-2.2 の条文の定義（id・見出し・規範文・段・縛る相手）の外なので差分検査の対象でない。変えるときは P-13.3（設計文書の変更は判断の記録か版付きの文書で残す）に従う＝機械は見ない。
 
-plain: 「なぜそう決めたか」を残す記録（判断の記録）の書き方の決まりです。1 つの決定につき 1 枚のファイルで、番号は 1 から順に付けます。書く欄は決まっていて（何が問題か・何を決めたか・他の案となぜ選ばなかったか・うまくいかなかったらいつやめるか・あなたの OK の言葉）、欄が空だと機械が止めます。憲法の文を直す決定には、あなたの OK の言葉と反対側からの確認の記録が必ず要ります。
+plain: 「なぜそう決めたか」を残す記録（判断の記録）の書き方の決まりです。1 つの決定につき 1 枚のファイルで、番号は 1 から順に付けます。書く欄は決まっていて（何が問題か・何を決めたか・他の案となぜ選ばなかったか・うまくいかなかったらいつやめるか・あなたの OK の言葉）、欄が空だと機械が止めます。憲法の文を直す決定には、あなたの OK の言葉と反対側からの確認の記録が必ず要り、「どの版を、どの文からどの文へ」まで書きます。憲法の有効な文の写し（anchor）は版ごとに凍結して鎖のようにつなぎ、消したり手で直したりすると機械が気づきます。

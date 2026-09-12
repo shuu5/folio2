@@ -1,22 +1,17 @@
 # 床（scripts/check_draft.py）が RED になる fixture（凍結・f2-648.2 の受入・P-10.1）。runner = tests/run_floor_cases.py。
-# 各 case は design-intent/ の写し（一時 dir）に mutate を当てて床を回す（正本は触らない）。
-# mutate の 1 段: {file, path: <欄の道・a.b[0].c / articles[id=P-8]>, value} = 欄を置き換える / {file, delete: true} = file を消す / {file, create: <文書>} = file を新しく置く / {freeze_anchor: true} = 写しの現行を anchor に凍結する（正の経路）
-# expect_rc: 期待する終了コード。expect_kind: 出力に [<kind>] の違反が在ること。expect_stderr: stderr に含む語。
-cases:
-  - {id: control, why: 正本そのままは緑, mutate: [], expect_rc: 0}
-  - {id: adr-retreat-empty, why: 撤退条件が空なら落ちる（P-8.1）, mutate: [{file: adr/ADR-1.yaml, path: retreat.condition, value: ""}], expect_rc: 1, expect_kind: P-8}
-  - {id: adr-no-adopted, why: 採用の案が 0 件, mutate: [{file: adr/ADR-1.yaml, path: "options[0].verdict", value: rejected}], expect_rc: 1, expect_kind: adr}
-  - {id: adr-accepted-without-approval, why: 発効なのに承認欄が無い（N-4）, mutate: [{file: adr/ADR-1.yaml, path: status, value: accepted}], expect_rc: 1, expect_kind: N-4}
-  - {id: adr-unknown-field, why: 未知の欄は落とす（N-3）, mutate: [{file: adr/ADR-2.yaml, path: owner, value: someone}], expect_rc: 1, expect_kind: adr}
-  - {id: article-changed-without-record, why: 条文が凍結 anchor と食い違う（N-4）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: 取り消しにくい判断（ADR）には、それを捨てる条件を同時に書き、検査する。}], expect_rc: 1, expect_kind: N-4}
-  - {id: amended-by-adr-missing, why: 実在しない判断の記録を指す amended_by（N-4）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].amended_by", value: [{adr: ADR-99, date: 2026-09-12, approved_by: 持ち主, ruling: 例, previous_text: 取り消しにくい判断, rationale: 例}]}], expect_rc: 1, expect_kind: N-4}
-  - {id: version-bumped-without-anchor, why: 版を上げたのに凍結していない（A-2）, mutate: [{file: constitution.yaml, path: meta.version, value: v1.1}], expect_rc: 1, expect_kind: A-2}
-  - {id: anchor-missing, why: anchor 0 本は「まだ分からない」（P-10.3・rc 2）, mutate: [{file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: まだ分からない}
+# 各 case は design-intent/ の写し（一時 dir）に mutate を順に当てて床を回す（正本は触らない）。
+# mutate の 1 段: {file, path: <欄の道・a.b[0].c / articles[id=P-8]>, value} = 欄を置き換える / {file, delete: true} = file を消す /
+#   {file, create: <文書>} = file を新しく置く / {freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor・0 違反のときだけ書く）
+# 期待: expect_rc（終了コード）/ expect_kind（出力に [<kind>] の違反）/ expect_stderr（stderr に含む語）/ expect_file・expect_no_file（design-intent からの相対 path）
+# 凍結が最後の段なら、その実行が case の結果。凍結が rc 0 なら続けて素の床も回し rc 0 を要る（runner）。
+# 敵対レビュー 1 周目（2026-09-12・台帳 f2-648.2 notes）の B1〜B3 / M1〜M7 / m1 に対応する case を含む。
 
-# ── 正の経路（改訂の 3 点セット = 発効した判断の記録 + 各条の amended_by + 新しい anchor）と、その 1 点を欠いた負の経路 ──
 shared:
   p8_old: &p8_old 取り消しにくい判断（ADR）には、それを捨てる条件を同時に書く。
   p8_new: &p8_new 取り消しにくい判断（ADR）には、それを捨てる条件を同時に書き、検査する。
+  p8_newer: &p8_newer 取り消しにくい判断（ADR）には、それを捨てる条件を同時に書き、検査し、記帳する。
+  approval_owner: &approval_owner {who: 持ち主, date: 2026-09-12, ruling: fixture の裁定 id, verbatim: 承認する, surface: 持ち主と planner 席の対話面（R-8）}
+  grill_fx: &grill_fx {when: 2026-09-12, who: fixture, where: fixture, summary: fixture の反対側からの確認。}
   adr3: &adr3
     id: ADR-3
     title: P-8.1 に「検査する」を足す（fixture・架空の改訂）
@@ -29,14 +24,83 @@ shared:
       - {id: b, name: 足さない, text: 現状のまま。, verdict: rejected, reason: fixture の退けた案。}
     basis: [P-8, A-2]
     retreat: {kind: ruling, condition: fixture。持ち主が撤回したら戻す。}
-    amends: [{target: P-8, previous_text: *p8_old, new_text: *p8_new}]
-    grill: {when: 2026-09-12, who: fixture, where: fixture, summary: fixture の反対側からの確認。}
-    approval: {who: 持ち主, date: 2026-09-12, ruling: fixture の裁定 id, verbatim: 承認する, surface: 持ち主と planner 席の対話面（R-8）}
+    amends: [{target: P-8, version: v1.1, previous_text: *p8_old, new_text: *p8_new}]
+    grill: *grill_fx
+    approval: *approval_owner
     plain: 検査のための架空の改訂です。
+  adr4_amend: &adr4_amend
+    id: ADR-4
+    title: P-8.1 に「記帳する」を足す（fixture・2 回目の架空の改訂）
+    status: accepted
+    date: 2026-09-12
+    context: fixture。同じ条を 2 度改訂する経路の検査。
+    decision: P-8.1 の末尾に「、記帳する」を足す。
+    options:
+      - {id: a, name: 条文に足す, text: 規範文を直す。, verdict: adopted, reason: fixture の採用案。}
+      - {id: b, name: 足さない, text: 現状のまま。, verdict: rejected, reason: fixture の退けた案。}
+    basis: [P-8, A-2]
+    retreat: {kind: ruling, condition: fixture。持ち主が撤回したら戻す。}
+    amends: [{target: P-8, version: v1.2, previous_text: *p8_new, new_text: *p8_newer}]
+    grill: *grill_fx
+    approval: *approval_owner
+    plain: 検査のための 2 回目の架空の改訂です。
+  adr4_plain: &adr4_plain
+    id: ADR-4
+    title: ADR-3 を置き換える（fixture・条文は変えない）
+    status: accepted
+    date: 2026-09-12
+    context: fixture。改憲した判断を後継で置き換えても来歴は生き続けることの検査。
+    decision: ADR-3 を退役させ、本判断が後継になる。条文は変えない。
+    options:
+      - {id: a, name: 置き換える, text: 後継を立てる。, verdict: adopted, reason: fixture の採用案。}
+      - {id: b, name: 置き換えない, text: 現状のまま。, verdict: rejected, reason: fixture の退けた案。}
+    basis: [P-7]
+    retreat: {kind: ruling, condition: fixture。持ち主が撤回したら戻す。}
+    supersedes: ADR-3
+    approval: *approval_owner
+    plain: 検査のための後継の判断です。
+  adr5_schema: &adr5_schema
+    id: ADR-5
+    title: 段の値域に新しい値（maybe）を足す（fixture・schema 節の架空の改訂）
+    status: accepted
+    date: 2026-09-12
+    context: fixture。schema 節の差分が判断の記録で説明されることの検査。
+    decision: 段の値域の欄（schema.enums.tier）に新しい値（maybe）を足す。
+    options:
+      - {id: a, name: 足す, text: 値域を広げる。, verdict: adopted, reason: fixture の採用案。}
+      - {id: b, name: 足さない, text: 現状のまま。, verdict: rejected, reason: fixture の退けた案。}
+    basis: [A-2, N-3]
+    retreat: {kind: ruling, condition: fixture。持ち主が撤回したら戻す。}
+    amends: [{target: schema, version: v1.1, previous_text: "tier: [always, ask-first, never]", new_text: "tier: [always, ask-first, never, maybe]"}]
+    grill: *grill_fx
+    approval: *approval_owner
+    plain: 検査のための schema 節の架空の改訂です。
   amended_by_ok: &amended_by_ok [{adr: ADR-3, date: 2026-09-12, approved_by: 持ち主, ruling: fixture の裁定 id, previous_text: *p8_old, rationale: fixture}]
+  amended_by_two: &amended_by_two
+    - {adr: ADR-3, date: 2026-09-12, approved_by: 持ち主, ruling: fixture の裁定 id, previous_text: *p8_old, rationale: fixture}
+    - {adr: ADR-4, date: 2026-09-12, approved_by: 持ち主, ruling: fixture の裁定 id, previous_text: *p8_new, rationale: fixture}
+  tier_new: &tier_new [always, ask-first, never, maybe]
+
+cases:
+  - {id: control, why: 正本そのままは緑, mutate: [], expect_rc: 0}
+  - {id: adr-retreat-empty, why: 撤退条件が空なら落ちる（P-8.1）, mutate: [{file: adr/ADR-1.yaml, path: retreat.condition, value: ""}], expect_rc: 1, expect_kind: P-8}
+  - {id: adr-no-adopted, why: 採用の案が 0 件, mutate: [{file: adr/ADR-1.yaml, path: "options[0].verdict", value: rejected}], expect_rc: 1, expect_kind: adr}
+  - {id: adr-accepted-without-approval, why: 発効なのに承認欄が無い（N-4）, mutate: [{file: adr/ADR-1.yaml, path: status, value: accepted}], expect_rc: 1, expect_kind: N-4}
+  - {id: adr-unknown-field, why: 未知の欄は落とす（N-3）, mutate: [{file: adr/ADR-2.yaml, path: owner, value: someone}], expect_rc: 1, expect_kind: adr}
+  - {id: adr-date-format, why: 日付が年-月-日でない（m1）, mutate: [{file: adr/ADR-1.yaml, path: date, value: にゃーん}], expect_rc: 1, expect_kind: adr}
+  - {id: article-changed-without-record, why: 条文が凍結 anchor と食い違う（N-4）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}], expect_rc: 1, expect_kind: N-4}
+  - {id: precedence-changed-without-record, why: 前文が凍結 anchor と食い違う（N-4）, mutate: [{file: constitution.yaml, path: precedence.text, value: 条どうしが衝突したら好きに解く。}], expect_rc: 1, expect_kind: N-4}
+  - {id: amended-by-adr-missing, why: 実在しない判断の記録を指す amended_by（N-4）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].amended_by", value: [{adr: ADR-99, date: 2026-09-12, approved_by: 持ち主, ruling: 例, previous_text: *p8_old, rationale: 例}]}], expect_rc: 1, expect_kind: N-4}
+  - {id: version-bumped-without-anchor, why: 版を上げたのに凍結していない（A-2）, mutate: [{file: constitution.yaml, path: meta.version, value: v1.1}], expect_rc: 1, expect_kind: A-2}
+  - {id: anchor-missing, why: anchor 0 本は「まだ分からない」（P-10.3・rc 2）, mutate: [{file: anchors/constitution-v1.0.yaml, delete: true}], expect_rc: 2, expect_stderr: まだ分からない}
+  - {id: projection-shrunk, why: 射影の欄集合を A-2.2 の 5 欄より狭めると落ちる（B1）, mutate: [{file: adr/schema.yaml, path: schema.anchor.projection_article_fields, value: [id, title, tier, binds]}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}], expect_rc: 1, expect_kind: anchor}
+  - {id: projection-widened, why: 射影の欄集合が anchor 側と食い違えば落ちる（B1）, mutate: [{file: adr/schema.yaml, path: schema.anchor.projection_article_fields, value: [id, title, tier, binds, statements, plain]}], expect_rc: 1, expect_kind: anchor}
+  - {id: anchor-tampered, why: anchor を手で書き換えると digest が合わず落ちる（M1）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {file: anchors/constitution-v1.0.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}], expect_rc: 1, expect_kind: anchor}
+  - {id: anchor-approval-stripped, why: anchor の承認欄（裁定 id）を消すと落ちる（M1）, mutate: [{file: anchors/constitution-v1.0.yaml, path: approval.ruling, value: ""}], expect_rc: 1, expect_kind: anchor}
+
 cases_amendment:
   - id: amendment-complete
-    why: 判断の記録（accepted）+ amended_by + 新 anchor の 3 点が揃った改訂は緑（正の経路）
+    why: 判断の記録（accepted・その版の amends）+ amended_by + 新 anchor の 3 点が揃った改訂は緑（正の経路）
     mutate:
       - {file: adr/ADR-3.yaml, create: *adr3}
       - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
@@ -44,6 +108,7 @@ cases_amendment:
       - {file: constitution.yaml, path: meta.version, value: v1.1}
       - {freeze_anchor: true}
     expect_rc: 0
+    expect_file: [anchors/constitution-v1.1.yaml]
   - id: amendment-adr-still-proposed
     why: 判断の記録が proposed のままなら落ちる（N-4）
     mutate:
@@ -55,8 +120,9 @@ cases_amendment:
       - {freeze_anchor: true}
     expect_rc: 1
     expect_kind: N-4
+    expect_no_file: [anchors/constitution-v1.1.yaml]
   - id: amendment-wrong-previous-text
-    why: amended_by.previous_text が判断の記録や直前 anchor と食い違えば落ちる（A-2）
+    why: amended_by.previous_text が判断の記録と食い違えば落ちる（A-2）
     mutate:
       - {file: adr/ADR-3.yaml, create: *adr3}
       - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
@@ -85,3 +151,146 @@ cases_amendment:
       - {freeze_anchor: true}
     expect_rc: 1
     expect_kind: N-4
+  - id: amendment-new-text-lies
+    why: amends.new_text が現行の条文と一致しなければ落ちる（M3）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: adr/ADR-3.yaml, path: "amends[0].new_text", value: まったく別の嘘の条文。}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: A-2
+    expect_no_file: [anchors/constitution-v1.1.yaml]
+  - id: amendment-previous-text-trivial
+    why: previous_text が欄の値と完全一致しない（部分文字列「。」）なら落ちる（M4）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: adr/ADR-3.yaml, path: "amends[0].previous_text", value: 。}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: [{adr: ADR-3, date: 2026-09-12, approved_by: 持ち主, ruling: fixture の裁定 id, previous_text: 。, rationale: fixture}]}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: A-2
+  - id: amendment-version-mismatch
+    why: 判断の記録の amends が名指す版が違えば、その版の改訂の根拠にならない（M5）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: adr/ADR-3.yaml, path: "amends[0].version", value: v1.2}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: N-4
+  - id: amendment-approval-date-bad
+    why: 承認の日付が年-月-日でなければ落ちる（m1）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: adr/ADR-3.yaml, path: approval.date, value: にゃーん}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: N-4
+  - id: second-amendment-accumulates
+    why: 同じ条を 2 度改訂し来歴を累積しても緑（B2）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+      - {file: adr/ADR-4.yaml, create: *adr4_amend}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_two}
+      - {file: constitution.yaml, path: meta.version, value: v1.2}
+      - {freeze_anchor: true}
+    expect_rc: 0
+    expect_file: [anchors/constitution-v1.1.yaml, anchors/constitution-v1.2.yaml]
+  - id: second-amendment-stale-record
+    why: 2 度目の改訂で 1 度目の記録を使い回せば落ちる（B2）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}
+      - {file: constitution.yaml, path: meta.version, value: v1.2}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: N-4
+    expect_no_file: [anchors/constitution-v1.2.yaml]
+  - id: older-anchor-deleted
+    why: 鎖の途中の anchor を消すと差分検査は「まだ分からない」（B3・rc 2）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+      - {file: anchors/constitution-v1.0.yaml, delete: true}
+    expect_rc: 2
+    expect_stderr: 鎖が切れている
+  - id: chain-restart
+    why: anchor を全部消して別の版から鎖を始め直すことはできない（B3）
+    mutate:
+      - {file: anchors/constitution-v1.0.yaml, delete: true}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: meta.version, value: v9.9}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: anchor
+    expect_no_file: [anchors/constitution-v9.9.yaml]
+  - id: freeze-refuses-broken
+    why: 床が落ちる憲法は凍結されない（M7）
+    mutate:
+      - {file: constitution.yaml, path: "articles[id=P-1].plain", value: ""}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: R-10
+    expect_no_file: [anchors/constitution-v1.1.yaml]
+  - id: retired-adr-stays-valid
+    why: 改憲した判断を後継で退役させても来歴は生き続ける（M6）
+    mutate:
+      - {file: adr/ADR-3.yaml, create: *adr3}
+      - {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}
+      - {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *amended_by_ok}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+      - {file: adr/ADR-3.yaml, path: status, value: retired}
+      - {file: adr/ADR-3.yaml, path: superseded_by, value: ADR-4}
+      - {file: adr/ADR-4.yaml, create: *adr4_plain}
+    expect_rc: 0
+  - id: schema-amendment-complete
+    why: schema 節の改訂も判断の記録（前後の写しの対）で説明されれば緑（M5 正）
+    mutate:
+      - {file: adr/ADR-5.yaml, create: *adr5_schema}
+      - {file: constitution.yaml, path: schema.enums.tier, value: *tier_new}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 0
+  - id: schema-amendment-text-mismatch
+    why: schema 節の改訂で前後の写しが差分に一致しなければ落ちる（M5）
+    mutate:
+      - {file: adr/ADR-5.yaml, create: *adr5_schema}
+      - {file: adr/ADR-5.yaml, path: "amends[0].new_text", value: "tier: [x]"}
+      - {file: constitution.yaml, path: schema.enums.tier, value: *tier_new}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: A-2
+  - id: schema-changed-without-record
+    why: schema 節を変えて版を上げても判断の記録が無ければ落ちる（N-4）
+    mutate:
+      - {file: constitution.yaml, path: schema.enums.tier, value: *tier_new}
+      - {file: constitution.yaml, path: meta.version, value: v1.1}
+      - {freeze_anchor: true}
+    expect_rc: 1
+    expect_kind: N-4
+    expect_no_file: [anchors/constitution-v1.1.yaml]

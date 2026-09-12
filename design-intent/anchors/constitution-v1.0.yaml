@@ -1,12 +1,20 @@
-# folio2 憲法 v1.0 の凍結 anchor（P-10.1・ADR-2）。発効版の条文の射影（schema 節・前文・各条の id・title・tier・binds・statements）。手で直さない・同じ版は上書きしない（check_draft.py --freeze-anchor が作る）。
+# folio2 憲法 v1.0 の凍結 anchor（P-10.1・ADR-2）。発効版の条文の射影（schema 節・前文・各条の id・title・tier・binds・statements）+ digest + 承認欄。手で直さない・消さない・同じ版は上書きしない（check_draft.py --freeze-anchor が全検査 0 違反のときだけ作る）。
 kind: constitution-anchor
 version: v1.0
+previous: null
 projection_article_fields:
 - id
 - title
 - tier
 - binds
 - statements
+digest: 2e5383705e5ac81ff3c6cadbc057b2a9e68204dadf9191c036d557d579b711da
+approval:
+  who: 持ち主（shuu5）
+  date: 2026-09-12
+  ruling: f2-648.1 notes 2026-09-12 20:2x（発効承認）
+  verbatim: 承認する
+  adr: null
 schema:
   version: 1
   top_level:
