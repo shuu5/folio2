@@ -278,7 +278,7 @@ shared:
     status: accepted
     date: 2026-09-12
     context: fixture。写しの範囲（amendment_scope）を広げる改訂が欄単位の（新設）で記録できることの検査。
-    decision: schema.amendment_scope に north_star を足す。
+    decision: 改訂の範囲（schema.amendment_scope）に北極星の節（north_star）を足す。
     options: *opts_fx
     basis: [A-2]
     retreat: *retreat_fx
@@ -296,7 +296,7 @@ shared:
     status: accepted
     date: 2026-09-12
     context: fixture。値を空文字にする改訂が印で記録できることの検査。
-    decision: schema.mechanism_live_rule を空にする。
+    decision: 機構の欄の規則（schema.mechanism_live_rule）を空にする。
     options: *opts_fx
     basis: [A-2]
     retreat: *retreat_fx
