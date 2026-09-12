@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """床（scripts/check_draft.py）が RED になる fixture を回す runner（f2-648.2 の受入）。fixture の正本は tests/floor_cases.yaml（凍結・P-10.1）。
 使い方: python3 tests/run_floor_cases.py（repo root で）。各 case: design-intent/ を一時 dir へ写し、mutate を順に当て、床を回して
-終了コード・出力の語（expect_msg・rc が非 0 なら必須）・stderr の語・file の有無・違反件数を照合する。正本は触らない。
+終了コード・出力の語（expect_msg・rc が非 0 なら必須）・出て**いけない**語（expect_not_msg）・stderr の語・file の有無・違反件数（expect_n）を照合する。正本は触らない。
 mutate の 1 段: {file, path, value[, add: true]} = 欄を置き換える（欄が無ければ落とす・add で新設）/ {file, delete: true} = file を消す /
 {dir, delete_dir: true} = dir を消す / {file, create: <文書>} = file を新しく置く / {file, write_text: <生の文字列>} = 生で書く /
 {symlink_dir: <dir>} = dir を design-intent の外へ動かして symlink に置き換える / {git_snapshot: true} = 写しを git の 1 commit にする /
-{freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor）。途中の凍結は rc 0 を要る（freeze_rc で上書き）。
+{freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor）。途中の凍結は rc 0 を要る（freeze_rc で上書き）/
+{emit_amends_into: <adr file>} = --emit-amends の出力（# 行を除く）をそのまま YAML として読み、その判断の記録の amends に置く（貼れる形の検査）。
 凍結が最後の段なら、その実行が case の結果。凍結が rc 0 なら続けて素の床も回し rc 0 を要る。expected_cases（件数）を pin する。
 rc: 0 = 全 case が期待どおり / 1 = 期待と違う case あり / 2 = 読めない"""
 import re, sys, shutil, subprocess, tempfile, pathlib
@@ -51,6 +52,7 @@ def judge(cs, pr):
     ok = pr.returncode == cs['expect_rc']
     if cs.get('expect_msg') and cs['expect_msg'] not in pr.stdout + pr.stderr: ok = False
     if cs.get('expect_stderr') and cs['expect_stderr'] not in pr.stderr: ok = False
+    if cs.get('expect_not_msg') and cs['expect_not_msg'] in pr.stdout + pr.stderr: ok = False
     if 'expect_n' in cs and len([l for l in pr.stdout.splitlines() if l.startswith('[')]) != cs['expect_n']: ok = False
     return ok
 bad = 0
@@ -66,6 +68,11 @@ for cs in cases:
                     if mu is not muts[-1] and last.returncode != mu.get('freeze_rc', 0): note += f' ／ 途中の凍結が rc {last.returncode}'
                     continue
                 last = None
+                if mu.get('emit_amends_into'):
+                    em = run(work, '--emit-amends')
+                    if em.returncode != 0: note += f' ／ emit が rc {em.returncode}'; continue
+                    lst = yaml.safe_load('\n'.join(l for l in em.stdout.splitlines() if not l.startswith('#'))) or []
+                    f = work / mu['emit_amends_into']; doc = yaml.safe_load(f.read_text(encoding='utf-8')); doc['amends'] = lst; f.write_text(dump(doc), encoding='utf-8'); continue
                 if mu.get('git_snapshot'):
                     for cmd in (['git', 'init', '-q'], ['git', 'add', '-A'], ['git', '-c', 'user.email=fx@example', '-c', 'user.name=fx', 'commit', '-q', '-m', 'fixture']): subprocess.run(cmd, cwd=td, capture_output=True, check=True)
                     continue

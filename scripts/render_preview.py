@@ -2,13 +2,16 @@
 """正本 4 file（constitution / rules / vocabulary / srs）+ 判断の記録（adr/ADR-n.yaml）→ 読み物 HTML 1 面。手で直さない（再生成する）。"""
 import yaml,html,sys,os,glob
 import argparse
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from strict_yaml import load as _yload   # 重複キーを拒む loader（床 check_draft.py と共有・後勝ちで黙って描かない）
 _ap=argparse.ArgumentParser(); _ap.add_argument('--check',action='store_true'); _ap.add_argument('--write',action='store_true'); _ap.add_argument('--dir',default='design-intent'); _ap.add_argument('--out',default='preview/readable.html'); _a=_ap.parse_args(); os.chdir(_a.dir)
 E=html.escape
-c=yaml.safe_load(open('constitution.yaml',encoding='utf-8')); r=yaml.safe_load(open('rules.yaml',encoding='utf-8'))
-v=yaml.safe_load(open('vocabulary.yaml',encoding='utf-8')); s=yaml.safe_load(open('srs.yaml',encoding='utf-8'))
+def _rd(p): return _yload(open(p,encoding='utf-8').read())
+c=_rd('constitution.yaml'); r=_rd('rules.yaml')
+v=_rd('vocabulary.yaml'); s=_rd('srs.yaml')
 VER=c['meta']['version']
-ADRS=sorted((yaml.safe_load(open(p,encoding='utf-8')) for p in glob.glob('adr/ADR-*.yaml')),key=lambda d:int(str(d['id']).split('-')[1]))
-ANCH=[str(e.get('version')) for e in (yaml.safe_load(open('anchors/index.yaml',encoding='utf-8')) or {}).get('entries',[])] if os.path.exists('anchors/index.yaml') else []
+ADRS=sorted((_rd(p) for p in glob.glob('adr/ADR-*.yaml')),key=lambda d:int(str(d['id']).split('-')[1]))
+ANCH=[str(e.get('version')) for e in (_rd('anchors/index.yaml') or {}).get('entries',[])] if os.path.exists('anchors/index.yaml') else []
 ADRTERM=next((t for t in v['terms'] if t.get('id')=='adr'),None)
 AST={'proposed':('提案中・拘束力なし','#916626'),'accepted':('発効','#1e7b65'),'retired':('廃止','#666666')}
 VERD={'adopted':'採用','rejected':'退けた'}
@@ -103,7 +106,7 @@ for x in s['requirements']+s['nonfunctional']:
 o.append('</table></div>')
 o.append('<h3>承認欄</h3><ul>'+''.join('<li>%s: %s — %s%s</li>'%(E(ap['role']),E(str(ap['who'])),E(str(ap.get('when') or '未')),('（%s）'%E(str(ap['stamp'])) if ap.get('stamp') else '')) for ap in sm['approval'])+'</ul><p class="sub">%s</p>'%E(sm['effective']))
 # ── 判断の記録（ADR・正本 adr/ADR-n.yaml・schema は adr/schema.yaml・M0 の生成器は無いので day-1 の暫定）
-o.append('<h2 id="adr">判断の記録（ADR・%d 件・正本 <code>adr/ADR-n.yaml</code>・欄の決まりは <code>adr/schema.yaml</code>）</h2><p class="note">%s 凍結 anchor（差分検査の比較元・索引 <code>anchors/index.yaml</code>）: %s</p>'%(len(ADRS),E((ADRTERM or {}).get('def','')),E('・'.join(ANCH)) if ANCH else '<b>なし＝差分検査は「まだ分からない」</b>'))
+o.append('<h2 id="adr">判断の記録（ADR・%d 件・正本 <code>adr/ADR-n.yaml</code>・欄の決まりは <code>adr/schema.yaml</code>）</h2><p class="note">%s 凍結 anchor（差分検査の比較元・索引 <code>anchors/index.yaml</code> の列・古い順）: %s</p>'%(len(ADRS),E((ADRTERM or {}).get('def','')),E(' → '.join(ANCH)) if ANCH else '<b>なし（または索引が空）＝差分検査は「まだ分からない」</b>'))
 for d in ADRS:
     sn,scol=AST[d['status']]
     o.append('<section class="art" id="%s"><h4><span class="gid">%s</span>%s<span class="tier" style="background:%s">%s</span><span class="bind">%s</span></h4>'%(E(d['id']),E(d['id']),E(d['title']),scol,sn,E(str(d['date']))))

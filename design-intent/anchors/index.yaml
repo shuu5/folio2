@@ -1,6 +1,0 @@
-# folio2 凍結 anchor の索引（追記のみ・ADR-2）。鎖 = entries の順。手で直さない・消さない。
-kind: constitution-anchor-index
-entries:
-- version: v1.0
-  previous: null
-  digest: c8aaf505c33be01c3b4d06ecef2f9b537788e8e59769ccb29dad95929f0fbf7b
