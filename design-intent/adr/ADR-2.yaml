@@ -1,0 +1,20 @@
+# folio2 判断の記録 ADR-2 — 正本（1 判断 = YAML 1 file・P-6.1）。欄の決まりは adr/schema.yaml。読み物は preview/readable.html（生成物・手で直さない）。
+id: ADR-2
+title: 条文改訂の差分検査（A-2 / N-4）の比較元は、発効版の条文の射影を凍結した anchor file（design-intent/anchors/）とし、版管理の履歴には依らない
+status: proposed
+date: 2026-09-12
+context: A-2 の機構は「正本の比較元（baseline）との差分（diff）」だが、比較元をどこから取るかが決まっていない。憲法の比較元の欄（meta.baseline）は「初回発効の commit（file は自分の commit hash を持てない）」と書くだけで、機械が読める値ではない。P-10.1 は検査に「生成側からも検査側からも独立した凍結 anchor」を求め、P-10.2 は生成物どうしの突き合わせだけを合格判定にすることを禁じ、P-10.3 は anchor が維持できない検査を「まだ分からない」に落とす。
+decision: 発効した版ごとに、条文の射影（schema 節・前文・各条の id・見出し・段・縛る相手・規範文＝A-2 の母集合）を凍結 anchor の置き場（design-intent/anchors/）の版ごとの file（constitution-<版>.yaml）に凍結する。床は (1) 現行の射影が最新 anchor と一致すること（不一致なら N-4）、(2) 最新 anchor の版が憲法の版と同じこと、(3) 直前の anchor との差分が、変わった各条の改訂来歴（amended_by・発効済みの判断の記録・裁定 id・逐語）で説明され、変わる前の文（previous_text）が直前 anchor の条文に見つかること、を検査する。anchor は床の script（check_draft.py --freeze-anchor）が検査と同じ射影関数で作り（P-15.2）、同じ版の anchor は上書きしない。anchor が 0 本なら「まだ分からない」（P-10.3）。
+options:
+  - {id: a, name: 射影を凍結した anchor file, text: 発効版ごとに条文の射影を凍結 anchor の置き場（anchors/）に 1 file 凍結し、床が現行と突き合わせる。, verdict: adopted, reason: 版管理の履歴に依らず、写し（clone）の直後でも検査できる。変わる前の文（previous_text）を anchor の逐語と照合できる。P-10.1 の凍結 anchor そのもの。}
+  - {id: b, name: 発効 commit の履歴番号（commit hash）を型付きデータに書く, text: 欄の決まり（adr/schema.yaml）か憲法の先頭の欄（meta）に履歴番号を置き、版管理の命令（git show）で比較元を取り出す。, verdict: rejected, reason: 取り込み（squash merge）で履歴番号が確定するのは取り込み後＝毎回 2 度の commit が要る。履歴の無い写し（shallow clone）では検査が「読めない」になる。}
+  - {id: c, name: 版の印（git tag）を比較元にする, text: 発効 commit に印を付け、床は印の指す憲法と比べる。, verdict: rejected, reason: 印は push が別で写し（clone）の間でずれる。印が無い環境で検査が黙るか落ちるかを機械で弁別しにくい。}
+  - {id: d, name: 統合先（origin/main）との差分, text: 床は統合先の憲法と現行を比べる。, verdict: rejected, reason: 比較対象が動く（取り込みの要求（PR）の外で統合先が進む）。生成物どうしの突き合わせに当たる（P-10.2）。}
+basis: [A-2, N-4, P-4, P-6, P-7, P-10, P-15]
+retreat: {kind: measure, condition: anchor の凍結忘れ（版を上げたのに凍結の命令（--freeze-anchor）を回さず床が落ちる）が便 0 までに 2 回起きたら、凍結を人手から便 0 の検査（CI）へ移す。M0 で folio が同じ検査を持てば anchor の生成を folio へ移し、床の script（check_draft.py）の側を削除する。}
+amends: []
+approval: null
+plain: 憲法の「いま有効な文」の写しを、版ごとに 1 枚ずつ凍結して置いておきます。機械は「いまの憲法がその写しと同じか」「前の写しから変わった条に、理由の記録とあなたの OK が付いているか」を数えます。写しが 1 枚も無いときは「まだ分からない」と言い、合格にはしません。
+consequences:
+  - 憲法の版を上げる取り込みの要求（PR）は、判断の記録・各条の改訂来歴（amended_by）・新しい anchor の 3 点を同時に含む。
+  - 凍結 anchor の置き場（anchors/）の file は生成物（手で直さない・P-6.2）だが、凍結後は正本の変更に追随させない（それが anchor の意味）。

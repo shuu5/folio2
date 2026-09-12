@@ -1,0 +1,22 @@
+# folio2 判断の記録 ADR-1 — 正本（1 判断 = YAML 1 file・P-6.1）。欄の決まりは adr/schema.yaml。読み物は preview/readable.html（生成物・手で直さない）。
+id: ADR-1
+title: 判断の記録の正本は「1 判断 = 型付きの YAML 1 file」とし、design-intent/adr/ にゼロ詰めしない番号（ADR-n）で置く
+status: proposed
+date: 2026-09-12
+context: 憲法の初版（v1.0）は 3 つの機構（P-8.1 撤退条件の必須・A-2 条文改訂の差分検査・N-4 裁定なしの改憲の拒否）を「判断の記録の正本 schema が置かれたときに実在する（live が adr）」として発効した。schema が無い間はこの 3 つが「まだ分からない」のままで、発効後に条文を直す手続きを機械で確かめられない。語彙は判断の記録を「戻せない判断を、理由・退けた案・撤退条件つきで残す 1 枚」と定めている。要件書 M0 は判断の記録の生成器を「作らない」側に置くが（§2）、正本の schema は生成器ではなく型付きデータであり、文書は着手の関門（gate）の外で進められる（CON1）。
+decision: 判断の記録は 1 判断につき YAML 1 file とし、欄と値域を型付きの欄の決まり（adr/schema.yaml）で閉じる。番号は folio2 の他の id（P-1・R-7・FR1）と同じくゼロ詰めしない ADR-n とし、前の版（folio v1）や scribe2 の 4 桁の番号（ADR-0047 の形）と形で区別する。file 名は id と同じにする。撤退条件・退けた案（採用は 1 つ）・根拠の id・承認の欄（逐語・日付・裁定 id・対話面）を必須か条件付き必須の欄として持つ。憲法の各条にある改訂来歴の欄（amended_by）の欄集合もこの欄の決まりが持つ（憲法の schema 節は A-2 の差分の母集合なので触らない）。
+options:
+  - {id: a, name: 型付きの YAML 1 file を 1 判断ごとに置く, text: 判断ごとの file（adr/ADR-n.yaml）に 1 判断ずつ置き、欄と値域は欄の決まり（adr/schema.yaml）で閉じる。, verdict: adopted, reason: 機械が欄の欠落（撤退条件・承認・退けた案）を数えられる（P-5.1）。1 file 1 判断は P-6.1 と同形で、正本の粒度が憲法・要件書と揃う。}
+  - {id: b, name: 憲法 file の中に判断の節を足す, text: 憲法の正本（constitution.yaml）に判断の節を設けて並べる。, verdict: rejected, reason: 憲法の節の一覧（top_level）は閉じており（N-3）、節を足すのは schema 節の変更＝A-2 の改訂になる。判断を 1 つ足すたびに改憲になり、file も肥大する。}
+  - {id: c, name: 散文（Markdown）の判断の記録, text: 前の版（folio v1）と同じ、文書の置き場に散文で置く形（docs/adr/ADR-0001.md）。, verdict: rejected, reason: 散文の欄は欠落を機械で検査できない（N-2 の極性と逆）。v1 は 48 本が全部「発効（accepted）」で「取り消した決定」を機械で引けなかった（P-7 の出所）。}
+  - {id: d, name: 台帳（bd）の notes だけに残す, text: 判断は台帳の notes の逐語で足りるとする。, verdict: rejected, reason: 台帳はタスクと裁定の記帳先であって規則も文書も置かない（P-5.4）。承認は文書の承認欄にも記帳する（P-12.2）。}
+basis: [P-8, A-2, N-4, P-5, P-6, P-7, P-12, P-13, N-3, R-8, CON1]
+retreat: {kind: ruling, condition: M0 で folio が判断の記録の型を実装（Rust）の側で持ち、同じ検査（欄の欠落・撤退条件の空・改訂の双方向）を出せた時点で、欄の決まり（adr/schema.yaml）を正本から外し、床の script（check_draft.py）の判断の記録の節を削除する。それより前に、3 件目までの判断の記録で欄の追加が 2 回以上要ったら（型が足りない）、欄の決まりの版上げを持ち主の裁定へ戻す。}
+amends: []
+approval: null
+plain: 「なぜそう決めたか」を残すメモは、1 つの決定につき 1 枚のファイルにします。書く欄（何が問題か・何を決めたか・他にどんな案があってなぜ選ばなかったか・うまくいかなかったらいつやめるか・あなたの OK の言葉）は決まっていて、欄が空だと機械が止めます。番号は 1 から順に付け、前の道具の番号（0047 のような 4 桁）とは見た目で区別できるようにします。
+consequences:
+  - 憲法の 3 機構（P-8.1・A-2・N-4）が「まだ分からない」から検査へ変わる（live が adr の実在）。
+  - 以後、条文を直す変更は「判断の記録（発効済み）+ 各条の改訂来歴（amended_by）+ 凍結 anchor（ADR-2）」の 3 点を伴わないと床が落とす。
+  - 読み物（preview/readable.html）に判断の記録の節が増える。M0 の folio は判断の記録の生成器を持たない（要件書 §2）ので、この節は発効日の暫定 script（render_preview.py）の範囲。
+note: 条文の改訂ではないので A-2.3（grill）の対象外。敵対レビュー（読み取り専用の agent・opus）の記録は台帳 f2-648.2 notes に置く。

@@ -12,8 +12,13 @@
   inject  : 注入の母集団（前文 + 規範文）の本数が inject_check.derive と一致
   polarity: 極性一覧（P-18.3）を mechanism の stage / polarity と rules 行の stage から生成し、in-loop の本数を出す
             （P-18.4「in-loop 0 なら落とす」は live: delivery-0 ゆえ発効時点では「まだ分からない」として出す）
+  adr     : 判断の記録（adr/ADR-n.yaml・schema は adr/schema.yaml・ADR-1）の欄・値域・退けた案（採用 1）・撤退条件の非空（P-8.1）・承認欄（N-4）
+            amends ⇔ amended_by の双方向（A-2）。判断の記録の本文は refs（R-4）と vocab（R-9）の母集団にも入る（id 空間は 3 つのまま）
+  anchor  : 凍結 anchor（anchors/constitution-v<版>.yaml・ADR-2）と現行の射影（schema 節・前文・条の 5 欄）の一致（N-4）・版の一致（A-2）
+            直前 anchor との差分が各条の amended_by（accepted な判断・裁定 id・逐語）で説明されること。anchor 0 本は「まだ分からない」（rc 2）
+            --freeze-anchor: 現行の射影を anchor として凍結する（検査と同じ射影関数・同じ版は上書きしない）
   counts  : meta.counts と実数の一致
-rc: 0 = 全部通った / 1 = 違反あり / 2 = 読めない
+rc: 0 = 全部通った / 1 = 違反あり / 2 = 読めない・測れない（anchor 0 本）
 """
 import re, sys, pathlib, collections, argparse
 try:
@@ -21,7 +26,7 @@ try:
 except ImportError:
     print('check_draft: pyyaml が無い', file=sys.stderr); sys.exit(2)
 
-ap = argparse.ArgumentParser(); ap.add_argument('--dir', default='design-intent'); ap.add_argument('--names', default='placed', choices=['draft', 'placed'])
+ap = argparse.ArgumentParser(); ap.add_argument('--dir', default='design-intent'); ap.add_argument('--names', default='placed', choices=['draft', 'placed']); ap.add_argument('--freeze-anchor', action='store_true')
 args = ap.parse_args()
 HERE = pathlib.Path(args.dir).resolve()
 SUF = '.draft.yaml' if args.names == 'draft' else '.yaml'
@@ -108,7 +113,68 @@ for rid, (sect, row) in rows.items():
     allowed = rs['kind_map_to_constitution'].get(row['kind'], [])
     if art_mech.get(row['article']) not in allowed: err('rules', f"{rid}: kind {row['kind']} と条 {row['article']} の機構 {art_mech.get(row['article'])} が写像表に合わない")
 
-# ── refs（R-4・母集団 = 4 file の全欄）──
+# ── adr（判断の記録の正本・P-8 / A-2 / N-4 の live: adr・ADR-1）──
+ADR_DIR = HERE / 'adr'; ANCH_DIR = HERE / 'anchors'
+def load_path(p):
+    if not p.exists(): print(f'check_draft: 正本が無い: {p}', file=sys.stderr); sys.exit(2)
+    try: return yaml.safe_load(p.read_text(encoding='utf-8'))
+    except Exception as ex: print(f'check_draft: parse できない: {p}: {ex}', file=sys.stderr); sys.exit(2)
+asd = load_path(ADR_DIR / 'schema.yaml')
+if set(asd.keys()) - {'meta', 'schema', 'plain'}: err('adr', f"adr/schema.yaml の未知の節（N-3）: {sorted(set(asd.keys()) - {'meta', 'schema', 'plain'})}")
+asc = asd['schema']; aen = asc['enums']
+if aen['retreat_kind'] != en['retreat_kind']: err('adr', f"adr/schema.yaml の retreat_kind {aen['retreat_kind']} が憲法の値域 {en['retreat_kind']} と食い違う")
+r8 = next((row for row in r.get('thresholds') or [] if row.get('id') == asc['approval_rule']['surface_rules_row']), None)
+if not r8 or not str(r8.get('value', '')).startswith(asc['approval_rule']['surface_prefix']): err('adr', f"rules 行 {asc['approval_rule']['surface_rules_row']} の value が adr/schema.yaml の surface_prefix「{asc['approval_rule']['surface_prefix']}」で始まらない")
+ADR_ID = re.compile(asc['id_pattern']); adrs = {}
+for p in sorted(ADR_DIR.glob('*.yaml')):
+    if p.name == 'schema.yaml': continue
+    d = load_path(p); aid = str(d.get('id'))
+    keys_ok('adr', aid, d, {'required': asc['required'], 'optional': asc['optional']})
+    if not ADR_ID.match(aid): err('adr', f"{p.name}: id「{aid}」が形 {asc['id_pattern']} でない（ゼロ詰めしない・4 桁は外部の記録）")
+    if p.stem != aid: err('adr', f"{p.name}: file 名が id {aid} と違う（1 判断 = 1 file・file 名 = id）")
+    if aid in adrs: err('adr', f"{aid}: id が重複（P-7）")
+    adrs[aid] = d
+    if d.get('status') not in aen['status']: err('adr', f"{aid}: status が値域外: {d.get('status')}")
+    for k in asc['non_empty']:
+        if not str(d.get(k) or '').strip(): err('adr', f"{aid}: {k} が空")
+    opts = d.get('options') or []
+    if len(opts) < asc['options_rule']['min']: err('adr', f"{aid}: 案が {len(opts)} 件（退けた案を含めて {asc['options_rule']['min']} 件以上）")
+    for o in opts:
+        keys_ok('adr', f"{aid}.options[{o.get('id')}]", o, asc['option'])
+        if o.get('verdict') not in aen['verdict']: err('adr', f"{aid}.options[{o.get('id')}]: verdict が値域外: {o.get('verdict')}")
+    n_ad = sum(1 for o in opts if o.get('verdict') == 'adopted')
+    if n_ad != asc['options_rule']['adopted']: err('adr', f"{aid}: 採用の案が {n_ad} 件（{asc['options_rule']['adopted']} 件）")
+    rt = d.get('retreat') if isinstance(d.get('retreat'), dict) else {}
+    keys_ok('P-8', f'{aid}.retreat', rt, asc['retreat'])
+    if rt.get('kind') not in aen['retreat_kind']: err('P-8', f"{aid}: retreat.kind が値域外: {rt.get('kind')}")
+    if asc['retreat']['condition_non_empty'] and not str(rt.get('condition') or '').strip(): err('P-8', f"{aid}: 撤退条件が空（P-8.1）")
+    if asc['basis']['non_empty'] and not d.get('basis'): err('adr', f"{aid}: basis（根拠の id）が空")
+    amends = d.get('amends') or []
+    for e in amends:
+        keys_ok('A-2', f"{aid}.amends[{e.get('target')}]", e, asc['amends_entry'])
+        if e.get('target') not in ids and e.get('target') not in asc['amends_entry']['targets_extra']: err('A-2', f"{aid}: amends の対象 {e.get('target')} が条 id でも {asc['amends_entry']['targets_extra']} でもない")
+        if not str(e.get('previous_text') or '').strip(): err('A-2', f"{aid}: amends[{e.get('target')}].previous_text が空")
+    ap_ = d.get('approval')
+    if d.get('status') == 'accepted' and asc['approval_rule']['accepted_requires_approval'] and not ap_: err('N-4', f"{aid}: accepted なのに approval（逐語・日付・裁定 id）が無い")
+    if ap_:
+        keys_ok('N-4', f'{aid}.approval', ap_, asc['approval'])
+        for k in ('date', 'ruling', 'verbatim'):
+            if not str(ap_.get(k) or '').strip(): err('N-4', f"{aid}: approval.{k} が空")
+        if ap_.get('who') not in aen['approver']: err('N-4', f"{aid}: approval.who が値域外: {ap_.get('who')}")
+        if not str(ap_.get('surface') or '').startswith(asc['approval_rule']['surface_prefix']): err('N-4', f"{aid}: approval.surface が rules 行 {asc['approval_rule']['surface_rules_row']} の対話面で始まらない")
+    if amends:
+        if d.get('status') == 'accepted' and asc['approval_rule']['amends_requires_owner'] and (not ap_ or ap_.get('who') != '持ち主'): err('N-4', f"{aid}: 条文を改訂する判断の承認者が持ち主でない")
+        if asc['approval_rule']['amends_requires_grill'] and not d.get('grill'): err('A-2', f"{aid}: 条文を改訂する判断に grill の記録が無い（A-2.3）")
+    if d.get('grill'): keys_ok('A-2', f'{aid}.grill', d['grill'], asc['grill'])
+for aid, d in adrs.items():
+    for k in ('supersedes', 'superseded_by'):
+        if d.get(k) and str(d[k]) not in adrs: err('adr', f"{aid}: {k} {d[k]} の判断の記録が実在しない")
+    if d.get('superseded_by'):
+        if d.get('status') != 'retired': err('adr', f"{aid}: superseded_by を持つのに status が retired でない（P-7.2）")
+        nx = adrs.get(str(d['superseded_by']))
+        if nx and str(nx.get('supersedes')) != aid: err('adr', f"{aid}: 後継 {d['superseded_by']} の supersedes に {aid} が無い（双方向）")
+
+# ── refs（R-4・母集団 = 4 file + 判断の記録の全欄）──
 req_ids = set()
 for sect in ('goals', 'requirements', 'nonfunctional', 'acceptance', 'constraints', 'actors', 'outputs'):
     for x in s.get(sect) or []: req_ids.add(x['id'])
@@ -125,6 +191,7 @@ def walk(obj, where):
             if m not in known_ids: err('refs', f"{where}: id {m} が実在しない")
 for name, obj in (('憲法', {k: (vv if k != 'meta' else {kk: x for kk, x in vv.items() if not kk.startswith('changes_from')}) for k, vv in c.items() if k != 'schema'}), ('rules', {k: vv for k, vv in r.items() if k != 'schema'}), ('語彙', v), ('要件書', s)):
     walk(obj, name)
+for aid, d in adrs.items(): walk(d, aid)
 referenced_rules = set()
 for a in c['articles']:
     rel = a.get('relations') or {}
@@ -142,13 +209,78 @@ art_rules = {a['id']: set((a.get('relations') or {}).get('rules', [])) for a in 
 for rid, (sect, row) in rows.items():
     if rid not in art_rules.get(row['article'], set()): err('R-4', f"{rid}: article={row['article']} だが {row['article']} の relations.rules に無い")
 
+# ── amended_by ⇔ amends（A-2 / N-4 の双方向・ADR-1）──
+ab_spec = asc['amended_by_entry']; art_by_id = {a['id']: a for a in c['articles']}
+for a in c['articles']:
+    for am in a.get('amended_by') or []:
+        keys_ok('A-2', f"{a['id']}.amended_by", am, ab_spec)
+        for k in ('approved_by', 'ruling', 'previous_text'):
+            if not str(am.get(k) or '').strip(): err('N-4', f"{a['id']}: amended_by.{k} が空")
+        ref = adrs.get(str(am.get('adr')))
+        if not ref: err('N-4', f"{a['id']}: amended_by.adr {am.get('adr')} の判断の記録が実在しない"); continue
+        if ref.get('status') != 'accepted': err('N-4', f"{a['id']}: amended_by.adr {am['adr']} が accepted でない（{ref.get('status')}）")
+        hit = [e for e in (ref.get('amends') or []) if e.get('target') == a['id']]
+        if not hit: err('A-2', f"{a['id']}: {am['adr']} の amends に {a['id']} が無い（双方向）")
+        elif hit[0].get('previous_text') != am.get('previous_text'): err('A-2', f"{a['id']}: previous_text が {am['adr']}.amends と食い違う")
+for aid, d in adrs.items():
+    if d.get('status') != 'accepted': continue
+    for e in d.get('amends') or []:
+        t = e.get('target')
+        if t in art_by_id and not any(str(am.get('adr')) == aid for am in art_by_id[t].get('amended_by') or []): err('A-2', f"{aid}: {t} の amended_by に {aid} が無い（双方向）")
+
+# ── anchor（凍結 anchor・A-2 / N-4 の差分検査の比較元・P-10・ADR-2）──
+an = asc['anchor']; PROJ = an['projection_article_fields']
+def project(doc): return {'schema': doc.get('schema'), 'precedence': doc.get('precedence'), 'articles': [{k: a.get(k) for k in PROJ} for a in doc.get('articles') or []]}
+cur_proj = project(c); cur_ver = str(c['meta']['version'])
+def ver_key(vs): return tuple(int(x) for x in re.findall(r'\d+', str(vs)))
+ANCH_KEYS = {'kind', 'version', 'projection_article_fields', 'schema', 'precedence', 'articles'}
+anchors = []
+for p in (sorted(ANCH_DIR.glob('constitution-v*.yaml')) if ANCH_DIR.exists() else []):
+    d = load_path(p)
+    if set(d.keys()) != ANCH_KEYS or d.get('kind') != 'constitution-anchor': err('anchor', f"{p.name}: anchor の欄が壊れている: {sorted(d.keys())}"); continue
+    anchors.append((ver_key(d['version']), str(d['version']), d, p))
+anchors.sort(key=lambda x: x[0])
+if args.freeze_anchor:
+    if any(vs == cur_ver for _, vs, _, _ in anchors): print(f'check_draft: anchor {cur_ver} は既に凍結されている（上書きしない・版を上げてから）', file=sys.stderr); sys.exit(2)
+    ANCH_DIR.mkdir(exist_ok=True)
+    fz = {'kind': 'constitution-anchor', 'version': cur_ver, 'projection_article_fields': list(PROJ), **cur_proj}
+    fp = ANCH_DIR / an['file_name'].replace('<version>', cur_ver)
+    fp.write_text(f"# folio2 憲法 {cur_ver} の凍結 anchor（P-10.1・ADR-2）。発効版の条文の射影（schema 節・前文・各条の {'・'.join(PROJ)}）。手で直さない・同じ版は上書きしない（check_draft.py --freeze-anchor が作る）。\n" + yaml.safe_dump(fz, allow_unicode=True, sort_keys=False, width=10**6), encoding='utf-8')
+    print(f'check_draft: 凍結した: {fp}（条 {len(cur_proj["articles"])}）', file=sys.stderr)
+    anchors.append((ver_key(cur_ver), cur_ver, fz, fp)); anchors.sort(key=lambda x: x[0])
+pending = []
+if not anchors: pending.append(f"凍結 anchor が 0 本（{ANCH_DIR}）＝A-2 / N-4 の差分検査は「まだ分からない」（P-10.3）。発効版で --freeze-anchor を実行する")
+else:
+    _, nv, nd, np_ = anchors[-1]
+    if nv != cur_ver: err('A-2', f"憲法の版 {cur_ver} と最新 anchor の版 {nv} が違う＝版を上げたのに凍結していない（--freeze-anchor）か、版を上げずに直した")
+    elif project(nd) != cur_proj: err('N-4', f"現行の条文（schema 節・前文・条の {len(PROJ)} 欄）が凍結 anchor {np_.name} と一致しない＝判断の記録と承認を伴わない改憲（N-4.1）")
+    if len(anchors) >= 2:
+        _, pv, pd_, pp = anchors[-2]; prev = project(pd_)
+        prev_arts = {a['id']: a for a in prev['articles']}; cur_arts = {a['id']: a for a in cur_proj['articles']}
+        acc = {k: d for k, d in adrs.items() if d.get('status') == 'accepted'}
+        def has_amends(t): return any(any(e.get('target') == t for e in d.get('amends') or []) for d in acc.values())
+        for t in ('schema', 'precedence'):
+            if prev[t] != cur_proj[t] and not has_amends(t): err('N-4', f"{t} が anchor {pv} から変わったが、それを amends に持つ accepted な判断の記録が無い")
+        for i in sorted(prev_arts.keys() - cur_arts.keys()): err('P-7', f"条 {i} が anchor {pv} に在って現行に無い（番号は消さない・廃止は状態で）")
+        for i, ca in cur_arts.items():
+            pa = prev_arts.get(i)
+            if pa == ca: continue
+            if pa is None:
+                if not has_amends(i): err('N-4', f"条 {i} が anchor {pv} に無い（新設）が、それを amends に持つ accepted な判断の記録が無い")
+                continue
+            ams = [am for am in (art_by_id[i].get('amended_by') or []) if str(am.get('adr')) in acc]
+            if not ams: err('N-4', f"{i} が anchor {pv} から変わったが amended_by（判断の記録・裁定 id・承認）が無い"); continue
+            prev_txt = yaml.safe_dump(pa, allow_unicode=True, sort_keys=False, width=10**6)
+            for am in ams:
+                if str(am.get('previous_text')) not in prev_txt: err('A-2', f"{i}: amended_by.previous_text が anchor {pv} の条文に見当たらない")
+
 # ── vocab（R-9 / R-12 の機械側）──
 known = set()
 for t in (v.get('terms') or []) + (v.get('field_terms') or []):
     for w in re.findall(r'[A-Za-z][A-Za-z0-9\-\.]*[A-Za-z0-9]|[A-Za-z]', (t.get('term') or '') + ' ' + (t.get('en') or '')): known.add(w.lower())
 for g in v.get('identifiers') or []:
     for w in g.get('words') or []: known.add(str(w).lower())
-IDENT = re.compile(r'^(P|A|N|FR|NFR|AC|CON|GOAL|R|D)-?\d|^[RD]-n$|^[a-z]\d-[0-9a-z]+(\.\d+)?$')   # 条・要件・rules 行の id / R-n・D-n / 台帳 id（f2-648・s2-07l.149）
+IDENT = re.compile(r'^(P|A|N|FR|NFR|AC|CON|GOAL|R|D)-?\d|^ADR-\d+$|^ADR-n$|^[RD]-n$|^[a-z]\d-[0-9a-z]+(\.\d+)?$')   # 条・要件・rules 行の id / R-n・D-n / 台帳 id（f2-648・s2-07l.149）
 GLOSS = re.compile(r'[\u3040-\u30ff\u4e00-\u9fff][^（）]*?（([^（）]*)）')   # 「日本語（原語）」の形＝グロス済み（R-12 の免除）
 def words(text): return re.findall(r'[A-Za-z][A-Za-z0-9\-\.]*[A-Za-z0-9]|[A-Za-z]', text)
 body = []
@@ -167,6 +299,12 @@ for x in s.get('constraints') or []:
     for k in ('title', 'text'): body.append((f"要件書 {x['id']} {k}", str(x.get(k, ''))))
 for x in s.get('goals') or []: body.append((f"要件書 {x['id']}", x.get('title', '') + ' ' + x.get('text', '')))
 for t in v.get('terms') or []: body.append((f"語彙 {t['id']} def", str(t.get('short', '')) + ' ' + str(t.get('def', ''))))
+for aid, d in adrs.items():
+    for k in ('title', 'context', 'decision', 'plain'): body.append((f'{aid} {k}', str(d.get(k) or '')))
+    body.append((f'{aid} retreat', str((d.get('retreat') or {}).get('condition') or '')))
+    for o in d.get('options') or []: body.append((f"{aid} option {o.get('id')}", ' '.join(str(o.get(k) or '') for k in ('name', 'text', 'reason'))))
+    for x in d.get('consequences') or []: body.append((f'{aid} consequences', str(x)))
+body.append(('adr schema plain', str(asd.get('plain') or '')))
 unknown = collections.Counter()
 for where, text in body:
     glossed = {x.lower() for g in GLOSS.findall(text) for x in words(g)}
@@ -201,5 +339,6 @@ by = collections.Counter(k for k, _ in errs)
 for k, m in errs: print(f'[{k}] {m}')
 n_st = sum(len(a['statements']) for a in c['articles'])
 print(f"# 極性一覧: {len(pol)} 件（in-loop {len(inloop)} / post {len(pol) - len(inloop)}）。P-18.4（in-loop 0 なら落とす）= " + ('合格' if inloop else 'まだ分からない（live delivery-0・便 0 で編集時 guard が入るまで）'), file=sys.stderr)
-print(f"# 条 {len(ids)}（{dict(cnt)}）/ 規範文 {n_st} / rules 行 {len(rule_ids)} / 語彙 {len(v.get('terms') or [])} 語 + 欄 {len(v.get('field_terms') or [])} + 識別子 {sum(len(g.get('words') or []) for g in (v.get('identifiers') or []))} / 違反 {len(errs)} {dict(by)}", file=sys.stderr)
-sys.exit(1 if errs else 0)
+print(f"# 条 {len(ids)}（{dict(cnt)}）/ 規範文 {n_st} / rules 行 {len(rule_ids)} / 語彙 {len(v.get('terms') or [])} 語 + 欄 {len(v.get('field_terms') or [])} + 識別子 {sum(len(g.get('words') or []) for g in (v.get('identifiers') or []))} / 判断の記録 {len(adrs)} / anchor {len(anchors)} / 違反 {len(errs)} {dict(by)}", file=sys.stderr)
+for u in pending: print(f'# まだ分からない: {u}', file=sys.stderr)
+sys.exit(1 if errs else (2 if pending else 0))
