@@ -8,7 +8,8 @@ c=yaml.safe_load(open('constitution.yaml',encoding='utf-8')); r=yaml.safe_load(o
 v=yaml.safe_load(open('vocabulary.yaml',encoding='utf-8')); s=yaml.safe_load(open('srs.yaml',encoding='utf-8'))
 VER=c['meta']['version']
 ADRS=sorted((yaml.safe_load(open(p,encoding='utf-8')) for p in glob.glob('adr/ADR-*.yaml')),key=lambda d:int(str(d['id']).split('-')[1]))
-ANCH=sorted(os.path.basename(x) for x in glob.glob('anchors/constitution-v*.yaml'))
+ANCH=[str(e.get('version')) for e in (yaml.safe_load(open('anchors/index.yaml',encoding='utf-8')) or {}).get('entries',[])] if os.path.exists('anchors/index.yaml') else []
+ADRTERM=next((t for t in v['terms'] if t.get('id')=='adr'),None)
 AST={'proposed':('提案中・拘束力なし','#916626'),'accepted':('発効','#1e7b65'),'retired':('廃止','#666666')}
 VERD={'adopted':'採用','rejected':'退けた'}
 DOCST={'effective':'発効・拘束力あり','draft':'未承認・拘束力なし'}
@@ -102,7 +103,7 @@ for x in s['requirements']+s['nonfunctional']:
 o.append('</table></div>')
 o.append('<h3>承認欄</h3><ul>'+''.join('<li>%s: %s — %s%s</li>'%(E(ap['role']),E(str(ap['who'])),E(str(ap.get('when') or '未')),('（%s）'%E(str(ap['stamp'])) if ap.get('stamp') else '')) for ap in sm['approval'])+'</ul><p class="sub">%s</p>'%E(sm['effective']))
 # ── 判断の記録（ADR・正本 adr/ADR-n.yaml・schema は adr/schema.yaml・M0 の生成器は無いので day-1 の暫定）
-o.append('<h2 id="adr">判断の記録（ADR・%d 件・正本 <code>adr/ADR-n.yaml</code>・欄の決まりは <code>adr/schema.yaml</code>）</h2><p class="note">戻せない判断を、理由・退けた案・撤退条件つきで残す 1 枚（P-8）。憲法の条文を直すときは必ず要る（A-2・N-4）。凍結 anchor（A-2 / N-4 の差分検査の比較元・P-10）: %s</p>'%(len(ADRS),E('・'.join(ANCH)) if ANCH else '<b>なし＝差分検査は「まだ分からない」</b>'))
+o.append('<h2 id="adr">判断の記録（ADR・%d 件・正本 <code>adr/ADR-n.yaml</code>・欄の決まりは <code>adr/schema.yaml</code>）</h2><p class="note">%s 凍結 anchor（差分検査の比較元・索引 <code>anchors/index.yaml</code>）: %s</p>'%(len(ADRS),E((ADRTERM or {}).get('def','')),E('・'.join(ANCH)) if ANCH else '<b>なし＝差分検査は「まだ分からない」</b>'))
 for d in ADRS:
     sn,scol=AST[d['status']]
     o.append('<section class="art" id="%s"><h4><span class="gid">%s</span>%s<span class="tier" style="background:%s">%s</span><span class="bind">%s</span></h4>'%(E(d['id']),E(d['id']),E(d['title']),scol,sn,E(str(d['date']))))
@@ -110,10 +111,10 @@ for d in ADRS:
     o.append('<dt>何が問題か</dt><dd>%s</dd><dt>何を決めたか</dt><dd>%s</dd>'%(E(d['context']),E(d['decision'])))
     o.append('<dt>案（採用は 1 つ）</dt><dd>'+'<br>'.join('<b>%s</b>〔%s〕 %s — %s'%(E(x['name']),VERD[x['verdict']],E(x['text']),E(x['reason'])) for x in d['options'])+'</dd>')
     o.append('<dt>根拠</dt><dd>%s</dd><dt>撤退条件</dt><dd>[%s] %s</dd>'%(E('・'.join(map(str,d['basis']))),E(d['retreat']['kind']),E(d['retreat']['condition'])))
-    if d.get('amends'): o.append('<dt>改訂する条文</dt><dd>'+'<br>'.join('<b>%s</b>: 「%s」→「%s」'%(E(str(e['target'])),E(str(e['previous_text'])),E(str(e['new_text']))) for e in d['amends'])+'</dd>')
+    if d.get('amends'): o.append('<dt>改訂する条文（版・欄）</dt><dd>'+'<br>'.join('<b>%s</b> %s.%s: 「%s」→「%s」'%(E(str(e.get('version'))),E(str(e['target'])),E(str(e.get('field'))),E(str(e['previous_text'])),E(str(e['new_text']))) for e in d['amends'])+'</dd>')
     if d.get('grill'): g=d['grill']; o.append('<dt>反対側からの確認（grill）</dt><dd>%s・%s・%s<br>%s</dd>'%(E(str(g['when'])),E(str(g['who'])),E(str(g['where'])),E(str(g['summary']))))
     if d.get('consequences'): o.append('<dt>この判断で変わること</dt><dd>%s</dd>'%'<br>'.join(E(str(x)) for x in d['consequences']))
-    ap=d.get('approval'); o.append('<dt>承認</dt><dd>%s</dd>'%(E('%s・%s・%s・「%s」（%s）'%(ap['who'],ap['date'],ap['ruling'],ap['verbatim'],ap['surface'])) if ap else '未（提案中・持ち主の逐語と日付が入ると発効）'))
+    ap=d.get('approval'); o.append('<dt>承認</dt><dd>%s</dd>'%(E('%s・%s・裁定 %s・「%s」（対話面 = rules 行 %s）'%(ap['who'],ap['date'],ap['ruling'],ap['verbatim'],ap['surface'])) if ap else '未（提案中・持ち主の逐語と日付が入ると発効）'))
     for k,lab in (('supersedes','置き換えた判断'),('superseded_by','後継の判断')):
         if d.get(k): o.append('<dt>%s</dt><dd>%s</dd>'%(lab,E(str(d[k]))))
     if d.get('note'): o.append('<dt>planner 注</dt><dd>%s</dd>'%E(str(d['note'])))
