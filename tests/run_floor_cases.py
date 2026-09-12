@@ -5,12 +5,15 @@ mutate を順に当て、床を回して終了コード・出力の語（expect_
 mutate の 1 段: {file, path, value[, add: true]} = 欄を置き換える（欄が無ければ落とす・add で新設）/ {file, path, raw_key, value} = path の表に鍵 raw_key（「.」入り等の生の鍵）を置く /
 {file, path, pop: true} = path の一覧の末尾を 1 つ消す / {file, delete: true} = file を消す / {dir, delete_dir: true} = dir を消す / {file, create: <文書>} = file を新しく置く / {file, write_text: <生の文字列>} = 生で書く /
 {symlink_dir: <dir>} = dir を design-intent の外へ動かして symlink に置き換える / {symlink_file: <file>} = file を外へ動かして symlink に置き換える /
-{git_snapshot: true} / {git_commit: true} = 写しの現状を git の 1 commit にする / {git_ignore_anchors: true} = anchors/ を版管理から除外して commit / {git_nested: true} = design-intent 自体を版管理の根にする /
-{freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor）。途中の凍結は rc 0 を要る（freeze_rc で上書き）/
+{git_snapshot: true} / {git_commit: true} = 写しの現状を git の 1 commit にする / {git_ignore_anchors: true} = anchors/ を版管理から除外（追跡も外す）して commit / {git_ignore_anchors_keep_tracked: true} = 追跡は外さず .gitignore だけ足して commit /
+{git_ignore_pattern: <pattern>} = .gitignore に file の pattern を足して commit / {git_nested: true} = design-intent 自体を版管理の根にする / {git_reinit_no_commit: true} = .git を捨てて git init だけ（commit 無し）/
+{git_orphan_drop_anchors: true} = 新しい根の無い branch（orphan）へ切り anchors/ を追跡から外して消し commit / {git_shallow_clone: true} = 写しを浅い clone（depth 1）に置き換える / {env_git_dir_empty: true} = 以後の床の起動に GIT_DIR / GIT_WORK_TREE を空の repo へ向けて渡す /
+{refreeze_in_fresh_repo: true} = 写しを anchors/ 無しの新しい repo に写して凍結し、できた anchor を持ち帰る（別の写しで列を始め直す手口）/ {anchor_forge: {file, path, value}} = anchor の欄を書き換えて digest と索引を計算し直す（揃えて書き換える改竄）/
+{freeze_anchor: true} = 写しの現行を anchor に凍結する（--freeze-anchor）。途中の凍結は rc 0 を要る（freeze_rc で上書き）・途中の凍結の後は写しを commit する（commit: false で外す）/
 {emit_amends_into: <adr file>} = --emit-amends の出力（# 行を除く）をそのまま YAML として読み、その判断の記録の amends に置く（貼れる形の検査）。
-凍結が最後の段なら、その実行が case の結果。凍結が rc 0 なら続けて素の床も回し rc 0 を要る。expected_cases（件数）を pin する。
+凍結が最後の段なら、その実行が case の結果。凍結が rc 0 なら続けて素の床も回し rc 0 を要る。途中の凍結が rc 0 なら写しを commit する（凍結した anchor は commit するのが正規の手順）。expected_cases（件数）を pin する。
 rc: 0 = 全 case が期待どおり / 1 = 期待と違う case あり / 2 = 読めない"""
-import re, sys, shutil, subprocess, tempfile, pathlib
+import re, sys, shutil, subprocess, tempfile, pathlib, os, json, hashlib
 try:
     import yaml
 except ImportError:
@@ -48,7 +51,10 @@ def mutate(doc, path, value, add):
         cur.append(value); return
     cur[last] = value
 def dump(doc): return yaml.safe_dump(doc, allow_unicode=True, sort_keys=False, width=10**6)
-def run(work, *flags): return subprocess.run([sys.executable, str(CHECK), '--dir', str(work), *flags], capture_output=True, text=True)
+RUN_ENV = {}
+def run(work, *flags): return subprocess.run([sys.executable, str(CHECK), '--dir', str(work), *flags], capture_output=True, text=True, env={**os.environ, **RUN_ENV})
+def canon(x): return json.dumps(x, ensure_ascii=False, sort_keys=True, separators=(',', ':'), default=str)   # 床と同じ正規化（揃えて書き換える改竄の再現用）
+def digest_of(doc): return hashlib.sha256(canon({k: v for k, v in doc.items() if k != 'digest'}).encode('utf-8')).hexdigest()
 def gitc(cwd, *cmd): subprocess.run(['git', '-c', 'user.email=fx@example', '-c', 'user.name=fx', *cmd], cwd=cwd, capture_output=True, check=True)
 def git_commit(cwd): gitc(cwd, 'add', '-A'); gitc(cwd, 'commit', '-q', '--allow-empty', '-m', 'fixture')
 def judge(cs, pr):
@@ -62,7 +68,7 @@ bad = 0
 for cs in cases:
     with tempfile.TemporaryDirectory() as td:
         work = pathlib.Path(td) / 'design-intent'; shutil.copytree(SRC, work)
-        last = None; note = ''
+        last = None; note = ''; RUN_ENV.clear()
         muts = [x for m in (cs.get('mutate') or []) for x in (m if isinstance(m, list) else [m])]   # 共通の段（alias の一覧）を 1 段ずつに開く
         try:
             if not cs.get('no_git'): gitc(td, 'init', '-q'); git_commit(td)
@@ -70,6 +76,7 @@ for cs in cases:
                 if mu.get('freeze_anchor'):
                     last = run(work, '--freeze-anchor')
                     if mu is not muts[-1] and last.returncode != mu.get('freeze_rc', 0): note += f' ／ 途中の凍結が rc {last.returncode}'
+                    if mu is not muts[-1] and last.returncode == 0 and mu.get('commit', True) and (pathlib.Path(td) / '.git').exists(): git_commit(td)   # 凍結した anchor は commit する（正規の手順・commit: false で外す＝未追跡の anchor の経路を測る case 用）
                     continue
                 last = None
                 if mu.get('emit_amends_into'):
@@ -83,6 +90,29 @@ for cs in cases:
                 if mu.get('git_ignore_anchors'):
                     (pathlib.Path(td) / '.gitignore').write_text('design-intent/anchors/\n', encoding='utf-8'); gitc(td, 'rm', '-r', '-q', '--cached', 'design-intent/anchors'); git_commit(td); continue
                 if mu.get('git_nested'): gitc(work, 'init', '-q'); git_commit(work); continue
+                if mu.get('git_ignore_anchors_keep_tracked'):
+                    (pathlib.Path(td) / '.gitignore').write_text('design-intent/anchors/\n', encoding='utf-8'); git_commit(td); continue
+                if mu.get('git_ignore_pattern'):
+                    (pathlib.Path(td) / '.gitignore').write_text(str(mu['git_ignore_pattern']) + '\n', encoding='utf-8'); git_commit(td); continue
+                if mu.get('git_reinit_no_commit'): shutil.rmtree(pathlib.Path(td) / '.git'); gitc(td, 'init', '-q'); continue
+                if mu.get('git_orphan_drop_anchors'):
+                    gitc(td, 'checkout', '-q', '--orphan', 'clean'); gitc(td, 'rm', '-r', '-q', '--cached', 'design-intent/anchors'); shutil.rmtree(work / 'anchors'); git_commit(td); continue
+                if mu.get('git_shallow_clone'):
+                    sh = pathlib.Path(td) / 'shallow'; subprocess.run(['git', 'clone', '-q', '--depth', '1', 'file://' + str(pathlib.Path(td)), str(sh)], capture_output=True, check=True); work = sh / 'design-intent'; continue
+                if mu.get('env_git_dir_empty'):
+                    em = pathlib.Path(td) / 'empty-repo'; em.mkdir(); gitc(em, 'init', '-q'); RUN_ENV.update({'GIT_DIR': str(em / '.git'), 'GIT_WORK_TREE': str(td)}); continue
+                if mu.get('refreeze_in_fresh_repo'):   # 別の写しで列を始め直して持ち帰る手口
+                    fr = pathlib.Path(td) / 'fresh'; shutil.copytree(work, fr / 'design-intent'); shutil.rmtree(fr / 'design-intent' / 'anchors', ignore_errors=True); gitc(fr, 'init', '-q'); git_commit(fr)
+                    fz = run(fr / 'design-intent', '--freeze-anchor'); note += '' if fz.returncode != 0 else ' ／ 別の写しでの凍結が rc 0（列の始め直しが通った）'
+                    if (fr / 'design-intent' / 'anchors').is_dir():
+                        for f_ in (fr / 'design-intent' / 'anchors').glob('*.yaml'): shutil.copy(f_, work / 'anchors' / f_.name)
+                    continue
+                if 'anchor_forge' in mu:   # anchor の欄を書き換え digest と索引を計算し直す（揃えて書き換える改竄）
+                    af = mu['anchor_forge']; f = work / af['file']; doc = yaml.safe_load(f.read_text(encoding='utf-8')); mutate(doc, af['path'], af['value'], af.get('add', False)); doc['digest'] = digest_of(doc); f.write_text(dump(doc), encoding='utf-8')
+                    ix = work / 'anchors' / 'index.yaml'; idx = yaml.safe_load(ix.read_text(encoding='utf-8'))
+                    for e in idx.get('entries') or []:
+                        if str(e.get('version')) == str(doc.get('version')): e['digest'] = doc['digest']
+                    ix.write_text(dump(idx), encoding='utf-8'); continue
                 if mu.get('symlink_dir') or mu.get('symlink_file'):
                     src_ = work / (mu.get('symlink_dir') or mu.get('symlink_file')); outside = pathlib.Path(td) / 'outside'; outside.mkdir(exist_ok=True); dst = outside / src_.name
                     shutil.move(str(src_), str(dst)); src_.symlink_to(dst); continue

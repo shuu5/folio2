@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""folio2 design-intent の床（day-1 の暫定 script・M0 で folio の検査に置換する）。使い方: python3 scripts/check_draft.py（repo root で・design-intent/*.yaml を読む）。
+"""folio2 design-intent の床（day-1 の暫定 script・M0 で folio の検査に置換する）。使い方: python3 scripts/check_draft.py（repo root で・design-intent/*.yaml を読む）。引数: --dir <dir>（既定 design-intent）/ --names draft（*.draft.yaml を読む・執筆中の下書き用）/ --freeze-anchor / --emit-amends。
 写しで回すときも版管理（git init + commit）の中で回す＝anchor の削除を版管理と照合できない写しは「まだ分からない」（rc 2）になる。
 
 検査（すべて決定的・fail-closed: 読めない／parse できないは rc 2）:
@@ -19,17 +19,20 @@
             発効した判断（accepted / retired + 承認欄）だけが条文の改訂を説明できる。amends ⇔ amended_by（A-2）。retired の後継の列は accepted に到達する（輪・未発効の後継は落とす）
             判断の記録の本文の英字語 0（「日本語（原語）」の形）・本文の参照 id の実在・basis が id の形、は欄の決まりの規則として無条件に課す（rules 行 R-4 / R-9 の行と母集団は変えない）
   anchor  : 凍結 anchor の列（anchors/index.yaml + anchors/constitution-<版>.yaml・ADR-2）。現行の写し ≡ 最新 anchor（N-4）・版の一致（A-2）
-            anchor 全欄の digest（json 正規化・sha256）・索引との 1:1・previous の列（根 = v1.0・切れは rc 2・索引が在って entries が空は rc 2〔anchor file が残っていれば列の外として rc 1〕・索引だけの削除は rc 1）
-            meta.approval の写しの一致・承認一覧 ≡ 各判断の記録の承認欄（凍結後の書き換えを落とす）・symlink 拒否（正本 4 file・anchors/・adr/・design-intent 自体）
+            anchor 全欄の digest（json 正規化・sha256）・索引との 1:1・previous の列（根 = v1.0・切れは rc 2・索引が在って entries が空は rc 2〔anchor file が残っていれば列の外として rc 1〕・索引だけの削除は rc 1。
+            ただし版管理の履歴に anchor が在れば「履歴に在ったが無い」の違反が先に立つ＝rc 2 になるのは履歴にも anchor が無い写しだけ）。digest の方式が違う anchor は digest を検算できない（まだ分からない）が、写しの内容の照合（現行 ≡ anchor）は行う
+            meta.approval の写しの一致・承認一覧 ≡ 各判断の記録の承認欄（凍結後の書き換えを落とす）・symlink 拒否（正本 4 file・anchors/ と adr/ とその中の各 file・design-intent 自体）
             列の全区間で、隣り合う anchor の差分を欄単位で全件並べ、その版を名指す発効した判断の amends と 1:1 に消し込む（余りも不足も落とす）＝凍結後に過去の版の記録を書き換えても落ちる
-            値は型付き（一覧・表・数・真偽・null は json の 1 値・空文字は（空）の印）。規範文の改番・廃止した番号の再利用・印を値に持つ欄を落とす（P-7.1）
-            版管理との照合: HEAD にある anchor が作業ツリーに無い・版管理の履歴に一度でも在った anchor が無い（削除を commit しても）・anchors/ が除外（ignore）されている・design-intent 自体が版管理の根、は落とす。版管理が無い写しは「まだ分からない」
-            発効した判断の記録が名指す版（amends.version）の anchor が列に無い（最新版を消して前の版へ戻す）は落とす
+            値は型付き（一覧・表・数・真偽・null は json の 1 値・空文字は（空）の印）。規範文の改番・廃止した番号の再利用・印を値に持つ欄（現行の写し）を落とす（P-7.1）。版の綴りは v<数>.<数>
+            版管理との照合（環境変数 GIT_* は継承しない・全 ref〔--all〕を見る）: HEAD にある anchor が作業ツリーに無い・履歴に一度でも在った anchor が無い（削除を commit しても）・履歴に在った同じ形式の anchor と中身が違う（差し替え・書き換え。形式が違う古い anchor は移行の痕跡として見ない）
+            ・anchors/ か anchor file が版管理から除外（ignore・追跡済みでも）・最新版以外の未追跡の anchor・design-intent 自体が版管理の根・版管理の根が design-intent の上に無い、は落とす。版管理が無い・commit が無い（HEAD 無し）・浅い写し（shallow）・読めない、は「まだ分からない」（見えないは無いではない）
+            発効した判断の記録が名指す版（amends.version）の anchor が列に無い（最新版を消して前の版へ戻す）・列の根の版を名指す amends（根には改訂前が無い＝架空の記録）は落とす
+            列の根（v1.0）の anchor の digest は床の定数 ROOT_DIGEST（根は 1 度きり＝別の写しで同じ版を凍結し直して持ち帰っても、版管理の見え方に依らず落ちる。根を作り直すのは移行＝床の外の手順）
             版を上げて未凍結の間（執筆中）は「版が違う」を出し、記録の 1:1 の消し込みは測らない（条の消失・改番・番号の再利用は測る）
             --freeze-anchor: 全検査が 0 違反かつ「まだ分からない」が無いときだけ凍結し索引へ追記（版は最新より新しい・差分と発効した判断が要る）。列の始め直し（履歴に anchor が在った・記録が在る）は認めない
             --emit-amends: 最新 anchor と現行の欄単位の差分を amends にそのまま貼れる 1 行 1 件の形（- {json}）で印字する（判断の記録を書く補助・read-only。違反があれば stderr に出し終了コードは素の床と同じ）
   counts  : meta.counts と実数の一致
-rc: 0 = 全部通った / 1 = 違反あり / 2 = 読めない・測れない（parse 不能・型違い・symlink・anchor 0 本・索引が空・列切れ・digest や写しの取り方の方式違い・版管理が無い）
+rc: 0 = 全部通った / 1 = 違反あり / 2 = 読めない・測れない（parse 不能・型違い・symlink・anchor 0 本・索引が空・列切れ・digest や写しの取り方の方式違い・版管理が無い / commit が無い / 浅い写し）。1 と 2 が同時に立つときは 1
 """
 import re, sys, os, json, pathlib, collections, argparse, hashlib, copy
 try:
@@ -145,7 +148,8 @@ A22_MIN = ['id', 'title', 'tier', 'binds', 'statements']        # A-2.2「条文
 ST_FIELDS = ('text', 'pattern', 'strength')                      # 規範文の中身（本文・型・強度）。id は欄の道に使う
 SCOPE_MIN = ['schema', 'precedence', 'articles']                 # A-2.2「schema 節・前文」+ 条文。憲法 schema.amendment_scope はこれを含む
 NEW_MARK, DEL_MARK, EMPTY_MARK = '（新設）', '（削除）', '（空）'; MARKS = (NEW_MARK, DEL_MARK, EMPTY_MARK)
-FIRST_VER = 'v1.0'; DIGEST_ALGO = 'sha256-json-1'
+ROOT_DIGEST = 'acb52acd04b5d3a1feaf9ad5f0138f7614ce31964144b46ead914bde86e866ed'   # 列の根（v1.0）の anchor の digest。根は 1 度きり＝別の写しで同じ版を凍結し直しても（版管理の見え方に依らず）落ちる。変えるのは移行（床の外の手順・判断の記録）
+FIRST_VER = 'v1.0'; DIGEST_ALGO = 'sha256-json-1'; VERSION_PATTERN = '^v[0-9]+\\.[0-9]+$'   # 版の綴り（v1.0・v1.10。v1.0.0 のような同じ版の別綴りを列に並べない）
 FILE_KEYS = ['kind', 'digest_algo', 'version', 'previous', 'projection', 'meta_approval', 'approvals', 'content', 'digest']
 OWNER = '持ち主'; APPROVER = ['持ち主', 'planner 席']; SURFACE = ['R-8']; EFFECTIVE = ['accepted', 'retired']
 APPROVAL_FIELDS = ['who', 'date', 'ruling', 'verbatim', 'surface']
@@ -166,7 +170,7 @@ FLOOR = {
     'grill': {'required': ['when', 'who', 'where', 'summary'], 'optional': []},
     'approval': {'required': APPROVAL_FIELDS, 'optional': []},
     'amended_by_entry': {'required': ['adr', 'date', 'approved_by', 'ruling', 'previous_text', 'rationale'], 'optional': []},
-    'anchor': {'dir': 'anchors', 'file_name': 'constitution-<version>.yaml', 'index_file': 'index.yaml', 'first_version': FIRST_VER, 'digest_algo': DIGEST_ALGO,
+    'anchor': {'dir': 'anchors', 'file_name': 'constitution-<version>.yaml', 'index_file': 'index.yaml', 'first_version': FIRST_VER, 'root_digest': ROOT_DIGEST, 'version_pattern': VERSION_PATTERN, 'digest_algo': DIGEST_ALGO,
                'file_keys': FILE_KEYS, 'projection_article_fields': A22_MIN, 'statement_fields': ['id', *ST_FIELDS], 'scope_minimum': SCOPE_MIN},
 }
 def real_under_here(p, what):   # symlink と design-intent の外の実体を拒む
@@ -208,7 +212,7 @@ ADR_ID = re.compile(asc['id_pattern']); DATE_RE = re.compile(asc['date_format'])
 BASIS_RE = re.compile(r'(?:P|A|N)-\d+(?:\.\d+)?|(?:FR|NFR|AC|CON|GOAL)\d+|(?:R|D)-\d+|ADR-[1-9][0-9]*')
 def nonempty(x): return bool(str(x if x is not None else '').strip())
 def date_ok(kind, where, x):
-    if not DATE_RE.match(str(x)): err(kind, f"{where}「{x}」が年-月-日でない")
+    if not DATE_RE.fullmatch(str(x)): err(kind, f"{where}「{x}」が年-月-日でない")
 def approval_ok(kind, where, ap_):
     keys_ok(kind, where, ap_, asc['approval'])
     if not isinstance(ap_, dict): return
@@ -439,6 +443,7 @@ def diff_targets(prev_content, prev_scope, cur_content, cur_scope):   # 対象 �
             if od: out.setdefault(i_, {})['statements.order'] = od
     return out
 cur_proj = project(c, SCOPE); marks_in(cur_proj, '憲法の写し'); keys_in(cur_proj, '憲法の写し'); cur_ver = str(c['meta']['version']); meta_approval = c['meta'].get('approval')
+if not re.fullmatch(VERSION_PATTERN, cur_ver): err('A-2', f"憲法 meta.version「{cur_ver}」の綴りが v<数>.<数> でない")
 def ver_key(vs): return tuple(int(x) for x in re.findall(r'\d+', str(vs)))
 pending = []; anchors = {}; index = None
 if ANCH_DIR.exists() or ANCH_DIR.is_symlink():
@@ -454,8 +459,9 @@ if ANCH_DIR.exists() or ANCH_DIR.is_symlink():
         vs = str(d['version'])
         if p.name != an['file_name'].replace('<version>', vs): err('anchor', f"{p.name}: file 名が版 {vs} と違う")
         if vs in anchors: err('anchor', f"{p.name}: 版 {vs} の anchor が重複"); continue
-        if d.get('digest_algo') != DIGEST_ALGO: pending.append(f"{p.name}: digest の方式 {d.get('digest_algo')} が床の {DIGEST_ALGO} と違う＝照合できない（まだ分からない）"); continue
-        if digest_of(d) != str(d.get('digest')): err('anchor', f"{p.name}: digest が中身と一致しない（anchor のどこかが手で変えられた）")
+        if not re.fullmatch(VERSION_PATTERN, vs): err('anchor', f"{p.name}: 版の綴り「{vs}」が v<数>.<数> でない")
+        if d.get('digest_algo') != DIGEST_ALGO: pending.append(f"{p.name}: digest の方式 {d.get('digest_algo')} が床の {DIGEST_ALGO} と違う＝digest を照合できない（まだ分からない・写しの内容の照合は行う）")
+        elif digest_of(d) != str(d.get('digest')): err('anchor', f"{p.name}: digest が中身と一致しない（anchor のどこかが手で変えられた）")
         pj = d.get('projection') if isinstance(d.get('projection'), dict) else {}
         if list(pj.get('article_fields') or []) != A22_MIN or list(pj.get('statement_fields') or []) != ['id', *ST_FIELDS]:
             pending.append(f"{p.name}: anchor の写しの取り方（条 {pj.get('article_fields')}・規範文 {pj.get('statement_fields')}）が床の取り方（条 {A22_MIN}・規範文 {['id', *ST_FIELDS]}）と違う＝比べられない（まだ分からない・床の取り方を変えたなら移行の手順が要る）"); continue
@@ -474,28 +480,57 @@ if ANCH_DIR.exists() or ANCH_DIR.is_symlink():
                     if ref is None: err('N-4', f"{p.name}: approvals[{n}].adr {ap_['adr']} の判断の記録が実在しない（凍結時の承認の相手が消えた）")
                     elif not isinstance(ref.get('approval'), dict) or {f: str(ref['approval'].get(f)) for f in APPROVAL_FIELDS} != {f: str(ap_.get(f)) for f in APPROVAL_FIELDS}: err('N-4', f"{p.name}: approvals[{n}]（{ap_['adr']}）の承認の写しが {ap_['adr']} の承認欄と一致しない（凍結後に承認の逐語・日付・裁定 id・対話面が書き換えられた・P-12.2）")
         anchors[vs] = (d, p)
-# 版管理との照合（列の真偽は索引が受け持ち、版管理は「消された anchor」を早く止める）。git が無い・読めない写しは「まだ分からない」（P-4.1）
-tracked_anchor_files = None; ever_anchor_files = None
+# 版管理との照合（列の真偽は索引と digest が受け持ち、版管理は「消された・差し替えられた anchor」を早く止める補助）。見えない（git が無い・commit が無い・浅い写し・読めない）は「無い」ではなく「まだ分からない」（P-4.1）
+present_anchor_files = {p.name for p in ANCH_DIR.glob('*.yaml')} if ANCH_DIR.is_dir() else set()
+tracked_anchor_files = None; ever_anchor_files = None; hist_blobs = {}; git_pending = False   # hist_blobs: anchor 名 → [(commit, 本文)]（全 ref の履歴で追加・変更された anchor）
+def anchor_format_same(doc):   # 履歴の anchor が床の今の形式（固定の欄・digest の方式・写しの取り方）と同じか。同じ形式で中身が違えば差し替え、形式が違えば移行の痕跡（床の外の手順）
+    if not isinstance(doc, dict) or set(doc.keys()) != set(FILE_KEYS) or doc.get('digest_algo') != DIGEST_ALGO: return False
+    pj = doc.get('projection') if isinstance(doc.get('projection'), dict) else {}
+    return list(pj.get('article_fields') or []) == A22_MIN and list(pj.get('statement_fields') or []) == ['id', *ST_FIELDS]
 try:
     import subprocess
-    def _git(*a_, cwd=None): return subprocess.run(['git', '-C', str(cwd or HERE), *a_], capture_output=True, text=True, timeout=20)
+    GIT_ENV = {k: vv for k, vv in os.environ.items() if not k.startswith('GIT_')}   # GIT_DIR / GIT_WORK_TREE 等で照合先をすげ替えられない
+    def _git(*a_, cwd=None): return subprocess.run(['git', '-C', str(cwd or HERE), *a_], capture_output=True, text=True, timeout=20, env=GIT_ENV)
     _top = _git('rev-parse', '--show-toplevel')
     if _top.returncode == 0:
         _gt = pathlib.Path(_top.stdout.strip()).resolve()
-        if _gt == HERE or HERE == _gt.parent and False: pass
         if _gt == HERE: err('anchor', f"design-intent 自体が版管理の根（{_gt}）＝床の script と別の版管理では照合にならない")
+        elif _gt not in HERE.parents: err('anchor', f"版管理の根 {_gt} が design-intent の上に無い（照合先が違う）")
+        elif _git('rev-parse', '--verify', '-q', 'HEAD', cwd=_gt).returncode != 0: git_pending = True; pending.append('版管理に commit が 1 つも無い（HEAD 無し）＝anchor を版管理と照合できない（まだ分からない）。git init だけでなく commit してから回す')
         else:
+            _shallow = _git('rev-parse', '--is-shallow-repository', cwd=_gt).stdout.strip() == 'true'
+            if _shallow and not present_anchor_files: git_pending = True; pending.append('版管理が浅い写し（shallow）で anchor が 1 本も無い＝履歴を照合できない（まだ分からない）。完全な写しで回す')
             _rel = ANCH_DIR.relative_to(_gt)
-            if _git('check-ignore', '-q', str(_rel), cwd=_gt).returncode == 0: err('anchor', f"anchors/（{_rel}）が版管理から除外（ignore）されている")
+            for _p in [_rel, *(_rel / n for n in sorted(present_anchor_files))]:   # 追跡済みでも ignore の規則が当たれば落とす（以後の anchor が版管理に入らなくなる）
+                if _git('check-ignore', '-q', '--no-index', str(_p), cwd=_gt).returncode == 0: err('anchor', f"{_p} が版管理から除外（ignore）されている（追跡済みでも規則が当たれば落とす）")
             _ls = _git('ls-tree', '-r', '--name-only', 'HEAD', '--', str(_rel), cwd=_gt)
-            tracked_anchor_files = {pathlib.Path(x).name for x in _ls.stdout.split()} if _ls.returncode == 0 else set()
-            _lg = _git('log', '--diff-filter=A', '--name-only', '--format=', '--', str(_rel), cwd=_gt)
-            ever_anchor_files = {pathlib.Path(x).name for x in _lg.stdout.split() if x.strip()} if _lg.returncode == 0 else set()
-except Exception: tracked_anchor_files = None; ever_anchor_files = None
-present_anchor_files = {p.name for p in ANCH_DIR.glob('*.yaml')} if ANCH_DIR.is_dir() else set()
-if tracked_anchor_files is None: pending.append('版管理（git）が無いか読めない＝anchor の削除を版管理と照合できない（まだ分からない）。写しで回すときも git init + commit の中で回す')
+            _lg = _git('log', '--all', '--format=%H', '--name-status', '--', str(_rel), cwd=_gt)
+            if _ls.returncode != 0 or _lg.returncode != 0: git_pending = True; pending.append('版管理を読めない（ls-tree / log が失敗）＝anchor を版管理と照合できない（まだ分からない）')
+            else:
+                tracked_anchor_files = {pathlib.Path(x).name for x in _ls.stdout.split()}
+                ever_anchor_files = set(); _cm = None
+                for ln in _lg.stdout.splitlines():
+                    ln = ln.strip()
+                    if not ln: continue
+                    if re.fullmatch(r'[0-9a-f]{40}', ln): _cm = ln; continue
+                    m = re.fullmatch(r'([A-Z])\d*\t(.+?)(?:\t(.+))?', ln)
+                    if not m or _cm is None: continue
+                    st_, path_ = m.group(1), (m.group(3) or m.group(2)); nm = pathlib.Path(path_).name
+                    if st_ != 'D': ever_anchor_files.add(nm)
+                    if st_ in 'AMRC' and nm.startswith('constitution-'):
+                        _sh = _git('show', f'{_cm}:{path_}', cwd=_gt)
+                        if _sh.returncode == 0: hist_blobs.setdefault(nm, []).append((_cm[:7], _sh.stdout))
+except Exception: tracked_anchor_files = None; ever_anchor_files = None; hist_blobs = {}
+if tracked_anchor_files is None and not git_pending: pending.append('版管理（git）が無いか読めない＝anchor の削除を版管理と照合できない（まだ分からない）。写しで回すときも git init + commit の中で回す')
 for _missing in sorted((tracked_anchor_files or set()) - present_anchor_files): err('anchor', f"anchors/{_missing} は版管理（HEAD）にあるが作業ツリーに無い（anchor と索引は消さない）")
 for _missing in sorted((ever_anchor_files or set()) - (tracked_anchor_files or set()) - present_anchor_files): err('anchor', f"anchors/{_missing} は版管理の履歴に在ったが作業ツリーに無い（削除を commit しても列の始め直しは認めない・移行は床の外の手順で行う）")
+for _nm in sorted(present_anchor_files & set(hist_blobs)):   # 履歴に在った同じ形式の anchor と中身が違えば差し替え（凍結物は書き換えない・同じ版は凍結し直さない）
+    _cur_text = (ANCH_DIR / _nm).read_text(encoding='utf-8')
+    for _cm, _txt in hist_blobs[_nm]:
+        if _txt == _cur_text: continue
+        try: _hd = yaml.load(_txt, Loader=StrictLoader)
+        except Exception: continue
+        if anchor_format_same(_hd): err('anchor', f"anchors/{_nm} が版管理の履歴（{_cm}）に在った同じ形式の anchor と中身が違う（凍結物の差し替え・書き換え。同じ版は凍結し直さない）"); break
 records_exist = any(isinstance(a.get('amended_by'), list) and a['amended_by'] for a in c['articles']) or any(amends_list(d) for d in effective.values())
 prev_anchor = None; newest = None; freeze_plan = None; listed = set()
 if index is not None:
@@ -505,6 +540,7 @@ if index is not None:
         if not isinstance(e, dict) or not {'version', 'previous', 'digest'} <= set(e.keys()): err('anchor', f"{INDEX.name}: entries[{n}] の欄が壊れている"); continue
         vs = str(e['version']); expect_prev = None if n == 0 else str(ents[n - 1].get('version'))
         if n == 0 and vs != FIRST_VER: err('anchor', f"{INDEX.name}: 列の根 {vs} が最初の版 {FIRST_VER}（床の定数）でない")
+        if n == 0 and str(e.get('digest')) != ROOT_DIGEST: err('anchor', f"{INDEX.name}: 列の根 {vs} の digest が床の定数と違う（根は 1 度きり・別の中身で凍結し直せない。変えるのは移行＝床の外の手順）")
         if (None if e.get('previous') is None else str(e['previous'])) != expect_prev: err('anchor', f"{INDEX.name}: entries[{n}]（{vs}）の previous {e.get('previous')} が直前の版 {expect_prev} でない（列の付け替え）")
         if vs not in anchors: pending.append(f"anchor の列が切れている: 索引にある版 {vs} の anchor file が無いか読めない＝差分検査は「まだ分からない」（P-10.3）。anchors/ は消さない"); continue
         d = anchors[vs][0]
@@ -515,8 +551,16 @@ if index is not None:
     if ents and isinstance(ents[-1], dict): newest = str(ents[-1].get('version'))
 elif anchors: err('anchor', f"anchor file はあるが索引（{INDEX.name}）が無い（消された）")
 elif records_exist: err('N-4', "改訂の記録（amended_by か発効した判断の amends）があるのに anchor が 1 本も無い＝anchor が消された（列の始め直しは認めない）")
-named_versions = {str(e.get('version')) for d in effective.values() for e in amends_list(d)}   # 発効した判断の記録が名指す版。列の頭を記録の側から固定する（最新版の anchor を消して前の版へ戻す細工を落とす）
-for _v in sorted(named_versions - listed - {cur_ver}): err('anchor', f"発効した判断の記録が名指す版 {_v} の anchor が列に無い（最新版の anchor と索引の項を消して前の版へ戻した・列の頭は記録が名指す版まで固定）")
+chain_versions = [str(e.get('version')) for e in (index['entries'] if index is not None else []) if isinstance(e, dict)]
+root_ver = chain_versions[0] if chain_versions else FIRST_VER
+verifiable_versions = set(chain_versions[1:]) | ({cur_ver} - {root_ver})   # 発効した判断の amends が名指せる版 = 列の根より後の版（隣接区間で消し込める）か執筆中の版（根でない）だけ
+for aid, d in effective.items():   # 列の根を名指す amends は架空の記録（根には改訂前が無い）・列に無い版を名指す amends は最新版の巻き戻し（列の頭は記録が名指す版まで固定）
+    for _v in sorted({str(e.get('version')) for e in amends_list(d)} - verifiable_versions):
+        if _v == root_ver: err('A-2', f"{aid}: amends が列の根の版 {root_ver} を名指している（根の版には改訂前が無い＝突き合わせる差分が存在しない架空の記録）")
+        else: err('anchor', f"{aid}: 発効した判断の記録が名指す版 {_v} の anchor が列に無い（最新版の anchor と索引の項を消して前の版へ戻した・列の頭は記録が名指す版まで固定）")
+if tracked_anchor_files is not None:   # 凍結した anchor は commit する。最新版以外の未追跡の anchor は列の差し替え（追跡済みの anchors/ を後から ignore した痕跡も含む）
+    for _nm in sorted(present_anchor_files - tracked_anchor_files - {an['index_file']}):
+        if newest is None or _nm != an['file_name'].replace('<version>', newest): err('anchor', f"anchors/{_nm} が版管理に追跡されていない（凍結した anchor は commit する。最新の版 {newest} 以外の未追跡の anchor は列の差し替え）")
 if newest is not None and newest in anchors:   # 廃止した番号の再利用（過去の版の anchor に在って最新 anchor に無い id の再登場）を落とす（P-7.1）
     _nc = anchors[newest][0]['content']; _na = _nc.get('articles') or []
     newest_ids = {str(a.get('id')) for a in _na} | {str(st.get('id')) for a in _na for st in (a.get('statements') or []) if isinstance(st, dict)}
@@ -594,6 +638,7 @@ if args.freeze_anchor:
           'projection': {'scope': list(SCOPE), 'article_fields': list(A22_MIN), 'statement_fields': ['id', *ST_FIELDS]},
           'meta_approval': copy.deepcopy(meta_approval), 'approvals': copy.deepcopy(aps), 'content': copy.deepcopy(cur_proj)}
     fz['digest'] = digest_of(fz); freeze_plan = (ANCH_DIR / an['file_name'].replace('<version>', cur_ver), fz)
+    if prev_anchor is None and newest is None and fz['digest'] != ROOT_DIGEST: err('anchor', f"列の根の凍結だが digest {fz['digest'][:12]} が床の定数 {ROOT_DIGEST[:12]} と違う（根は 1 度きり・作り直せない。別の中身で列を始めるのは移行＝床の外の手順）")
 
 # ── vocab（R-9 / R-12 の機械側。判断の記録の本文は欄の決まりの規則として同じ関数で見る）──
 known = set()

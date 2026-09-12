@@ -1,9 +1,9 @@
 # 床（scripts/check_draft.py）が RED になる fixture（凍結・f2-648.2 の受入・P-10.1 の day-1 代替＝床の入力ではない）。runner = tests/run_floor_cases.py。
 # 各 case は design-intent/ の写し（一時 dir）に mutate を順に当てて床を回す（正本は触らない）。段の種類と期待の欄は runner の冒頭を見る。
 # 敵対レビュー 1 周目（B1〜B3 / M1〜M7 / m1）・2 周目（fc-1〜fc-9 / fp-1〜fp-7 / loophole-1〜13 / content-1・2・5・11 / fixrun-1〜6）・
-# 3 周目（loophole-v3-1〜6・9〜11・15 / fp3-2・4〜7・9・10 / content-limits-1・2・6・13）と 4 周目（loophole-v4-1〜5・7 / F-1〜F-3）の再現と、正の経路（欄の決まりの写し・範囲の増減・空の値・貼れる差分・改行入りの値）を含む。
+# 3 周目（loophole-v3-1〜6・9〜11・15 / fp3-2・4〜7・9・10 / content-limits-1・2・6・13）・4 周目（loophole-v4-1〜5・7 / F-1〜F-3）・5 周目（doc-v5-1〜2 / loophole-v5-1〜9）の再現と、正の経路（欄の決まりの写し・範囲の増減・空の値・貼れる差分・改行入りの値・浅い写し）を含む。
 # 写しは既定で git の 1 commit（床は版管理の無い写しを「まだ分からない」に落とす）。no_git: true の case だけ版管理なし。
-expected_cases: 120
+expected_cases: 134
 
 shared:
   p8_title_old: &p8_title_old 撤退条件を決定と同時に書く
@@ -445,7 +445,7 @@ cases_anchor:
   - {id: anchor-not-in-index, why: 索引に無い anchor は落ちる, mutate: [{file: anchors/constitution-v0.9.yaml, create: {kind: constitution-anchor, digest_algo: sha256-json-1, version: v0.9, previous: null, projection: {scope: [schema, precedence, articles], article_fields: [id, title, tier, binds, statements], statement_fields: [id, text, pattern, strength]}, meta_approval: {}, approvals: [{adr: null, who: 持ち主, date: 2026-09-12, ruling: *ruling, verbatim: 承認する, surface: R-8}], content: {schema: {}, precedence: {}, articles: []}, digest: x}}], expect_rc: 1, expect_msg: 索引に無い}
   - {id: anchor-tampered, why: anchor の条文を手で書き換えると digest が合わず落ちる（M1）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {file: anchors/constitution-v1.0.yaml, path: "content.articles[id=P-8].statements[0].text", value: *p8_new}], expect_rc: 1, expect_msg: digest が中身と一致しない}
   - {id: anchor-approval-tampered, why: anchor の承認欄を差し替えると digest が合わず落ちる（fc-5・loophole-10）, mutate: [{file: anchors/constitution-v1.0.yaml, path: "approvals[0].who", value: planner 席}], expect_rc: 1, expect_msg: digest が中身と一致しない}
-  - {id: anchor-digest-algo-unknown, why: digest の方式が違えば照合できない＝「まだ分からない」（fc-7・rc 2）, mutate: [{file: anchors/constitution-v1.0.yaml, path: digest_algo, value: sha1-x}], expect_rc: 2, expect_stderr: 照合できない}
+  - {id: anchor-digest-algo-unknown, no_git: true, why: digest の方式が違えば照合できない＝「まだ分からない」（fc-7・rc 2。版管理のある写しでは履歴の同じ形式の anchor との不一致が先に立つので版管理なしで測る）, mutate: [{file: anchors/constitution-v1.0.yaml, path: digest_algo, value: sha1-x}], expect_rc: 2, expect_stderr: 照合できない}
   - {id: anchors-symlink, why: anchors/ を外への symlink にすると読めない（loophole-11・rc 2）, mutate: [{symlink_dir: anchors}], expect_rc: 2, expect_stderr: symlink}
   - {id: chain-restart-other-version, why: anchor と索引を消して別の版から列を始め直すことはできない（B3）, mutate: [{dir: anchors, delete_dir: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {file: constitution.yaml, path: meta.version, value: v9.9}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 列を始め直すことはできない, expect_no_file: [anchors/constitution-v9.9.yaml]}
   - {id: chain-restart-same-version, why: 版管理にある anchor を消して同じ版で凍結し直すことはできない（fc-3・fixrun-1）, mutate: [{git_snapshot: true}, {dir: anchors, delete_dir: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 版管理（HEAD）にあるが作業ツリーに無い, expect_no_file: [anchors/constitution-v1.0.yaml]}
@@ -610,7 +610,7 @@ cases_amendment:
     expect_no_file: [anchors/constitution-v1.2.yaml]
   - id: older-anchor-deleted
     why: 列の途中の anchor（版管理に未追跡）を消すと差分検査は「まだ分からない」（B3・rc 2）
-    mutate: [*step3, {freeze_anchor: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}, {file: anchors/constitution-v1.1.yaml, delete: true}]
+    mutate: [*step3, {freeze_anchor: true, commit: false}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true, commit: false}, {file: anchors/constitution-v1.1.yaml, delete: true}]
     expect_rc: 2
     expect_stderr: 列が切れている
   - id: older-anchor-deleted-tracked
@@ -620,7 +620,7 @@ cases_amendment:
     expect_msg: 版管理（HEAD）にあるが作業ツリーに無い
   - id: freeze-over-broken-chain
     why: 列が切れたまま（最新の anchor file が無い）新しい anchor は凍結しない（fixrun-4）
-    mutate: [*step3, {freeze_anchor: true}, {file: anchors/constitution-v1.1.yaml, delete: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}]
+    mutate: [*step3, {freeze_anchor: true, commit: false}, {file: anchors/constitution-v1.1.yaml, delete: true}, {file: adr/ADR-4.yaml, create: *adr4_amend}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_newer}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab34}, {file: constitution.yaml, path: meta.version, value: v1.2}, {freeze_anchor: true}]
     expect_rc: 2
     expect_stderr: 凍結しない
     expect_no_file: [anchors/constitution-v1.2.yaml]
@@ -744,3 +744,36 @@ cases_amendment:
     mutate: [{file: adr/ADR-3.yaml, create: *adr3_emit}, {file: constitution.yaml, path: "articles[id=P-8].title", value: "撤退条件を\n決定と同時に書く"}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab3_title, add: true}, {file: constitution.yaml, path: meta.version, value: v1.1}, {emit_amends_into: adr/ADR-3.yaml}, {freeze_anchor: true}]
     expect_rc: 0
     expect_file: [anchors/constitution-v1.1.yaml]
+
+shared_v6:
+  adr3_root: &adr3_root
+    id: ADR-3
+    title: 列の根の版を名指す架空の改訂記録（fixture）
+    status: accepted
+    date: 2026-09-12
+    context: fixture。根の版（v1.0）には改訂前が無いので、これを名指す記録は突き合わせる差分を持たない。
+    decision: 架空の記録を置く。
+    options: *opts_fx
+    basis: [P-8, A-2]
+    retreat: *retreat_fx
+    amends: [{target: P-8, field: statements.P-8.1.text, version: v1.0, previous_text: まったく別の昔の文。, new_text: *p8_old}]
+    grill: *grill_fx
+    approval: *approval_owner
+    plain: 検査のための架空の記録です。
+  ab3_root: &ab3_root [{adr: ADR-3, date: 2026-09-12, approved_by: 持ち主, ruling: *ruling, previous_text: まったく別の昔の文。, rationale: fixture}]
+
+cases_v6:
+  - {id: anchors-gitignored-tracked, why: 追跡済みのまま .gitignore に anchors/ を足しても落ちる（doc-v5-1・以後の anchor が版管理に入らなくなる）, mutate: [{git_ignore_anchors_keep_tracked: true}], expect_rc: 1, expect_msg: 版管理から除外（ignore）}
+  - {id: anchors-gitignored-pattern, why: file の pattern で anchor を除外しても落ちる（doc-v5-1 の変種）, mutate: [{git_ignore_pattern: design-intent/anchors/constitution-*.yaml}], expect_rc: 1, expect_msg: 版管理から除外（ignore）}
+  - {id: git-init-no-commit, why: git init だけで commit の無い写しは「まだ分からない」（doc-v5-2・loophole-v5-2・見えないは無いではない）, mutate: [{git_reinit_no_commit: true}], expect_rc: 2, expect_stderr: commit が 1 つも無い}
+  - {id: refreeze-in-fresh-repo-no-commit, why: git init だけの写しで anchors/ を外し凍結し直す手口は列の根の digest（床の定数）で落ちる（loophole-v5-2）, mutate: [{git_reinit_no_commit: true}, {dir: anchors, delete_dir: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 根は 1 度きり, expect_no_file: [anchors/constitution-v1.0.yaml]}
+  - {id: git-orphan-branch-refreeze, why: 根の無い branch（orphan）へ切って anchors/ を外し凍結し直す手口は、全 ref の履歴と列の根の digest で落ちる（loophole-v5-3）, mutate: [{git_orphan_drop_anchors: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 列を始め直す凍結は認めない, expect_no_file: [anchors/constitution-v1.0.yaml]}
+  - {id: git-env-redirect, why: GIT_DIR / GIT_WORK_TREE で照合先を空の repo へ向けても床は環境変数を継承しない（loophole-v5-4）, mutate: [{env_git_dir_empty: true}, {dir: anchors, delete_dir: true}, {file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {freeze_anchor: true}], expect_rc: 1, expect_msg: 版管理（HEAD）にあるが作業ツリーに無い, expect_no_file: [anchors/constitution-v1.0.yaml]}
+  - {id: git-shallow-anchors-deleted, why: anchors/ の削除を commit した branch の浅い写し（depth 1）は履歴を照合できない＝「まだ分からない」で合格にしない（loophole-v5-5）, mutate: [{dir: anchors, delete_dir: true}, {git_commit: true}, {git_shallow_clone: true}], expect_rc: 2, expect_stderr: 浅い写し}
+  - {id: git-shallow-intact, why: anchor が揃った浅い写しは緑（loophole-v5-5 の偽陽性なし）, mutate: [{git_shallow_clone: true}], expect_rc: 0}
+  - {id: refreeze-in-fresh-repo, why: 別の写しで anchors/ 無しから凍結し直して持ち帰る手口は、列の根の digest（床の定数）で凍結の時点で落ち、持ち帰るものが無い（loophole-v5-1）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {refreeze_in_fresh_repo: true}], expect_rc: 1, expect_msg: 判断の記録と承認を伴わない改憲}
+  - {id: anchor-forged-and-committed, why: anchor を揃えて書き換え（digest と索引も計算し直し）commit しても、版管理の履歴に在った同じ形式の anchor と中身が違うので落ちる（loophole-v5-1・v5-3）, mutate: [{anchor_forge: {file: anchors/constitution-v1.0.yaml, path: "approvals[0].verbatim", value: 承認しない}}, {git_commit: true}], expect_rc: 1, expect_msg: 同じ形式の anchor と中身が違う}
+  - {id: root-version-amends-fabricated, why: 列の根の版（v1.0）を名指す架空の改訂記録は突き合わせる差分が無いので落ちる（loophole-v5-6）, mutate: [{file: adr/ADR-3.yaml, create: *adr3_root}, {file: constitution.yaml, path: "articles[id=P-8].amended_by", value: *ab3_root, add: true}], expect_rc: 1, expect_msg: 列の根の版}
+  - {id: anchor-tampered-algo-flipped, why: 憲法を改竄した上で anchor の digest の方式を書き換えても、写しの内容の照合は行うので違反が消えない（loophole-v5-7）, mutate: [{file: constitution.yaml, path: "articles[id=P-8].statements[0].text", value: *p8_new}, {file: anchors/constitution-v1.0.yaml, path: digest_algo, value: sha256-json-9}], expect_rc: 1, expect_msg: 判断の記録と承認を伴わない改憲}
+  - {id: date-block-scalar, why: 日付の末尾に改行が付く値（block scalar）は年-月-日でない（loophole-v5-8）, mutate: [{file: adr/ADR-1.yaml, path: date, value: "2026-09-12\n"}], expect_rc: 1, expect_msg: 年-月-日でない}
+  - {id: version-spelling, why: 版の綴りは v<数>.<数>（v1.0.0 のような同じ版の別綴りを列に並べない・loophole-v5-9）, mutate: [{file: constitution.yaml, path: meta.version, value: v1.0.0}], expect_rc: 1, expect_msg: 綴り}
