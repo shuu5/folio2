@@ -393,7 +393,7 @@ cases_single:
   - {id: adr-retreat-empty, why: 撤退条件が空なら落ちる（P-8.1）, mutate: [{file: adr/ADR-1.yaml, path: retreat.condition, value: ""}], expect_rc: 1, expect_msg: 撤退条件が空}
   - {id: adr-no-adopted, why: 採用の案が 0 件, mutate: [{file: adr/ADR-1.yaml, path: "options[0].verdict", value: rejected}], expect_rc: 1, expect_msg: 採用の案が 0 件}
   - {id: adr-option-reason-empty, why: 退けた理由が空なら落ちる（content-5）, mutate: [{file: adr/ADR-1.yaml, path: "options[0].reason", value: ""}], expect_rc: 1, expect_msg: "options[a].reason が空"}
-  - {id: adr-accepted-without-approval, why: 発効なのに承認欄が無い（N-4）, mutate: [{file: adr/ADR-1.yaml, path: status, value: accepted}], expect_rc: 1, expect_msg: accepted なのに approval}
+  - {id: adr-accepted-without-approval, why: 発効なのに承認欄が無い（N-4・ADR-1 は発効済みなので承認欄を外して測る）, mutate: [{file: adr/ADR-1.yaml, path: status, value: accepted}, {file: adr/ADR-1.yaml, path: approval, value: null}], expect_rc: 1, expect_msg: accepted なのに approval}
   - {id: adr-unknown-field, why: 未知の欄は落とす（N-3）, mutate: [{file: adr/ADR-2.yaml, path: owner, value: someone, add: true}], expect_rc: 1, expect_msg: 未知の欄}
   - {id: adr-date-format, why: 日付が年-月-日でない（m1）, mutate: [{file: adr/ADR-1.yaml, path: date, value: にゃーん}], expect_rc: 1, expect_msg: 年-月-日でない}
   - {id: adr-retired-without-successor, why: retired に後継が無ければ落ちる（P-7.2）, mutate: [{file: adr/ADR-2.yaml, path: status, value: retired}, {file: adr/ADR-2.yaml, path: approval, value: *approval_owner}], expect_rc: 1, expect_msg: retired なのに superseded_by}

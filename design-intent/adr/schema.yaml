@@ -4,7 +4,7 @@
 # ＝閾値・値域・置き場（承認者・対話面・裁定 id の形・案の最小数・写しの取り方・列の根・印・anchor の置き場）を data 側で動かすことはできない（N-3.1・旗も、値を緩める欄も持たない）。
 # 置き場と形の判断 = ADR-1、凍結 anchor の判断 = ADR-2。憲法の各条 amended_by の欄集合もここに持つ（憲法の schema 節は A-2 の差分の範囲なので触らない）。
 
-meta: {id: folio2-adr-schema, version: 1, date: 2026-09-12, decided_by: [ADR-1, ADR-2], owner: 持ち主（shuu5）, author: planner 席（AI・fable 5.1）, decided_by_note: 2 本は持ち主の承認までは proposed（暫定）。床は decided_by の実在だけを見る}
+meta: {id: folio2-adr-schema, version: 1, date: 2026-09-12, decided_by: [ADR-1, ADR-2], owner: 持ち主（shuu5）, author: planner 席（AI・fable 5.1）, decided_by_note: 2 本は 2026-09-13 の持ち主の承認（逐語「すべて承認する」・裁定 id は各 ADR の approval.ruling）で accepted。床は decided_by の実在だけを見る}
 
 schema:
   floor_note: 以下の欄（*_note を除く）は床の定数の写し。型も値も違わないこと（2.0 と 2・true と 1 も別）＝1 字でも食い違えば床が落とす。変えるときは床の script を直す（取り込みの審査で読む）
