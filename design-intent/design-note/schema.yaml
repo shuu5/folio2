@@ -14,8 +14,8 @@ meta:
   author: planner 席（AI・fable 5.1）
   floor: {live: M1, until_then: まだ分からない}
   floor_note: 床が実在するまで、この欄の決まりに照らした合格を名乗らない（P-4.1・P-10.3）。見本 example.yaml は生成器から独立した固定の材料で、M1 の凍結 anchor（P-10.1）の元になる候補（要件書の受入基準の fixture そのものではない）。
-  type_enum_ruling: {status: 仮, basis: [ADR-3, FR9, FR12], ruling: f2-648.7 notes（本便の取り込みの承認で確定・それまで 仮）, ruled_at: 2026-09-17}
-  type_enum_ruling_note: 節の型の閉じた一覧（schema.section.type_enum）と文書の状態の値域（schema.doc_meta.status_enum の example）は、判断の記録 ADR-3 決定 (1) と要件書 FR9 が「など」で開いていた一覧を本 file が初めて閉じたもの（P-2.4）。初版の裁定 = 本便の取り込みの承認（rules 行の P-17.3 と同じ扱い）。以後の追加は判断の記録を要する。
+  type_enum_ruling: {basis: [ADR-3, FR9, FR12], ruling: null, ruled_at: null}
+  type_enum_ruling_note: 節の型の閉じた一覧（schema.section.type_enum）と文書の状態の値域（schema.doc_meta.status_enum の example）は、判断の記録 ADR-3 決定 (1) と要件書 FR9 が「など」で開いていた一覧を本 file が初めて閉じたもの（P-2.4）。ruling / ruled_at は null のまま置き、本便の取り込みの承認（持ち主の逐語）を受けた時点でその裁定 id と日付を埋める（rules 行の初版と同じ手順・裁定前に日付を入れない・P-12.3）。P-2.4 の「判断の記録」は ADR-3 決定 (1) を出所とし、閉じた一覧そのものは ADR-3 の帰結として持ち主の承認で追認する（ADR は新しく起こさない）。以後の追加は判断の記録を要する。
 
 schema:
   floor_note: 以下の欄（*_note を除く）は M1 の床の定数の写しになる。型も値も違わないこと（判断の記録の欄の決まりと同じ）。M1 まで床は無い＝この宣言は先取りで、実在は M1 の folio が持つ。
@@ -95,7 +95,7 @@ schema:
     semantic_check_owner: scribe2
     semantic_check_note: 行の id の一意・要件の欄が要件書に実在・節の欄が同じ文書に実在し本文が非空・依存の解決と輪の無さ・検証の欄の形・触る型の閉包が書き込み範囲に収まること、は器（scribe2）の 1 つの関数（編集時・黙って飛ばさない）が持つ。folio2 は持たない（ADR-3 決定 (3)・要件書 scope_m1.not_build）
     folio_check: [yaml-form, derived-diff-zero, own-id-space]
-    folio_check_note: folio2 が持つ検査は 3 つだけ = 正本の形（重複キー・未知の欄・欄の非空・要件書 FR5 の構造の床）/ 導出物の差分 0（FR11・事後の検出・P-18.2）/ folio2 が所有する文書の id 空間の解決（R-4・母集団は広げない）
+    folio_check_note: 契約表について folio2 が持つ検査は 3 つだけ = 正本の形（重複キー・未知の欄・欄の非空・要件書 FR5 の構造の床）/ 導出物の差分 0（FR11・事後の検出・P-18.2）/ folio2 が所有する文書の id 空間の解決（R-4・母集団は広げない）
   derived:
     format: toml-subset
     extension: .toml
@@ -115,14 +115,14 @@ schema:
     source_of_truth: scribe2 の記録（record）
     read_port: 統合先の commit（squash）の本文の末尾の印（trailer・契約 id と要件 id・器が書く）
     trailer_name_source: {owner: scribe2, derived_from: 器の名前の定数, unreadable: まだ分からない}
-    verdict_values: {used: [合格, まだ分からない], unused: [不合格]}
+    verdict_values: {used: [着地, まだ分からない], never: [未着地]}
     verdict_cases:
-      - {when: 印が在る, verdict: 合格（着地・印の commit の要約値（sha）を添える）}
+      - {when: 印が在る, verdict: 着地（印の commit の要約値（sha）を添える）}
       - {when: 印が無い, verdict: まだ分からない}
       - {when: 自分の repo への取り込みの要求で終わる形（印も記録も持たない）, verdict: まだ分からない（恒久）}
       - {when: 印の名か commit が読めない, verdict: まだ分からない}
     forbidden_wording: 未着地
-    landing_note: 要件書 FR13・ADR-3 決定 (5)(6)。測定値は要件書 FR5 の 3 値（合格・不合格・まだ分からない）を使うが、着地の判定で「不合格（未着地）」は出さない（印の不在は未着地と弁別できないため）。印の名は器の名前の定数から導出され、folio2 は名を手で持たない（trailer_name_source）。他の repo の要件 id・契約 id・便の id は参照 id の床（R-4）の母集団に入れず、出所付きの測定値として扱う
+    landing_note: 要件書 FR13・ADR-3 決定 (5)(6)。着地の判定の語は要件書 FR13 のとおり「着地」と「まだ分からない」の 2 つで、床の検査結果の語（合格・不合格）は使わない（P-3.3・床の合格と紛れさせない）。「未着地」は出さない（印の不在は未着地と弁別できないため・P-4.2）。印の名は器の名前の定数から導出され、folio2 は名を手で持たない（trailer_name_source）。他の repo の要件 id・契約 id・便の id は参照 id の床（R-4）の母集団に入れず、出所付きの測定値として扱う
   index:
     entries: [doc, requirement, contract]
     entry_fields: [id, title]
@@ -145,8 +145,9 @@ schema:
   guards:
     in_loop: []
     post: [yaml-form, derived-diff-zero, own-id-space, prose-gate]
-    p18_4_verdict: まだ分からない
-    guards_note: 設計ノートの編集を編集の時点で止める仕掛け（in-loop）は folio2 側に 1 本も無い（器 scribe2 の受付は別 repo の guard で、folio2 の設計ノートの編集を止めない）。P-18.4 の判定は rules 行 R-13 と同じく便 0 で編集時 guard が入るまで「まだ分からない」（live delivery-0）。post の検査は編集時に止めることの代わりにしない（P-18.2）
+    polarity_list_feed: true
+    p18_4_judged_by: R-13
+    guards_note: 設計ノートの編集を編集の時点で止める仕掛け（in-loop）は folio2 側に 1 本も無い（器 scribe2 の受付は別 repo の guard で、folio2 の設計ノートの編集を止めない）。この節は極性一覧（P-18.3）へ寄せる材料であり、P-18.4 の判定は folio2 全体を数える rules 行 R-13 の 1 面に委ねる（判定面を 2 つにしない・P-6.3）。post の検査は編集時に止めることの代わりにしない（P-18.2）
 
 mapping:
   - {source: ADR-3 決定 (1), here: schema.doc_meta.profile_enum / schema.section.type_enum, requirement: FR9}
