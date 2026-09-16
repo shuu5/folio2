@@ -7,8 +7,7 @@ meta:
   status: example
   generated: 2026-09-17
   profile: design-note
-  approval: {who: planner 席, date: 2026-09-17, ruling: f2-648.7 notes 2026-09-17, verbatim: 見本（承認の対象ではない）, surface: R-8}
-  note: 見本ゆえ承認欄は形だけ。発効した設計ノートでは持ち主の逐語が入る。
+  note: 見本（status example）は承認欄を持たない（欄の決まり approval_required_when）。発効した設計ノートでは持ち主の逐語が入る。
 
 sections:
   - n: 1
@@ -17,7 +16,8 @@ sections:
     body: |
       文書の正本の図の節にある型付き記述から、検査に通った図の本体（SVG）だけを部品として埋める。
       検査を通らなかった図は生成せず、前の生成物も上書きしない（FR15・P-4.1）。
-      この節は記述の文だけで書く。規範の印を持つ文は参照 id を添える。
+      検査を通らなかった図の生成物は書き出してはならない（FR15）。
+      この節の文のうち規範の印を持つのは直前の 1 文だけで、参照 id を持ち数と単位を持たないので散文の門（R-16）を通る。
   - n: 2
     type: parts-table
     title: 部品
@@ -31,6 +31,7 @@ sections:
     title: 口
     rows:
       - {id: validate, name: 検査, input: 型付き記述 1 本, output: 診断（規則の id・対象・証拠・修正候補）, refuses: 仕上がりの段（R-14）を通らない記述, ref: [FR15, R-14]}
+      - {id: index, name: 索引, input: 正本の集合, output: 文書・要件・契約の id と 1 行の題, refuses: なし, ref: [FR14]}
       - {id: render, name: 描画, input: 検査に通った型付き記述, output: 図の本体（SVG）, refuses: 検査を通っていない記述, ref: [FR15]}
       - {id: embed, name: 埋め込み, input: 図の本体, output: 部品目録の class だけで塗られた図の部品, refuses: 部品目録に無い class を持つ本体（R-3）, ref: [FR15, R-3]}
   - n: 4
@@ -51,7 +52,22 @@ sections:
     type: contract-table
     title: 契約表
     rows:
-      - {id: a, title: 図の生成の口 3 つを 1 便で置く, req: [FR15], section: 1, verify: [cargo nextest run -p folio figure], size: M, done: 型付き記述の見本 1 本が仕上がりの段を通り図の本体が部品として埋まる, depends: []}
+      - {id: a, title: 図の生成の口 3 つを 1 便で置く, req: [FR15], section: "1", verify: [cargo nextest run -p folio figure], size: M, done: 型付き記述の見本 1 本が仕上がりの段を通り図の本体が部品として埋まる, depends: []}
 
-figures: []
+figures:
+  - id: fig-1
+    type: archify-architecture
+    caption: 図の生成の 3 つの口（見本）
+    refs: [FR15]
+    spec:
+      schema_version: 1
+      diagram_type: architecture
+      meta: {title: 図の生成の 3 つの口, quality_profile: showcase}
+      components:
+        - {id: spec, type: external, label: 型付き記述, sublabel: 文書の正本の図の節, row: 0, col: 0}
+        - {id: tool, type: backend, label: 図の道具, sublabel: 検査と描画, row: 0, col: 1}
+        - {id: body, type: frontend, label: 図の本体, sublabel: 部品として埋める, row: 0, col: 2}
+      connections:
+        - {from: spec, to: tool, label: 検査}
+        - {from: tool, to: body, label: 描画}
 sources: []
