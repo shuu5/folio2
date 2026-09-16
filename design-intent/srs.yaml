@@ -4,15 +4,15 @@
 #   （要件 id・条 id・rules 行 id）で外部 pointer は sources 欄 / P-3 は置き場条へ弱めた（憲法側）/ AC 4→6 / RED test は文 + fixture path /
 #   approval ブロック + 発効の 1 段 / GOAL 4 の実装手段（Rust）は CON へ / intake の写像表は rules・annex 側。
 # 規範文は日本語だけ（G10）: when = いつ守るか（型）/ shall = 何をするか・しないか。強度は欄。
-# 状態: v1.0 は発効（持ち主の承認 2026-09-12「承認する」）。v1.1（M1 の要件 FR9〜FR15・AC7〜AC13・CON8〜CON9・ADR-3 / ADR-4 の帰結）は承認欄の v1.1 の行に持ち主の逐語が入った時点で発効する（P-13.3・P-7.2 = 番号は新規・NFR3 / AC6 は据え置き）。
+# 状態: v1.0 は発効（持ち主の承認 2026-09-12「承認する」）。v1.1（M1 の要件 FR9〜FR15・AC7〜AC13・CON8〜CON9・ADR-3 / ADR-4 の帰結）は 2026-09-16 に発効（承認欄の v1.1 の行・逐語「いずれも推奨で進めて」）。P-13.3・P-7.2 = 番号は新規・NFR3 / AC6 は据え置き。
 
 meta:
   id: folio2-srs-m0
   title: 要件書（M0・最初に動く形 ＋ M1・設計ノートと契約表と図の生成）
   version: v1.1
-  status: draft
-  effective_version: v1.0
-  status_note: 発効している版は v1.0（承認欄の 2026-09-12 の行）。v1.1 は承認欄の v1.1 の行に持ち主の逐語と日付が入るまで未発効（拘束力なし）＝status は draft
+  status: effective
+  effective_version: v1.1
+  status_note: v1.0 = 2026-09-12 発効・v1.1 = 2026-09-16 発効（承認欄の v1.1 の行・逐語「いずれも推奨で進めて」・裁定 id f2-648 notes 2026-09-16 23:5x JST）
   generated: 2026-09-12
   promise: 持ち主が易しい質問 5 つに答える（答えなくても推奨で進む）と、入口・憲法・要件書の 3 枚が同じ見た目で生成され、機械検査の結果が必ず表示される。
   counts: {fr: 15, nfr: 3, ac: 13, con: 9}
@@ -21,13 +21,13 @@ meta:
     - {role: レビュー, who: 敵対レビュー（ad-hoc WF wf_5e659fc9-0ed・7 観点・反証 24 + 追加反証 34）, when: 2026-09-12, stamp: review/summary.md}
     - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-12, stamp: "発効（f2-648.1 notes 20:2x）", verbatim: 承認する, version: v1.0}
     - {role: 作成, who: planner 席（AI・fable 5.1）, when: 2026-09-16, stamp: "v1.1 起草（f2-648.4）・敵対レビュー（読み取り専用 opus 2 本・忠実性 / 憲法整合）を反映", version: v1.1}
-    - {role: 承認, who: 持ち主（shuu5）, when: null, stamp: "v1.1 = 未発効（承認待ち）", verbatim: null, version: v1.1}
+    - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-16, stamp: "発効（f2-648 notes 2026-09-16 23:5x JST・対話面 R-8・草案と敵対レビュー 2 本の結果を入口ページで提示した後）", verbatim: いずれも推奨で進めて, version: v1.1}
   effective: 承認欄の「承認」に持ち主の逐語と日付が入った時点で発効する（憲法 §6 発効段と同じ形）。版ごとに承認の行を足し、前の版の行は書き換えない。
   changes_from_v1_0:
     - M1 の要件を新しい番号で足した（FR9〜FR15・AC7〜AC13・CON8〜CON9）。M0 の要件（FR1〜FR8・NFR1〜NFR3・AC1〜AC6・CON1〜CON7）は据え置き（P-7.2）。NFR3 と AC6 の母集団（内部 3 空間）は広げない（ADR-3 決定 (6)）
     - 出所 = 判断の記録 ADR-3（契約表の所有と境界・2026-09-16 発効）と ADR-4（図の道具・2026-09-16 発効）の帰結。M1 の範囲 = 設計ノート（1 型・任意の型付き節）・契約表（外部の欄の決まりを参照する節）・導出物と差分 0・散文の門・要件の追跡表の測定値・id の索引・図の生成
     - FR1 に rules 行 D-10（持ち主への問いは対話面の散文で）の参照を足した（D-10 の note の予告どおり）
-    - 承認欄は版ごとに行を持つ（v1.0 の行は書き換えない）。v1.1 の承認の行は when / verbatim が空のまま置き、持ち主の逐語が入るまで status は draft
+    - 承認欄は版ごとに行を持つ（v1.0 の行は書き換えない）。v1.1 の承認の行は持ち主の逐語（2026-09-16「いずれも推奨で進めて」）が入って発効した（それまでは status draft で置いていた）
 
 goals:
   - {id: GOAL1, title: 相談して決められる, text: 「どの文書が要るか分からない」を無くす。最初と途中の両方に窓口がある。}
@@ -338,7 +338,7 @@ constraints:
   - {id: CON6, title: scribe2 の限定利用, text: 便は便 0 以降（s2-07l.149 の裁定後）・作業記憶の退避と復元は当面 v1 の共通 skill（global skill）・並列便は使わない。v1 の並列実行の骨格は使わず、並列は素の Agent の同時起動か、その場で書く Workflow（予算を明示）。, basis: [P-13, P-16], source: 持ち主の裁定 2026-09-12（P3 / P5・s2 経由 18:1x）, rules: [D-3, D-4, D-7]}
   - {id: CON7, title: 実装の手段, text: folio v2 は Rust の単一 crate として実装する（bash の寄せ集めをやめる）。, basis: [], source: 裁定 s2-07l.42（folio v2 Rust 化・3 択決定）。GOAL4 から移した（G15 D10）。}
 
-  - {id: CON8, title: M1 の順序と移す範囲, text: 契約表は今の形（scribe2 の設計文書の中の機械が読む区間）で着地させ、folio2 の M1 で設計ノートの YAML 正本と導出物へ移す。scribe2 の設計文書のどこまでを YAML へ移すかは、本版（v1.1）の承認時に持ち主へ出す別の論点とする。, basis: [P-13, P-6], source: 判断の記録 ADR-3 決定 (8)・scribe2 planner の裁定（s2-07l.197 notes 2026-09-13）}
+  - {id: CON8, title: M1 の順序と移す範囲, text: 契約表は今の形（scribe2 の設計文書の中の機械が読む区間）で着地させ、folio2 の M1 で設計ノートの YAML 正本と導出物へ移す。scribe2 の設計文書のどこまでを YAML へ移すかは、本版（v1.1）の承認時に持ち主へ出す別の論点とし、その裁定 = 最初の範囲は契約表を持つ設計文書だけ（他の設計文書の移行は M1 の後に改めて問う）。, basis: [P-13, P-6], source: 判断の記録 ADR-3 決定 (8)・scribe2 planner の裁定（s2-07l.197 notes 2026-09-13）・持ち主の裁定 2026-09-16「いずれも推奨で進めて」（f2-648 notes 23:5x JST・推奨 = 契約表を持つ文書だけ）}
   - {id: CON9, title: 席へ届く経路, text: 設計ノートや要件書の中身が席の文脈へ届く経路は器（scribe2）の役割の注入が持つ。憲法の注入（FR6）は憲法専用のまま広げない。folio が出すのは機械が読む id の索引（FR14）まで。, basis: [P-14, P-13], source: 判断の記録 ADR-3 決定 (9)}
 
 sources:
