@@ -210,8 +210,8 @@ requirements:
     when: folio build --check が実行されたとき
     shall: folio は設計ノートの契約表から器の形（表の形式の契約の配列・各行に節の本文の逐語・空の一覧は欄名を省く・先頭に版の宣言・器の値の文法〔文字列・文字列の一覧・数・真偽〕を共有する）の導出物を生成し、版管理に置かれた導出物との差分を数えて、差があれば非 0 で終了する。この検査は事後の検出であり、編集の時点で止める仕掛けの代わりにしない。
     plain: 契約表から scribe2 が読む形の file を機械が作り、repo に置いてある file と 1 字でもずれていれば「ずれている」と言って止まります。ただしこれは後から数える検査で、書いた瞬間に止める仕掛けの代わりではありません。
-    basis: [P-6, P-18]
-    verify: {method: test, how: 導出物を 1 字変えた fixture で --check が非 0 になり、一致する fixture で 0 になることを見る, ac: [AC9]}
+    basis: [P-6, P-18, P-10]
+    verify: {method: test, how: 手書きの契約表と期待される導出物の対を凍結 anchor（生成器から独立した固定の fixture）として置き、導出物を 1 字変えた fixture で --check が非 0 になり、anchor と一致する fixture で 0 になることを見る（生成物どうしの突き合わせだけを合格にしない）, ac: [AC9]}
     goals: [GOAL4]
     figures: []
     milestone: M1
@@ -235,7 +235,7 @@ requirements:
     pattern: event
     strength: must
     when: 要件の追跡表を生成するとき
-    shall: folio は各契約の着地を、統合先の commit の末尾の印（器が書く契約 id と要件 id）だけから読み、印が在れば着地（印の sha）、無ければ「まだ分からない」と出し「未着地」とは言わない。他の repo の要件 id・契約 id・便の id は参照 id の床（rules 行 R-4）の母集団に入れず、出所付きの測定値（3 値）として扱う。
+    shall: folio は各契約の着地を、統合先の commit の末尾の印（器が書く契約 id と要件 id）だけから読み、印が在れば着地（印の commit の要約値（sha））、無ければ「まだ分からない」と出し「未着地」とは言わない。他の repo の要件 id・契約 id・便の id は参照 id の床（rules 行 R-4）の母集団に入れず、出所付きの測定値（3 値）として扱う。
     plain: 「その便は本当に入ったか」は、scribe2 が commit の末尾に書く印だけを見て答えます。印があれば「入った」、無ければ「まだ分からない」と言い、「入っていない」とは言いません。scribe2 側の番号が実在するかは folio の検査で追わず、測った値として見せるだけです。
     basis: [P-4, P-7, P-10, P-13]
     rules: [R-4]
@@ -321,9 +321,9 @@ acceptance:
 
   - {id: AC7, title: 設計ノートが閉じた一覧の節の型だけで生成され、一覧に無い節の型は落ちる, plain: 設計の文書を機械が作れて、知らない種類の節があると作らずに止まることを見せる。, verifies: [FR9], red_test: {sentence: 一覧に無い節の型を 1 つ持つ fixture で生成が落ち、一覧内だけの fixture で通る, fixture: tests/fixtures/design-note/section-types/（落ちる側と通る側の 2 本）}, milestone: M1}
   - {id: AC8, title: 器の導出 file が無いと「まだ分からない」になり、合格にならない, plain: 契約表の「欄の決まり」の写しが無い状態で走らせ、「まだ分からない」と出て「合格」にならないことを見せる。, verifies: [FR10], red_test: {sentence: 導出 file を欠いた fixture で判定が「まだ分からない」になり合格にならない, fixture: tests/fixtures/design-note/schema-missing/}, milestone: M1}
-  - {id: AC9, title: 導出物を 1 字変えると --check が非 0 で終わる, plain: scribe2 が読む形の file を 1 文字だけ書き換えて走らせ、「ずれている」と言って止まることを見せる。, verifies: [FR11], red_test: {sentence: 導出物を 1 byte 変えた fixture で --check の終了コードが非 0 になる, fixture: tests/fixtures/contracts/drift-1/}, milestone: M1}
+  - {id: AC9, title: 導出物を 1 字変えると --check が非 0 で終わる, plain: scribe2 が読む形の file を 1 文字だけ書き換えて走らせ、「ずれている」と言って止まることを見せる。, verifies: [FR11], red_test: {sentence: 導出物を 1 byte 変えた fixture で --check の終了コードが非 0 になる, fixture: tests/fixtures/contracts/（凍結 anchor = 契約表と期待導出物の対 + 1 字ずらした導出物）}, milestone: M1}
   - {id: AC10, title: 規範の印を持つ文の違反が数えられ、記述の文は数えられない, plain: 「〜しなければならない」と書いたのに番号が無い文・数値を書いた文が違反として出て、普通の説明文は出ないことを見せる。, verifies: [FR12], red_test: {sentence: 参照 id の無い印付きの文 1 つと数と単位を持つ印付きの文 1 つの fixture で違反 2 が報告され、記述の文だけの fixture で 0 になる, fixture: tests/fixtures/prose-gate/}, milestone: M1}
-  - {id: AC11, title: 印の無い commit の契約は「まだ分からない」と出て「未着地」と出ない, plain: 便が入ったかを示す印が無いとき、「まだ分からない」と表示され「入っていない」とは表示されないことを見せる。, verifies: [FR13], red_test: {sentence: 印の無い commit の fixture で「まだ分からない」が出て「未着地」が出ず、印の在る fixture で sha が出る, fixture: tests/fixtures/rtm/（印の無い commit と印の在る commit の 2 本）}, milestone: M1}
+  - {id: AC11, title: 印の無い commit の契約は「まだ分からない」と出て「未着地」と出ない, plain: 便が入ったかを示す印が無いとき、「まだ分からない」と表示され「入っていない」とは表示されないことを見せる。, verifies: [FR13], red_test: {sentence: 印の無い commit の fixture で「まだ分からない」が出て「未着地」が出ず、印の在る fixture で要約値（sha）が出る, fixture: tests/fixtures/rtm/（印の無い commit と印の在る commit の 2 本）}, milestone: M1}
   - {id: AC13, title: 器の導出 file を 1 欄変えると契約表の節の欄が追従する, plain: scribe2 側の「欄の決まり」の写しに欄を 1 つ足すと、folio の契約表にもその欄が現れ、folio 側の記録を直さなくてよいことを見せる。, verifies: [FR10], red_test: {sentence: 導出 file に欄を 1 つ足した fixture で契約表の節にその欄が登録され、folio 側の型に欄の一覧が無い, fixture: tests/fixtures/design-note/schema-plus-one/}, milestone: M1}
   - {id: AC12, title: 検査を通らない図は生成されず、前の生成物が残る, plain: わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。, verifies: [FR15], red_test: {sentence: 前の生成物を置いた上で、仕上がりの段の検査を通らない型付き記述の fixture を入れると図が生成されず前の生成物の要約値が変わらない, fixture: tests/fixtures/figure/（前の生成物 + 通らない記述 + 通る記述の 3 本）}, milestone: M1}
 
