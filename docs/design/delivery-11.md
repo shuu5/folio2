@@ -8,7 +8,7 @@
 
 ## 1. 目的と中身
 
-day-1 の読み物 `design-intent/preview/readable.html`（正本 4 file と判断の記録から導出した 1 面・`.vessel.toml` の requirements が指す暫定の要件面）を作る生成器は、いま Python の `scripts/render_preview.py`（142 行）だけである。これを Rust の副命令 `folio render` に写し、同じ入力から 1 byte も違わない出力を出す。planner の実測（2026-09-17・main 512c132）: script の出力と版管理の readable.html は byte 同一（194830 byte）。
+day-1 の読み物 `design-intent/preview/readable.html`（正本 4 file と判断の記録から導出した 1 面・`.vessel.toml` の requirements が指す暫定の要件面）を作る生成器は、いま Python の `scripts/render_preview.py`（142 行）だけである。これを Rust の副命令 `folio render` に写し、同じ入力から 1 byte も違わない出力を出す。planner の実測（2026-09-17・main 512c132）: script の出力と版管理の readable.html は byte 同一（194830 byte）。 要件との対応: FR4 のうち本便が運ぶのは「単一の生成器・単一の design token（css 1 本）」へ生成の口を寄せる段だけで、入口・憲法・要件書の 3 面そのものは M0 の後続の便が出す（本便の出力は day-1 の読み物 1 面）。FR5 は (a) の 3 値と (d) で満たす。
 
 (a) 命令の形: `folio render --dir <正本の置き場・既定 design-intent> --out <出力先・既定 preview/readable.html> --write|--check`。
 - `--out` が相対なら `--dir` からの相対（script が `--dir` へ移ってから開くのと同じ）・絶対ならそのまま。
@@ -25,7 +25,7 @@ day-1 の読み物 `design-intent/preview/readable.html`（正本 4 file と判�
 - 読み: 正本 4 file（constitution.yaml・rules.yaml・vocabulary.yaml・srs.yaml）と `adr/` の下で名が ADR- で始まり .yaml で終わる file を、便 7 の型付きの読み手 `yaml::parse_typed` で読む（表は書かれた順を保つ＝Python の表の順と同じ）。重複キーは `yaml::parse` の duplicates で数え、1 つでも在れば (d) の 2。`adr/schema.yaml` は読まない。
 - 判断の記録の順: 各 file の欄 id を「-」で割った 2 番目を ASCII の数字列として読み、その数の昇順。数字列でない・同じ数が 2 本以上（script では並びが dir の列挙順に依り決まらない）は 2。
 - 凍結 anchor の列: `anchors/index.yaml` が無ければ「なし（または索引が空）」の文。在れば entries の各要素の version を文字列化して「 → 」で繋ぐ。entries が空の一覧でも「なし」の文。
-- CSS: `scripts/render-preview.css` の本文を `include_str!` で binary に埋め込む（実行時に file を探さない・css の本文は変えない）。
+- CSS: `scripts/render-preview.css` の本文を `include_str!` で binary に埋め込む（実行時に file を探さない・css は読むだけ・write-set の外・本文は変えない）。
 - escape: script の `html.escape`（quote 込み）と同じ 5 字（& → `&amp;`・< → `&lt;`・> → `&gt;`・二重引用符 → `&quot;`・一重引用符 → `&#x27;`）。script が escape している所だけ escape し、していない所（条 id・規範文 id・要件 id・ゴール id・制約 id をそのまま差し込む箇所）はしない。
 - 文字列化: script が `str()` を通す所は scalar を `Value::py_str`（None・True・False・整数の字面・日付の字面・小数）で写す。script が `html.escape` に値をじかに渡す所と「・」や「 ／ 」でじかに繋ぐ所は文字列だけを受け、文字列でなければ 2（script は traceback で落ちる）。`%d` の所は整数だけを受け、それ以外は 2。
 - 一覧と表の文字列化（Python の repr の狭い写し）: script の `str()` に一覧か表が渡る所が正本に 1 か所在る（要件書 meta の changes_from_v1_1 の 1 番目の要素が表として読まれている＝正本の側の書き損じだが、読み物は今その repr を出しており byte 一致のために写す）。表 = 「{」+ 各組を「キーの repr: 値の repr」にして「, 」で繋ぐ +「}」・一覧 = 「[」+「, 」繋ぎ +「]」・文字列 = 一重引用符で囲む・null と真偽と整数は py_str と同じ。文字列の中身は次の字だけを受ける: ASCII の 0x20〜0x7e のうち一重引用符・二重引用符・逆斜線を除いたもの／`char::is_alphanumeric` が真の字／次の閉じた一覧の記号「、。・「」（）〔〕→：／—＝＋〜」。それ以外の字を含む文字列・日付・小数が一覧や表の中に在れば 2（Python の repr が escape や別の字面を出す形を当て推量で写さない・fail-closed）。
@@ -34,7 +34,7 @@ day-1 の読み物 `design-intent/preview/readable.html`（正本 4 file と判�
 - 閾値の値の読める形（script の関数 val）: 表 = 欄ごとに `<br>` 区切りで全角空白の字下げ（深さ d 個）+ 太字のキー + 値（値が表なら `<br>` を挟んで 1 段深く）・一覧 = 文字列の要素は「」で括り、それ以外は同じ関数へ・「・」繋ぎ・null = `<code>null</code>`・それ以外 = 文字列化して escape。
 - 要件書の版ごとの変更点: meta のキーのうち changes_from_ で始まるものを文字列の昇順に並べ、見出しは接頭辞を除いて「_」を「.」に替える。
 
-(c) 歯 `crates/folio/tests/render.rs`（binary 経由・歯の関数名はすべて render を含める＝verify の filter 語）。入力は parity の歯と同じ作り（`design-intent/` を丸ごと一時 dir へ写す・preview/ 込み・git は要らない）。
+(c) 歯 `crates/folio/tests/render.rs`（binary 経由・歯の関数名はすべて render を含める＝verify の filter 語）。入力は parity の歯と同じ作り（`design-intent/` を丸ごと一時 dir へ写す・preview/ 込み・git は要らない）。版管理の `design-intent/preview/readable.html` は書き換えない・再生成して commit しない（歯の `--out` は必ず一時 file か写しの中）。script を起動するときは `--dir` も `--out` も絶対 path で渡す（script は `--dir` へ移ってから開く）。
 - 凍結 anchor との一致（P-10.1）: 写しに `--out <一時 file> --write` → 終了 0 ∧ 出力が版管理の `design-intent/preview/readable.html` と byte 一致。
 - check の 3 値: 写しそのままで `--check` = 0 ∧ 標準出力に「render: OK」／写しの srs.yaml の meta の title の字を 1 つ変えて `--check` = 1 ∧ 標準エラーに「DRIFT」／写しの preview/readable.html を消して `--check` = 2 ∧ 標準エラーに「読み物が無い」／その後 `--write` = 0 → `--check` = 0。
 - script との突き合わせ（oracle・P-10.2 により唯一の判定にしない＝上の anchor と併せる）: 写しに変異を 1 つ当て、`python3 scripts/render_preview.py --dir <写し> --out <絶対 path A> --write` と `folio render --dir <写し> --out <絶対 path B> --write` の出力が byte 一致、かつ変異前の出力と違うこと（変異が効いていない突き合わせを緑にしない）。変異は今の読み物が通していない分岐に当てる 4 つ: 判断の記録 1 本に amends の 1 要素（version・target・field・previous_text・new_text）を置く／`anchors/index.yaml` を消す／srs.yaml の meta に status_note を足す／判断の記録 1 本に superseded_by を足す。python3 を起動できなければ歯を落とす（飛ばして緑にしない）。
