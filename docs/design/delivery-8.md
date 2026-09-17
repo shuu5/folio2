@@ -16,7 +16,8 @@
 - `check-ignore -q --no-index <anchors/ の相対 path>` と、作業ツリーに在る各 anchor file の相対 path について、終了コード 0（除外の規則が当たる）なら 1 違反ずつ（anchor・版管理から除外されている・追跡済みでも落とす）。
 - `ls-tree -r --name-only HEAD -- <anchors/>` で HEAD にある anchor の file 名の集合（tracked）、`log --all --format=%H --name-status -- <anchors/>` で全ての参照の履歴に一度でも在った file 名の集合（ever・状態が D の行は入れない）と、状態が A・M・R・C で名前が constitution- で始まる各行について `show <commit>:<path>` の本文（hist）を集める（R と C は矢印の右の path）。どちらかの命令が失敗 → 測れない（pending・「版管理を読めない」）で終える。
 - tracked に在って作業ツリーに無い file → 1 違反ずつ（anchor・HEAD にあるが作業ツリーに無い）。ever に在って tracked にも作業ツリーにも無い file → 1 違反ずつ（anchor・履歴に在ったが無い・削除を commit しても列の始め直しは認めない）。作業ツリーに在り hist にも在る各 file について、hist の各本文が今の本文と byte で違い、かつその本文を型付きで読めて**同じ形式**（欄の集合が床の file_keys と一致・digest_algo が床と同じ・projection の article_fields と statement_fields が床と同じ）なら 1 違反（anchor・履歴の同じ形式の anchor と中身が違う＝差し替え）で次の file へ（形式が違う古い anchor は移行の痕跡として見ない・読めない本文は飛ばす）。作業ツリーに在って tracked に無い anchor file（索引を除く）のうち、最新の版（索引の末尾）の file 名でないもの → 1 違反ずつ（anchor・追跡されていない・列の差し替え）。
-- これらは便 7 の (f)〜(i) と同じ Report に積む（種別は文字列・pending は便 7 の測れないの一覧）。
+- `<dir>/anchors/` が無い組（既存の fixture 15 組）では check-ignore・ls-tree・log の対象 path が存在しないが、それは違反にも測れないにもしない（tracked と ever が空・作業ツリーの anchor も無い＝照合するものが無いだけ・便 7 の (i) の pending が立つ）。命令自体の失敗（git が無い・読めない）だけを測れないにする。
+- これらは便 7 の (f)〜(i) と同じ Report に積む（種別は文字列・pending は便 7 の測れないの一覧。Report の pending の口・yaml.rs の型付きの読み parse_typed と正規化 canonical・adr の記録 Adr・anchor の check_anchor と history_ids は便 7 が公開済み〔admin の実測 2026-09-17 main a1d40f4〕。anchor.rs の中の 写し（project）・正規化（canon）・digest（digest_of）・型付きの再読み（read_typed）・条の消失と改番（structural_diff）は非公開なので、便 8 は anchor.rs の中で crate の中へ可視性を広げて使う〔式は変えない・anchor.rs は write-set に在る〕）。
 
 (b) 列の区間の消し込み。索引の entries の隣り合う 2 つ（前の版 pv・後の版 cv）で両方の anchor が読めているものについて、前の anchor の content と後の anchor の content を**欄単位**で比べ、その版（cv）を名指す発効した判断の amends と 1 対 1 に消し込む。欄単位の比べ方（day-1 の diff_targets と同じ）:
 - 対象 = 範囲（各 anchor の projection.scope）の各節（articles 以外）と各条 id。節は「欄の道 → 値」に平らにする（表は道を「.」で伸ばし、一覧は丸ごと 1 値・節が無い側は空の表・節の値が表でないなら道 value に 1 値）。条は title・tier・binds の 3 欄と、各規範文の text・pattern・strength を statements.<規範文 id>.<欄> の道で持つ。
@@ -34,7 +35,7 @@
 
 突き合わせの歯（`crates/folio/tests/parity.rs`・便 7 の 27 入力に足す・写し全部 + git 1 commit + 変異 1 つ・床と folio の終了コードの一致）: (28) 写しの `anchors/` を丸ごと消す → 1（HEAD にあるが無い）／(29) 写しの `anchors/constitution-v1.0.yaml` だけを消す（索引は残す）→ 1／(30) 写しの版管理の根に `.gitignore` を作り anchors/ を書く → 1／(31) 写しの `.git` を消す → 2（版管理が無い＝測れない・違反 0）。既存の 27 入力は変えない。
 
-便 7 が置いた形との接続: `crates/folio/src/main.rs` に `mod gitcheck; mod lineage;` を足す。実装は新規 `crates/folio/src/gitcheck.rs`（(a)・`std::process::Command` で git を撃つ・環境変数の遮断・20 秒の待ち上限）と `crates/folio/src/lineage.rs`（(b)・便 7 の型付きの木と正規化を使う）。`anchor.rs` から (a) を anchors/ の読みの後に、(b) を列の検査の後に呼ぶ（便 7 の検査の式は変えない）。判断の記録（発効・amends・approval）は便 5・便 6 の `adr.rs` が読んだものを使う。外部 crate は増やさない（clap と yaml-rust2 のまま・`Cargo.toml` と `Cargo.lock` は触らない）。正規表現は使わない。便 2・便 3 の歯と fixture は触らない。
+便 7 が置いた形との接続: `crates/folio/src/main.rs` に `mod gitcheck; mod lineage;` を足す。実装は新規 `crates/folio/src/gitcheck.rs`（(a)・`std::process::Command` で git を撃つ・環境変数の遮断・20 秒の待ち上限）と `crates/folio/src/lineage.rs`（(b)・便 7 の型付きの木と正規化を使う）。便 6 の `crates/folio/src/link.rs` は unit の歯の名（adr_ids_follow_the_floor_pattern）に adr を含み verify の filter adr で歯の file として解けるので、write-set に在るが触らない（本文も期待も変えない）。`anchor.rs` から (a) を anchors/ の読みの後に、(b) を列の検査の後に呼ぶ（便 7 の検査の式は変えない）。判断の記録（発効・amends・approval）は便 5・便 6 の `adr.rs` が読んだものを使う。外部 crate は増やさない（clap と yaml-rust2 のまま・`Cargo.toml` と `Cargo.lock` は触らない）。正規表現は使わない。便 2・便 3 の歯と fixture は触らない。
 
 ## 2. 範囲
 
@@ -65,7 +66,7 @@ id = "i"
 title = "folio check に版管理との照合と列の区間の消し込みを足す"
 req = ["FR5", "NFR3"]
 section = "1"
-write-set = ["+crates/folio/src/gitcheck.rs", "+crates/folio/src/lineage.rs", "crates/folio/src/anchor.rs", "crates/folio/src/main.rs", "+crates/folio/tests/gitcheck.rs", "crates/folio/tests/parity.rs", "crates/folio/tests/check.rs", "crates/folio/tests/refs.rs", "crates/folio/tests/vocab.rs", "crates/folio/tests/adr.rs", "crates/folio/tests/link.rs", "crates/folio/tests/anchor.rs"]
+write-set = ["+crates/folio/src/gitcheck.rs", "+crates/folio/src/lineage.rs", "crates/folio/src/anchor.rs", "crates/folio/src/main.rs", "crates/folio/src/link.rs", "+crates/folio/tests/gitcheck.rs", "crates/folio/tests/parity.rs", "crates/folio/tests/check.rs", "crates/folio/tests/refs.rs", "crates/folio/tests/vocab.rs", "crates/folio/tests/adr.rs", "crates/folio/tests/link.rs", "crates/folio/tests/anchor.rs"]
 verify = ["cargo nextest run -p folio gitcheck", "cargo nextest run -p folio lineage", "cargo nextest run -p folio anchor", "cargo nextest run -p folio check", "cargo nextest run -p folio refs", "cargo nextest run -p folio vocab", "cargo nextest run -p folio adr", "cargo nextest run -p folio link", "cargo nextest run -p folio parity", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
 done = "gitcheck の歯 4 件が §1 のとおり緑、lineage の unit の歯が緑、便 7 の歯 anchor が期待不変で緑、便 0 の歯 check が期待不変で緑、便 1 の歯 refs が期待不変で緑、便 4 の歯 vocab が期待不変で緑、便 5 の歯 adr が期待不変で緑、便 6 の歯 link が期待不変で緑、parity の 31 入力が床と一致して緑、clippy が 0 警告で CI が通る"
