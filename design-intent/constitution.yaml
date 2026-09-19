@@ -1,4 +1,4 @@
-# folio2 憲法 — 正本（v1.0・発効 2026-09-12・planner 席 fable 5.1）
+# folio2 憲法 — 正本（v1.1・初回の発効 2026-09-12・第 1.1 版 2026-09-20 = 判断の記録 ADR-11・planner 席 fable 5.1）
 #
 # 位置: f2-648.1「day-1 文書」。v0.1（初稿）を敵対レビュー wf_5e659fc9-0ed（7 観点・反証 24 + 追加反証 34・review/summary.md）で
 # 直したもの。裁定 G1〜G16・P1〜P5 に従う。裁定に触れる変更は入れず、承認要求の「論点」として別枠で出す。
@@ -7,7 +7,7 @@
 #   - 段（tier）は「実行時の扱い」（G3）。どの段の条も、外すには §6 の改訂（判断の記録 + 裁定 id + 持ち主の承認）が要る。
 #   - 各条は rationale / binds / mechanism を必ず持つ（G1=B / G2=C / G4=A）。数値は条文に書かず rules 行の id で呼ぶ（P-5）。
 #   - 発効前（v0.x）の変更は meta.changes_from_* に列挙してある（当時は binding: false ゆえ改番は P-7 に触れなかった）。以後の改訂は amended_by。
-# 状態: 発効（持ち主の承認 2026-09-12「承認する」・逐語は f2-648.1 notes と meta.approval）。改訂は §6（A-2 / N-4）。
+# 状態: 発効（持ち主の承認 2026-09-12「承認する」・逐語は f2-648.1 notes と meta.approval）。改訂は §6（A-2 / N-4）。改訂の来歴は各条の amended_by と凍結 anchor の列（anchors/）が持つ＝第 1.1 版は条 P-5 と P-14（判断の記録 ADR-11・承認 2026-09-20）。
 
 schema:
   version: 1
@@ -176,6 +176,9 @@ articles:
 
   - id: P-5
     title: 規則は型付きデータに置き、番号で呼ぶ
+    amended_by:
+      - {adr: ADR-11, date: 2026-09-20, approved_by: 持ち主, ruling: f2-648 notes 2026-09-20 00:09 JST（発効の承認・判断の記録 ADR-11 と憲法 第 1.1 版と rules 行 D-11 を 1 つの承認で発効する承認要求への回答）, previous_text: 規則・閾値・型の一覧は型付きデータ（正本 YAML・rules 行・部品目録）に置く。, rationale: 実装の型付きの定数を規則の正本の置き場として括弧に明記する（天井の 2 周目の整合の止める所見・判断の記録 ADR-11）。}
+      - {adr: ADR-11, date: 2026-09-20, approved_by: 持ち主, ruling: f2-648 notes 2026-09-20 00:09 JST（発効の承認・判断の記録 ADR-11 と憲法 第 1.1 版と rules 行 D-11 を 1 つの承認で発効する承認要求への回答）, previous_text: （新設）, rationale: P-5.6 の新設。実装の型付きの定数を規則の正本とするあいだ、人が読める写しを設計文書の置き場へ導出する義務を置く（判断の記録 ADR-11）。}
     tier: always
     binds: both
     statements:
@@ -297,6 +300,8 @@ articles:
 
   - id: P-14
     title: 憲法を AI の手元へ写す（注入）
+    amended_by:
+      - {adr: ADR-11, date: 2026-09-20, approved_by: 持ち主, ruling: f2-648 notes 2026-09-20 00:09 JST（発効の承認・判断の記録 ADR-11 と憲法 第 1.1 版と rules 行 D-11 を 1 つの承認で発効する承認要求への回答）, previous_text: 生成区間の総バイト数は rules 行 R-2 以下に収める。, rationale: 語彙の生成区間の定義を広げるのに合わせ、注入の上限が掛かる対象を CLAUDE.md の生成区間と明記する（判断の記録 ADR-11）。}
     tier: always
     binds: tool
     statements:
