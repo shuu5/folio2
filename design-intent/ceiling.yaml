@@ -46,6 +46,7 @@ viewpoints:
       - {doc: rules, fields: [thresholds, discipline]}
       - {doc: vocabulary, fields: [terms, field_terms]}
       - {doc: srs, fields: [requirements.plain, requirements.shall, acceptance.plain, acceptance.title, figures.refs]}
+      - {doc: intake, fields: [questions]}
       - {doc: adr, fields: [plain, decision, options.text, figures.refs]}
       - {doc: design-note, fields: [sections, figures.refs]}
   - id: readability
@@ -53,23 +54,26 @@ viewpoints:
     reader: この道具を初めて見る非エンジニア
     question: 入口から歩いて「何が決まりで・何ができたら完成で・なぜそう決めたか」を、専門の言葉を知らなくても頑張れば読めるか。迷子になる導線、意味の取れない見出し、説明の無い専門語（語彙の正本に無い語・在るが面から引けない語）、読み手を想定していない章を挙げる。図の凡例の言語や数えの日本語の崩れは言葉の問題なのでこの観点で挙げる。重さ = 止める（非エンジニアが読み進められない = 導線が切れる・要旨が取れない）・直す（読めるが引っかかる）・参考（提案）。「止める」と言う前に、案内された先の面に説明や凡例が在るかを面で確かめる。見た目の崩れ（幅・色・重なり）は床の領分なので挙げない。
     reads:
-      - {doc: index, fields: [shelf, sections]}
+      - {doc: index, fields: [audience, shelf, lanes]}
       - {doc: constitution, fields: [articles.title, articles.plain, precedence, sources]}
       - {doc: rules, fields: [thresholds, discipline]}
       - {doc: vocabulary, fields: [terms]}
       - {doc: srs, fields: [goals, scope, requirements.title, requirements.plain, nonfunctional, constraints]}
+      - {doc: intake, fields: [questions]}
       - {doc: adr, fields: [title, plain, decision]}
       - {doc: design-note, fields: [sections]}
   - id: coherence
     name: 文書どうしの整合
     reader: 4 種の文書を横に並べて矛盾を探す審査役
-    question: 憲法・規則の表・要件書・判断の記録・設計ノートの間に、意味の矛盾・同じことの二重の記述・範囲の越境（要件書が決定を書く、判断の記録が規則を書く等）・参照 id は解けているが指す意味が違う箇所は無いか。判断の記録は決定だけでなく前提（context）と退けた案（options）も読む。重さ = 止める（2 つの文書が両立しない義務や決定を持つ = どちらかが誤り）・直す（二重の記述・越境・意味のずれ・両立はする）・参考（提案）。床が数える一致（参照 id の解決・欄の非空・番号・件数）は挙げない。
+    question: 憲法・規則の表・要件書・判断の記録・設計ノート・相談窓口・天井の正本の間に、意味の矛盾・同じことの二重の記述・範囲の越境（要件書が決定を書く、判断の記録が規則を書く等）・参照 id は解けているが指す意味が違う箇所は無いか。判断の記録は決定だけでなく前提（context）と退けた案（options）も読む。重さ = 止める（2 つの文書が両立しない義務や決定を持つ = どちらかが誤り。条が名指す置き場を越えた記述〔台帳に規則・型付きデータに裁定 等〕もここ）・直す（二重の記述・条に反しない越境・意味のずれ・両立はする）・参考（提案）。床が数える一致（参照 id の解決・欄の非空・番号・件数）は挙げない。
     reads:
       - {doc: constitution, fields: [articles, precedence]}
       - {doc: rules, fields: [thresholds, discipline]}
       - {doc: srs, fields: [requirements, nonfunctional, acceptance, constraints]}
       - {doc: adr, fields: [context, decision, options, basis, consequences, retreat]}
       - {doc: design-note, fields: [sections]}
+      - {doc: intake, fields: [targets, questions]}
+      - {doc: ceiling, fields: [documents, viewpoints]}
   - id: reality
     name: 実態との整合
     reader: 設計文書と版管理の中身を突き合わせる実装者
