@@ -62,7 +62,7 @@ title = "面の生成器の表 13 枚から憲法の値域の鍵の列を消し�
 req = ["FR4", "NFR2"]
 section = "1"
 write-set = ["crates/folio/build.rs", "crates/folio/src/face.rs", "crates/folio/src/face_constitution.rs", "crates/folio/src/face_index.rs", "crates/folio/src/face_srs.rs", "crates/folio/src/face_adr.rs", "crates/folio/src/adr.rs", "crates/folio/tests/face.rs", "crates/folio/tests/constitution_enums.rs"]
-verify = ["cargo nextest run -p folio face_labels", "cargo nextest run -p folio --test face face", "cargo nextest run -p folio constitution_enums", "cargo clippy --workspace --all-targets -- -D warnings"]
+verify = ["cargo nextest run -p folio face_labels", "cargo nextest run -p folio --test face face", "cargo nextest run -p folio --test constitution_enums constitution_enums", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
 done = "face_labels の歯（名札の凍結の針 13 枚ぶん）が緑、face の歯（値域に値を足す・知らない鍵を足すと「まだ分からない」・既存は期待不変で面の凍結の fixture と byte 一致）が緑、constitution_enums の歯（ENUMS が鍵の数だけ）が緑、face.rs と face_adr.rs と adr.rs に値域の値の字面を鍵にした表が残らず、folio schema --check の 3 行が不変、clippy が 0 警告で CI が通る"
 <!-- contracts:end -->
