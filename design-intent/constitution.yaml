@@ -247,7 +247,7 @@ articles:
       - {id: P-10.1, pattern: ubiquitous, strength: must, text: 検査は、生成側からも検査側からも独立した凍結 anchor（固定の fixture）を 1 本以上持つ。}
       - {id: P-10.2, pattern: ubiquitous, strength: must-not, text: 生成物どうしの突き合わせを唯一の合格判定にしない。}
       - {id: P-10.3, pattern: unwanted, strength: must, text: anchor が維持できなくなった検査の結果は「まだ分からない」に落とす。}
-    plain: 「自分で作ったものと自分で作ったものを見比べて OK」は、何でも OK になってしまうので、それだけでは合格にしません。作る側からも検査する側からも独立した、動かない基準を 1 つ別に置きます。その基準が保てなくなった検査は「まだ分からない」に戻します。
+    plain: 「自分で作ったものと自分で作ったものを見比べて OK」は、何でも OK になってしまうので、それだけでは合格にしません。作る側からも検査する側からも独立した、動かない基準を 1 つ以上、別に置きます。その基準が保てなくなった検査は「まだ分からない」に戻します。
     rationale:
       - {kind: v1-incident, ref: "ADR-0053（flip 後 ORIG==生成物 で自己比較恒真化・任意値 PASS → 凍結 literal census + round-trip + 敵対 test の三本柱へ。再発ハザードへの予防的退役・user 裁定 2026-07-18）"}
     mechanism: {kind: build-check, live: M0, stage: post, polarity: fail-closed, note: 凍結 fixture を検査の入力に持ち、fixture 不在は「まだ分からない」、fixture との不一致は「不合格」に落とす。}
