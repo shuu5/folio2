@@ -322,7 +322,7 @@ articles:
     statements:
       - {id: P-15.1, pattern: ubiquitous, strength: must-not, text: 自動で走る仕掛け（hook）を「守られる保証」として設計しない。}
       - {id: P-15.2, pattern: ubiquitous, strength: must, text: 編集の時点で止める仕掛けを持つときは、その判定の式を事後の検査が同じ関数で確かめる。}
-    plain: 「自動で止まるはず」を頼りにしません。止まらなかったときにも壊れない作りにします。止める仕掛けを置くなら、後から確かめる検査も、その判定を同じ 1 つの関数で見ます（同じ式を別々に書いた 2 つの実装では足りません）。
+    plain: 「自動で止まるはず」を頼りにしません。止まらなかったときにも壊れない作りにします。止める仕掛けを置くなら、後から確かめる検査も、その判定を同じ 1 つの関数で見ます（同じ中身を別々に 2 か所へ書いたのでは足りません）。
     rationale:
       - {kind: v1-incident, ref: "folio/CLAUDE.md:18 逐語「本 hook は tier-2 shaping であって guarantee ではない」・ADR-0043 §2.3"}
       - {kind: v1-incident, ref: "plugin-lib.sh:238 / check-content-boundary.sh:55（hook と事後検査が 2 実装の人間同期＝drift の実体）"}
@@ -370,7 +370,7 @@ articles:
       - {id: P-18.2, pattern: ubiquitous, strength: must-not, text: 事後の検査を、編集の時点で止めることの代わりにしない。}
       - {id: P-18.3, pattern: ubiquitous, strength: must, text: 止める仕掛け（guard）は「開く／閉じる」の極性と「編集時／事後」の別を型で持ち、その一覧（極性一覧）を生成時に出す。}
       - {id: P-18.4, pattern: unwanted, strength: must, text: 編集の時点で止める guard が 1 本も無い構成なら、検査がそれを落とす。}
-    plain: 決まりに反する書き換えは、書き換えたその場で止めます。「後で検査するから」は、その場で止めることの代わりになりません。止める仕掛けと検査には「壊れたら通す／止める」「その場／後で」の札を型として付け、その一覧は作るたびに機械が出し、、その場で止める仕掛けが 1 つも無い状態は検査で落とします。
+    plain: 決まりに反する書き換えは、書き換えたその場で止めます。「後で検査するから」は、その場で止めることの代わりになりません。止める仕掛けと検査には「壊れたら通す／止める」「その場／後で」の札を型として付け、その一覧は作るたびに機械が出します。その場で止める仕掛けが 1 つも無い状態は検査で落とします。
     rationale:
       - {kind: scribe2-article, ref: "C8.2（design-intent と食い違う編集は編集時に止める）・C16 / C16.2（事後検証を代替にしない・編集時 guard 0 の構成を CI が拒む）・C11.2（極性の型と build 時の極性一覧）"}
       - {kind: folio2-ruling, ref: "裁定 #3（scribe2 の機構条のうち「極性一覧」を写す）・G3=A（撤去コストは共通 1 行）"}
