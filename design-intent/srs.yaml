@@ -249,14 +249,14 @@ requirements:
     goals: [GOAL4]
     figures: []
     milestone: M1
-    note: 判断の記録 ADR-3 決定 (4)。器は統合先（main）へ着地した後の受付からしか新しい表を読まない（正本の改訂 → 取り込みの要求 → 着地 → 再受付）。
+    note: 判断の記録 ADR-3 決定 (4)。器は統合先（main）へ着地した後の受付からしか新しい表を読まない（正本の改訂 → 取り込みの要求 → 着地 → 再受付）。この要件の口（導出物を組む・差分を数える）は未実装である（2026-09-20 時点）。器の側が導出物を読む口を持つまで便を起こさない（台帳 f2-648 の子に起票）。それまで設計ノートの欄の決まりの注も「未実装」と書く。
   - id: FR12
     title: 散文の門（規範の印を持つ文だけ）
     pattern: ubiquitous
     strength: must
     when: つねに
     shall: folio は設計ノートの散文のうち、規範の印（rules 行 R-16 の一覧）を持つ文が、同じ文の中に参照 id（条 id・rules 行 id・要件 id・契約 id）を持ち、数と単位（rules 行 R-16 の一覧）を持たないことを床で数え、違反があれば落とす。記述の文は数えない。
-    plain: 設計の説明文の中で「〜しなければならない」のような決まりの言い方をした文には、必ず番号（条・数値の表の行・要件・契約のどれか）を添え、「30 秒」のような単位のついた数を書かないことを機械が数えます（単位の無い数や普通の説明文は自由です）。普通の説明の文は自由です。
+    plain: 設計の説明文の中で「〜しなければならない」のような決まりの言い方をした文には、必ず番号（条・数値の表の行・要件・契約のどれか）を添え、「30 秒」のような単位のついた数を書かないことを機械が数えます（単位の無い数や普通の説明文は自由です）。
     basis: [N-2, P-5, P-10]
     rules: [R-16]
     verify: {method: test, how: 印を持つ文に参照 id が無い fixture と数と単位を持つ fixture で違反が数えられ、記述の文だけの fixture で 0 になることを見る（凍結 anchor を持つ）, ac: [AC10]}
@@ -277,7 +277,7 @@ requirements:
     goals: [GOAL4]
     figures: []
     milestone: M1
-    note: 判断の記録 ADR-3 決定 (5)・(6)。自分の repo への取り込みの要求で終わる形（印も記録も持たない）は恒久に「まだ分からない」。器の記録の書き出しは出所付きの測定値として補助に留める。
+    note: 判断の記録 ADR-3 決定 (5)・(6)。自分の repo への取り込みの要求で終わる形（印も記録も持たない）は恒久に「まだ分からない」。器の記録の書き出しは出所付きの測定値として補助に留める。この要件の口（commit の末尾の印から着地を読む）は未実装である（2026-09-20 時点・FR11 の後の便）。
   - id: FR14
     title: 機械が読む id の索引を出す
     pattern: event
@@ -290,7 +290,7 @@ requirements:
     goals: [GOAL3]
     figures: []
     milestone: M1
-    note: 判断の記録 ADR-3 決定 (9)。
+    note: 判断の記録 ADR-3 決定 (9)。この要件の口（機械が読む id の索引を出す）は未実装である（2026-09-20 時点・FR11 の後の便）。
   - id: FR15
     title: 図は型付き記述から生成し、通らない図は出さない
     pattern: event
@@ -401,10 +401,10 @@ nonfunctional:
 acceptance:
   - {id: AC1, title: 決まった 5 つの回答で支度表ができ、未回答の項目は別枠に出る, plain: 決まった答えを 5 つ入れると「何を作るか」の表が出て、答えなかった項目は別の枠に分けて出る。それを見せてもらえたら OK。, verifies: [FR1, FR2], red_test: {sentence: 固定回答 5 つの fixture を入れ、期待の支度表と一致し、無回答では全項目が別枠に出る, fixture: tests/fixtures/intake/answers-5.yaml}}
   - {id: AC2, title: 3 面のすべての class が部品目録に存在し、目録に無い class は 0, plain: 3 枚のページに、部品表に載っていない飾りや、決まった材料以外の色が 1 つも無いことを、機械が数えて見せる。, verifies: [FR4, NFR2], red_test: {sentence: 目録外 class を 1 つ足した fixture で不合格になり、見本 3 面では合格になる, fixture: tests/fixtures/floor/parts-catalog.json}}
-  - {id: AC3, title: 床を壊した状態で「まだ分からない」が表示され、合格にならない, plain: わざと検査を壊した状態で道具を走らせ、「まだ分からない」と表示されて「合格」にならないことを見せる。, verifies: [FR5], red_test: {sentence: 床の実行体を無効にした fixture で verdict が Pending になり Pass にならない, fixture: tests/fixtures/floor/broken-floor/}}
-  - {id: AC4, title: CLAUDE.md の生成区間を 1 字変えると --check が非 0 で終わる, plain: AI の手元にある憲法の写しを 1 文字だけ書き換えて道具を走らせ、道具が「ずれている」と言って止まることを見せる。, verifies: [FR6], red_test: {sentence: 生成区間を 1 byte 変えた CLAUDE.md で --check の終了コードが非 0 になる, fixture: tests/fixtures/inject/claude-md-drift/}}
+  - {id: AC3, title: 床を壊した状態で「まだ分からない」が表示され、合格にならない, plain: わざと検査を壊した状態で道具を走らせ、「まだ分からない」と表示されて「合格」にならないことを見せる。, verifies: [FR5], red_test: {sentence: 正本が 1 つ欠けた fixture で床の結果が「まだ分からない」になり「合格」にならない, fixture: tests/fixtures/check/missing-file/}}
+  - {id: AC4, title: CLAUDE.md の生成区間を 1 字変えると --check が非 0 で終わる, plain: AI の手元にある憲法の写しを 1 文字だけ書き換えて道具を走らせ、道具が「ずれている」と言って止まることを見せる。, verifies: [FR6], red_test: {sentence: 生成区間を 1 byte 変えた CLAUDE.md で --check の終了コードが非 0 になる, fixture: tests/fixtures/inject/drift/}}
   - {id: AC5, title: 見本 3 面（入口・憲法・要件書）を持ち主が実際に開いて読み（walk）承認済み, plain: 3 枚のページを実際に開いて見て、持ち主が「これでよい」と言った記録（言葉どおり・日付つき）がある。, verifies: [FR4], red_test: {sentence: 承認の逐語と日付が台帳（f2-648 notes）と承認欄にある, fixture: bd f2-648 notes（user 逐語 2026-09-12「承認するけど…」）}, note: 付帯条件（user 直命）を受入に含める（G16=A・受入 (d)）。}
-  - {id: AC6, title: 内部 3 空間の参照 id の未解決が 0, plain: 要件・条文・数値の表の番号を全部集めて、行き先の無い番号が 0 個であることを機械が数えて見せる。, verifies: [NFR3], red_test: {sentence: 存在しない id を 1 つ書いた fixture で未解決 1 が報告され、正本 4 file では 0 になる, fixture: tests/fixtures/refs/dangling-1.yaml}}
+  - {id: AC6, title: 内部 3 空間の参照 id の未解決が 0, plain: 要件・条文・数値の表の番号を全部集めて、行き先の無い番号が 0 個であることを機械が数えて見せる。, verifies: [NFR3], red_test: {sentence: 存在しない id を 1 つ書いた fixture で未解決 1 が報告され、正本 4 file では 0 になる, fixture: tests/fixtures/refs/dangling-id/}}
 
   - {id: AC7, title: 設計ノートが閉じた一覧の節の型だけで生成され、一覧に無い節の型は落ちる, plain: 設計の文書を機械が作れて、知らない種類の節があると作らずに止まることを見せる。, verifies: [FR9], red_test: {sentence: 一覧に無い節の型を 1 つ持つ fixture で生成が落ち、一覧内だけの fixture で通る, fixture: tests/fixtures/design-note/section-types/（落ちる側と通る側の 2 本）}, milestone: M1}
   - {id: AC8, title: 器の導出 file が無いと「まだ分からない」になり、合格にならない, plain: 契約表の「欄の決まり」の写しが無い状態で走らせ、「まだ分からない」と出て「合格」にならないことを見せる。, verifies: [FR10], red_test: {sentence: 導出 file を欠いた fixture で判定が「まだ分からない」になり合格にならない, fixture: tests/fixtures/design-note/schema-missing/}, milestone: M1}
@@ -415,8 +415,8 @@ acceptance:
   - {id: AC14, title: 判断の記録の面のすべての class が部品目録に存在し、目録に無い class は 0, plain: 判断の記録のページに、部品表に載っていない飾りが 1 つも無いことを、機械が数えて見せる。, verifies: [FR16], red_test: {sentence: 目録外 class を 1 つ足した判断の記録の fixture で不合格になり、実の正本の判断の記録では合格になる, fixture: tests/fixtures/face/adr/（最小の判断の記録 1 本 + 目録外 class を足した 1 本）}, milestone: M1}
   - {id: AC12, title: 検査を通らない図は生成されず、前の生成物が残る, plain: わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。, verifies: [FR15], red_test: {sentence: 前の生成物を置いた上で、仕上がりの段の検査を通らない型付き記述の fixture を入れると図が生成されず前の生成物の要約値が変わらない, fixture: tests/fixtures/figure/（前の生成物 + 通らない記述 + 通る記述の 3 本）}, milestone: M1}
 
-  - {id: AC15, title: 4 観点の材料の束が凍結 fixture から決定的に組め、束の要約値が期待と一致する, plain: 欠陥を 1 つ仕込んだ小さな文書から、機械が同じ材料の束を毎回同じ形で作れることを見せる。, verifies: [FR17], red_test: {sentence: 凍結 fixture の正本から組んだ束の要約値が期待の値と違えば不合格になり、期待と同じなら合格になる, fixture: tests/fixtures/ceiling/（欠陥を 1 つ仕込んだ最小の正本 4 file + 期待の束 4 つ）}, milestone: M2}
-  - {id: AC16, title: 所見 file の必須欄が欠けるか束の要約値が合わないと「まだ分からない」になり、その観点があると天井は合格にならない, plain: AI の返事が形を守っていない・材料を読まずに書いた、と機械が見抜いて「まだ分からない」と出し、「合格」にしないことを見せる。, verifies: [FR18], red_test: {sentence: 必須欄を 1 つ欠いた所見 file と束の要約値の合わない所見 file で 2 になり、4 観点が形どおりの所見 file でだけ 0 になる, fixture: tests/fixtures/ceiling/（所見 file の合格 4 本 + 欠け 1 本 + 要約値違い 1 本）}, milestone: M2}
+  - {id: AC15, title: 4 観点の材料の束が凍結 fixture から決定的に組め、束の要約値が期待と一致する, plain: 欠陥を 1 つ仕込んだ小さな文書から、機械が同じ材料の束を毎回同じ形で作れることを見せる。, verifies: [FR17], red_test: {sentence: 凍結 fixture の正本から組んだ束の要約値が期待の値と違えば不合格になり、期待と同じなら合格になる, fixture: tests/fixtures/ceiling/bundle/（欠陥を 1 つ仕込んだ最小の正本の写し + 期待の要約値）}, milestone: M2}
+  - {id: AC16, title: 所見 file の必須欄が欠けるか束の要約値が合わないと「まだ分からない」になり、その観点があると天井は合格にならない, plain: AI の返事が形を守っていない・材料を読まずに書いた、と機械が見抜いて「まだ分からない」と出し、「合格」にしないことを見せる。, verifies: [FR18], red_test: {sentence: 必須欄を 1 つ欠いた所見 file と束の要約値の合わない所見 file で 2 になり、4 観点が形どおりの所見 file でだけ 0 になる, fixture: tests/fixtures/ceiling/findings/（所見 file 11 本 = 合格 4・欄の欠け・要約値違い・根拠が正本に無い・反証が未・反証で支持・反証で全部退けた・所見なしの不合格）}, milestone: M2}
   - {id: AC17, title: 欄の決まりの file と天井の正本と規則の表の生成区間を 1 字変えると --check が非 0 で終わり、印が無いと「まだ分からない」になる, plain: 「文書の書き方の決まり」のファイルや天井の正本や規則の表の、自動で書かれた部分を 1 文字だけ書き換えて道具を走らせ、道具が「ずれている」と言って止まることを見せる。目印を消したときは「まだ分からない」と言うことも見せる。, verifies: [FR19], red_test: {sentence: 生成区間を 1 byte 変えた欄の決まりの file か天井の正本か規則の表で --check の終了コードが非 0 になり、印の無い file では「まだ分からない」の終了コードになる, fixture: tests/fixtures/schema/}, milestone: M2}
 not_frozen: 「60 分以内にできる」「300k token 以下」は、ここには書かない。測定の仕組みが違うので、M1 の実地試験（非エンジニア 1 回）で初めて数値を決める。
 
