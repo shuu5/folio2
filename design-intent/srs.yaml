@@ -66,6 +66,7 @@ meta:
     - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-21, stamp: "発効（f2-648 notes 2026-09-21 18:42 JST・対話面 R-8・一括 9 の報告の問 1〔直しの一括 9・FR19 / AC17 の対象・規則 R-1 の注と判断の記録 ADR-1 / ADR-8 / ADR-11 の注と同じ承認〕への回答）", verbatim: 承認する, version: v1.22}
     - {role: 作成, who: orchestrator 席（AI・fable 5.1）, when: 2026-09-21, stamp: "v1.23 起草（f2-648.66・判断の記録 ADR-12 = FR7 の規範文と平易文と確かめ方に同じ端末の中（loopback）・図の節 fig-tech の名札 3 か所。ほかの要件の規範文と受入の判定の式は不変）"}
     - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-21, stamp: "発効（f2-648 notes 2026-09-21 20:33 JST・対話面 R-8・憲法改訂の報告の問 1〔判断の記録 ADR-12・憲法 第 1.2 版・要件書 v1.23 を 1 つの承認で〕への回答）", verbatim: 承認する, version: v1.23}
+    - {role: 作成, who: orchestrator 席（AI・fable 5.1）, when: 2026-09-21, stamp: "v1.24 起草（一括 10 = 天井 16〜20 周目の直し・起草役 opus と独立の検証役 opus・FR6 / FR18 / FR19 / FR20 / NFR3 の規範文と平易文・仕分けは docs/design/batch10-triage.md）", version: v1.24}
     - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-21, stamp: "発効（f2-648 notes 2026-09-21 22:50 JST・対話面 R-8・天井 19・20 周目と一括 10 の承認要求〔12 項をまとめて〕への回答）", verbatim: 承認する。, version: v1.24}
   effective: 承認欄の「承認」に持ち主の逐語と日付が入った時点で発効する（憲法 §6 発効段と同じ形）。版ごとに承認の行を足し、前の版の行は書き換えない。
   changes_from_v1_0:
