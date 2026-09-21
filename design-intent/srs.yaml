@@ -174,7 +174,7 @@ requirements:
     strength: must
     when: つねに
     shall: folio は正本（YAML）から入口・憲法・要件書の 3 面を、単一の生成器と単一の design token で生成する。
-    plain: 3 枚とも同じ係が同じ材料（色や字の大きさの元の値と、決まった部品）で作るので、見た目が割れません。
+    plain: 入口・憲法・要件書の 3 枚とも、元のファイル（正本 YAML）から同じ係が同じ材料（色や字の大きさの元の値と、決まった部品）で作るので、見た目が割れません。
     basis: [P-2, P-6]
     verify: {method: test+inspection, how: 目で見て確かめ、NFR2 の数値で判定する, ac: [AC2, AC5]}
     goals: [GOAL2]
@@ -312,7 +312,7 @@ requirements:
     strength: must
     when: 文書を生成するとき、正本の図の節に図の道具の型付き記述（rules 行 R-5 の一覧のうち道具の 5 型）があれば
     shall: folio は図の道具（archify）を子の処理として呼び、検査と描画を仕上がりの段（rules 行 R-14）で掛け、出力から図の本体（SVG）だけを部品として埋め、図の本体の意味の属性（箱の id・種別・名札、線の始点と終点と名札）は落とさない。図の正本を別 file にも散文にも持たない。道具の通信する命令（製品の印の取り込み）は使わない。検査を通らなかった図は生成せず、前の生成物も上書きしない。凍結 anchor（型付き記述 1 本と図の本体の写し）が落ちたら判定を「まだ分からない」に落とす。同じ図の修正の往復が rules 行 R-7 の上限を超えたら止めて持ち主へ渡す。
-    plain: 図は AI が決まった書き方（型付きの記述）で書き、外の道具が検査して描きます。folio は描かれた図の線と箱だけをページに埋め（箱や線の名前と番号は残します）、道具の付けてくる画面は捨て、道具が外と通信する機能は使いません。図の元の記述は文書の正本の中にだけ置きます。検査に通らない図は出さず、前の図もそのまま残します（上書きしません）。基準の図（凍結 anchor）と合わなくなったら「まだ分からない」と言います。直す往復が決めた回数を超えたら止めてあなたに渡します（数えるのは folio でなく席と器です）。
+    plain: 図は AI が決まった書き方（型付きの記述）で書き、外の道具が検査して描きます。folio は描かれた図の線と箱だけをページに埋め（箱や線の名前と番号は残します）、道具の付けてくる画面は捨て、道具が外と通信する機能は使いません。図の元の記述は文書の正本の中にだけ置きます。検査に通らない図は出さず、前の図もそのまま残します（上書きしません）。基準の図（凍結 anchor）と合わなくなったら「まだ分からない」と言います。直す往復が決めた回数を超えたら止めてあなたに渡します。
     basis: [P-2, P-4, P-11, A-3, P-10]
     rules: [R-5, R-7, R-14, R-15]
     verify: {method: test, how: 仕上がりの段の検査を通らない型付き記述の fixture で図が生成されず前の生成物が残ること、通る fixture で図の本体が部品目録の class だけで埋まることを見る（凍結 anchor = 型付き記述 1 本と図の本体の写し）, ac: [AC12]}
@@ -395,7 +395,7 @@ nonfunctional:
     when: つねに
     shall: 全生成面の design token は単一の定義に由来し、部品目録に無い class は rules 行 R-3 の値（0）、床が掛からない HTML 面は 0 にする。
     plain: どのページも、色や字の大きさ・部品を同じ 1 か所から取ります。「このページだけの飾り」は 0 個。検査（床）が掛からないページも 0 枚。器（scribe2）に要件を読ませるためだけに残していた読み物のページは、2026-09-21 に退役しました（消さずに退役の棚へ移しました）。守れていないページは 0 枚です。
-    note: 未達が 1 枚在る（天井の 7 周目（2026-09-20・main 85c3d7a）の止める所見 実態 F-1・反証 支持）。器（scribe2）の審査の要件面のためだけに残している day-1 の読み物（design-intent/preview/ の下・folio render の生成物）は、自前の design token と部品目録に無い class を持ち、folio parts --check の面の一覧（5 面）に入らない。正本との byte 一致（folio render --check）は掛かるが、この要件の言う床（class と design token の突き合わせ）は掛からない。読み物は配信先（folio build の出力）にも入口の導線にも載せない。器の側の口（要件面を要件書の正本から直に読む口・器の台帳 s2-07l.467）は 2026-09-20 に着地して閉じた。退役はその次の段＝器の binary の入れ替え（席の外の操作）の後に行い、読み物と folio render を可逆に退役して 0 にする（判断の記録 ADR-7 の案 c の理由と同じ見立て・file を消すのは A-1 の「消す」なので持ち主に確認する）。器の binary の入れ替え（2026-09-21・器からの連絡）を受け、読み物は 2026-09-21 に design-intent/preview/retired/readable.html へ可逆に移して退役した（持ち主の裁定 2026-09-21 08:47 JST・逐語「退役して」・A-1）。命令 folio render と歯は便 62 で退役する。器の要件面は .vessel.toml の requirements が要件書の正本 design-intent/srs.yaml を直に指す。これでこの要件の未達は解消した。
+    note: この要件の未達は 2026-09-21 に解消した。床が掛からない HTML 面は 0 枚で、器（scribe2）の要件面は .vessel.toml の requirements が要件書の正本 design-intent/srs.yaml を直に指す。経緯は次のとおり。2026-09-20 までは未達が 1 枚在った（天井の 7 周目（2026-09-20・main 85c3d7a）の止める所見 実態 F-1・反証 支持）。器の審査の要件面のためだけに残していた day-1 の読み物（design-intent/preview/ の下・folio render の生成物）は、自前の design token と部品目録に無い class を持ち、folio parts --check の面の一覧（5 面）に入らなかった。正本との byte 一致（folio render --check）は掛かったが、この要件の言う床（class と design token の突き合わせ）は掛からなかった。読み物は配信先（folio build の出力）にも入口の導線にも載せていない。器の側の口（要件面を要件書の正本から直に読む口・器の台帳 s2-07l.467）は 2026-09-20 に着地して閉じ、器の binary の入れ替え（2026-09-21・器からの連絡）を受けて、読み物は 2026-09-21 に design-intent/preview/retired/readable.html へ可逆に移して退役した（持ち主の裁定 2026-09-21 08:47 JST・逐語「退役して」・A-1・判断の記録 ADR-7 の案 c の理由と同じ見立て。file を消すのは A-1 の「消す」なので持ち主に確認した）。命令 folio render と歯は便 62（2026-09-21 着地）で退役した。
     basis: [P-2]
     rules: [R-3, R-5]
     verify: {method: test, how: 全面の class を部品目録と突合する, ac: [AC2]}
@@ -413,10 +413,11 @@ nonfunctional:
     verify: {method: test, how: 参照 id を全部集め、実在を数える, ac: [AC6]}
     goals: [GOAL4]
     figures: [全段]
+    note: rules 行 R-4 の母集団は正本 4 file（憲法・規則の表・語彙・要件書）で、実装（refs.rs）もその 4 file を解く。入口・相談窓口・天井の正本の参照 id はこの母集団の外に在り、その未解決は数えていない＝その部分は「まだ分からない」として扱う（P-4.2）。母集団を広げるかは判断の記録 ADR-3 決定 (6) の読み直しが要る（後続）。
 
 acceptance:
   - {id: AC1, title: 決まった 5 つの回答で支度表ができ、未回答の項目は別枠に出る, plain: 決まった答えを 5 つ入れると「何を作るか」の表が出て、答えなかった項目は別の枠に分けて出る。それを見せてもらえたら OK。, verifies: [FR1, FR2], red_test: {sentence: 固定回答 5 つの fixture を入れ、期待の支度表と一致し、無回答では全項目が別枠に出る, fixture: tests/fixtures/intake/answers-5.yaml}}
-  - {id: AC2, title: 生成器が出すすべての面の class が部品目録に存在し、目録に無い class は 0, plain: 部品の検査（folio parts --check）が数える面（今は入口・憲法・要件書・判断の記録・設計ノートの 5 つ）のどれにも、部品表に載っていない飾りが 1 つも無いことを、機械が数えて見せる。器のためだけに残している読み物のページは、まだこの数えの外です（NFR2 の注）。, verifies: [FR4, NFR2], red_test: {sentence: 目録外 class を 1 つ足した fixture で不合格になり、実の正本から生成した面では合格になる, fixture: tests/fixtures/floor/（mini-ok.html = 通る面・mini-extra.html = 目録外 class を 1 つ足した面・mini.css = 様式の定義・parts-catalog.json = 部品目録の凍結の写し）}}
+  - {id: AC2, title: 生成器が出すすべての面の class が部品目録に存在し、目録に無い class は 0, plain: 生成器が出すすべての面（今は入口・憲法・要件書・判断の記録・設計ノートの 5 つ）のどれにも、部品表に載っていない飾りが 1 つも無いことを、機械（部品の検査 folio parts --check）が数えて見せる。, verifies: [FR4, NFR2], red_test: {sentence: 目録外 class を 1 つ足した fixture で不合格になり、実の正本から生成した面では合格になる, fixture: tests/fixtures/floor/（mini-ok.html = 通る面・mini-extra.html = 目録外 class を 1 つ足した面・mini.css = 様式の定義・parts-catalog.json = 部品目録の凍結の写し）}}
   - {id: AC3, title: 床を壊した状態で「まだ分からない」が表示され、合格にならない, plain: わざと検査を壊した状態で道具を走らせ、「まだ分からない」と表示されて「合格」にならないことを見せる。, verifies: [FR5], red_test: {sentence: 正本が 1 つ欠けた fixture で床の結果が「まだ分からない」になり「合格」にならない, fixture: tests/fixtures/check/missing-file/}}
   - {id: AC4, title: CLAUDE.md の生成区間を 1 字変えると --check が非 0 で終わる, plain: AI の手元にある憲法の写しを 1 文字だけ書き換えて道具を走らせ、道具が「ずれている」と言って止まることを見せる。, verifies: [FR6], red_test: {sentence: 生成区間を 1 byte 変えた CLAUDE.md で --check の終了コードが非 0 になる, fixture: tests/fixtures/inject/drift/}}
   - {id: AC5, title: 生成した 3 面（入口・憲法・要件書）を持ち主が実際に開いて読み（walk）承認済み, plain: 3 枚のページを実際に開いて見て、持ち主が「これでよい」と言った記録（言葉どおり・日付つき）がある。, verifies: [FR4], red_test: {sentence: 承認の逐語と日付が台帳（f2-648 notes）と承認欄にある, fixture: 入口の正本 index.yaml の承認欄（持ち主の逐語 2026-09-18「確認した　大体これで良い」・生成した 3 面の walk）と bd f2-648 notes。手書きの見本 3 面の段の承認は 2026-09-12「承認するけど…」で、見本は design-intent/preview/retired/ へ退役済み}, note: 付帯条件（user 直命）を受入に含める（G16=A・受入 (d)）。}
@@ -441,7 +442,7 @@ constraints:
   - {id: CON2, title: 確認, text: 外部ライブラリを増減するときは、予算（R-6）と使ってよい条件（ライセンス）を見て確認してから。, basis: [A-3], source: 憲法 A-3}
   - {id: CON3, title: 公開, text: 見せる先は tailnet だけ。認証なしで公開ネットに晒さない。, basis: [N-6], source: 憲法 N-6・tailnet-serve の下限}
   - {id: CON4, title: 移行元, text: folio v1 の HTML 72 面は凍結。参照するが書かない。v1 は道具として使い、正しさの物差しにも停止権にもしない。, basis: [P-13], source: 報告 軸 5・憲法 P-13}
-  - {id: CON5, title: 席のモデル, text: folio の設計判断を下す席（orchestrator 席）は、現行では fable 5.1・effort は high または xhigh で動かす。high と xhigh の切替は持ち主が /effort で手動で行い、folio2 は既定の仕組みを持たない。並列実行・便・作業者の内側は opus まで。, basis: [P-16], source: "持ち主の裁定 2026-09-12 17:1x（P1 / P4）・席の名は持ち主の裁定 2026-09-20 15:20 JST（f2-648 notes・第 1.13 版）", rules: [D-1, D-2]}
+  - {id: CON5, title: 席のモデル, text: folio の設計判断を下す席（orchestrator 席）は、現行では fable 5.1・effort は high または xhigh で動かす。high と xhigh の切替は持ち主が /effort で手動で行い、folio2 は既定の仕組みを持たない。並列実行・便・作業者の内側で使うモデルの上限は規則の表の行 D-1 のとおり（規則は行が持ち、ここには写さない）。, basis: [P-16], source: "持ち主の裁定 2026-09-12 17:1x（P1 / P4）・席の名は持ち主の裁定 2026-09-20 15:20 JST（f2-648 notes・第 1.13 版）", rules: [D-1, D-2]}
   - {id: CON6, title: scribe2 の限定利用, text: scribe2 の限定利用の作法は規則の表の行 D-7 のとおり。並列の組み方と予算の明示は行 D-3・D-4 のとおり（規則は行が持ち、ここには写さない）。, basis: [P-13, P-16], source: 持ち主の裁定 2026-09-12（P3 / P5・s2 経由 18:1x）・第 1.15 版で規則の写しをやめ行 D-7 の参照にした（行 D-7 の改訂は同じ承認）, rules: [D-3, D-4, D-7]}
   - {id: CON7, title: 実装の手段, text: folio v2 は Rust の単一 crate として実装する（bash の寄せ集めをやめる）。, basis: [], source: 裁定 s2-07l.42（folio v2 Rust 化・3 択決定）。GOAL4 から移した（G15 D10）。}
 
