@@ -1,4 +1,4 @@
-# folio2 判断の記録 ADR-2 — 正本（1 判断 = YAML 1 file）。欄の決まりは adr/schema.yaml。読み物は preview/readable.html（生成物・手で直さない）。
+# folio2 判断の記録 ADR-2 — 正本（1 判断 = YAML 1 file）。欄の決まりは adr/schema.yaml。人が読む面は folio face --face adr（生成物・手で直さない）。
 id: ADR-2
 title: 条文改訂の差分検査（A-2 / N-4）の比較元は、発効版の条文の写しを凍結した anchor file の列（design-intent/anchors/）とし、版管理の履歴には依らない
 status: accepted
