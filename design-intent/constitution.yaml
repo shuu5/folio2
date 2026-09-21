@@ -224,7 +224,7 @@ articles:
     plain: 一度つけた番号は、消したり付け替えたりしません。「3 番は廃止」と書いて、3 番の番号は空けたままにします。
     rationale:
       - {kind: v1-incident, ref: "ADR-0034 §2.2。v1 では append-only は守られた側で、実害は逆＝48 ADR が全部 accepted で「取り消した決定」を機械で引けない（→ P-7.2）"}
-    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: meta.binding が true の直近版を baseline に取り、id の消失・意味の差し替えを落とす。発効前（binding false）は baseline が無いので検査対象外＝散文の適用除外ではなく機構の定義。この baseline の口は憲法だけ（design-intent/anchors/ の constitution-v*.yaml・実装 anchor.rs）。要件・判断・受入基準の id の消失と改番は今は数える口が無い＝まだ分からない（台帳へ起票して塞ぐ）。}
+    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: meta.binding が true の直近版を baseline に取り、id の消失・意味の差し替えを落とす。発効前（binding false）は baseline が無いので検査対象外＝散文の適用除外ではなく機構の定義。baseline は 2 つ＝憲法（design-intent/anchors/ の constitution-v*.yaml・実装 anchor.rs）と、要件・判断・受入基準の id の一覧（同じ置き場の ids-v*.yaml・id と規範文の要約値だけ・実装 ids.rs・凍結は folio check --freeze-ids）。id の一覧の側は、baseline の id が現行に無ければ P-7（番号を消した）、その要約値が現行の別の id に在れば P-7.1（同じ本文を別の番号に付け替えた）で落とし、ids- の anchor が 1 本も無ければ まだ分からない に落とす。}
     relations: {reqs: [NFR3]}
 
   - id: P-8
@@ -294,7 +294,7 @@ articles:
       - {kind: scribe2-article, ref: "C8 / C8.3（前の版を物差しにしない・design-intent の変更は ADR か版付き文書）。C8.2 は P-18 へ"}
       - {kind: v1-incident, ref: "self-host の層解釈と oracle 死角に ADR 6 本（0044 / 0045 / 0050 / 0051 / 0053 / 0056）"}
       - {kind: folio2-ruling, ref: "G7=A（C8 を移行条項つきで写す）・G6=A（順序は別条）・要件書 CON4（v1 は読むだけ）"}
-    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: folio2 の生成器・検査器が v1 の path に書き込み口を持たない（CON4）。書き込み先は呼び手が渡す出力先の指定だけだが、そのことを歯で固定してはいない（2026-09-20 時点）＝回帰を検出する口が無く、その部分の充足は「まだ分からない」として扱う（P-4.2）。v1 側の guard 設定の目視は開発規律 D-9。}
+    mechanism: {kind: build-check, live: M1, stage: post, polarity: fail-closed, note: folio2 の生成器・検査器が v1 の path に書き込み口を持たない（CON4）。書き込み先は呼び手が渡す出力先の指定だけだが、そのことを歯で固定してはいない（2026-09-20 時点）＝回帰を検出する口が無く、その部分の充足は「まだ分からない」として扱う（P-4.2）。v1 側の guard 設定の目視は開発規律 D-9。}
     note: scribe2 は ADR-0003 で「成熟宣言 + user go」の解禁 gate を廃止した。folio2 が P-13.4 の順序を残すのは G6=A（順序は別条）の裁定による。それまでは v1 の生成器と手作業を道具として使う（CON4）。
     relations: {reqs: [CON1, CON4], rules: [D-7, D-9], articles: [A-4, P-18]}
 
