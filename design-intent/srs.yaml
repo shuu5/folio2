@@ -537,7 +537,7 @@ figures:
       type: frontend
       label: 端末内か私設ネットで見せる
       sublabel: 公開ネットには出さない（N-6.1）
-      width: 160
+      width: 190
     - id: walk
       lane: owner
       col: 4
