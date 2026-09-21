@@ -21,7 +21,7 @@
   - `reads`: 観点の record.read の和集合（byte 順）
   出力先 = `<dir>/preview/ceiling-stamp.yaml`（先頭に注釈 1 行「# folio2 天井の印 — 生成物（folio ceiling --stamp が書く・手で直さない・P-6.2）」）。既に同じ byte なら書かず標準出力に「folio ceiling: 印は同じ（<path>）」・書いたら「folio ceiling: 印を書いた（<path>・<byte 数> byte）」・組めなければ標準出力に理由 1 行「folio ceiling: まだ分からない（<理由>）」で終了 2・file は触らない（全部か無しか）。
 
-(c) 凍結 anchor（P-10.1・orchestrator 席が独立に組む）。+tests/fixtures/ceiling/findings/stamp-expected.yaml = 便 38 の凍結 fixture の束（tests/fixtures/ceiling/bundle/）と所見の凍結 fixture pass-coherence.yaml（verdict 合格・findings 空・record あり）を 4 観点全部に写した周から導出される印の、要約値 3 種（sources / faces / bundle）と at を除いた欄の写し（席が本便の前に §1 (b) の欄の順で手書きし、値 = round: stamp-case・verdict: 合格・viewpoints 4 行の id / verdict 合格 / findings 0 / stops 0 / model opus / effort high・refutes: []・reads: [adr, constitution, design-note, rules, srs]）。歯は導出した印から要約値と at の行を落として anchor と byte 比較する（anchor を生成物に合わせない）。
+(c) 凍結 anchor（P-10.1・orchestrator 席が独立に組んで本便の前に main に置いた・本便は触らない）。tests/fixtures/ceiling/findings/stamp-expected.yaml = 便 38 の凍結 fixture の束（tests/fixtures/ceiling/bundle/）と所見の凍結 fixture pass-coherence.yaml（verdict 合格・findings 空・record あり）を 4 観点全部に写した周から導出される印の、要約値 3 種（sources / faces / bundle）と at を除いた欄の写し（席が本便の前に §1 (b) の欄の順で手書きし、値 = round: stamp-case・verdict: 合格・viewpoints 4 行の id / verdict 合格 / findings 0 / stops 0 / model opus / effort high・refutes: []・reads: [adr, constitution, design-note, rules, srs]）。anchor の中身 = 先頭の注釈 1 行・round・verdict・viewpoints（各行は id / verdict / findings / stops / model / effort の 6 欄）・refutes・reads。歯は導出した印から鍵が at / sources / faces の行を落とし、viewpoints の各行から bundle と at の欄を落として、anchor と byte 比較する（anchor を生成物に合わせない）。
 
 (d) 歯（新規 file +crates/folio/tests/stamp.rs・関数名は stamp_ で始める・今この語で始まる歯は無い・束の組み方と findings の写し方は tests/findings.rs の helper と同じ形を stamp.rs の中に持つ）。
 1. stamp_writes_the_frozen_shape: 凍結 fixture の束を一時 dir に --write で組み、pass-coherence.yaml を 4 観点の findings.yaml に写し、一時 dir の名を stamp-case にして --stamp を撃つと終了 0・`<dir>/preview/ceiling-stamp.yaml` が在り、要約値 3 種と at の行を除いた中身が (c) の anchor と byte 一致。
@@ -31,7 +31,7 @@
 5. stamp_carries_the_refute_results: 止めるの所見を持つ所見 fixture（fail-no-findings.yaml でなく、止める 1 件を持つ既存の fixture が無ければ歯の中で 1 件足した写しを作る）を 1 観点に置き、`refute/<id>/result.yaml` に refute: 支持 を書いて --stamp を撃つと、印の verdict が 不合格・refutes に {viewpoint, finding, refute: 支持} の 1 行。
 6. 回帰（期待不変・verify の 2 行目）: tests/findings.rs・tests/ceiling.rs・tests/bundle.rs・tests/check.rs（p1_commands_closed_list = 命令の一覧は不変・旗が増えるだけ）の既存の歯すべて。
 
-(e) 大きさと接続。新規 file = stamp.rs（約 220 行）・tests/stamp.rs（約 200 行）・anchor 1 本。main.rs（+約 12 行）・findings.rs（pub(crate) 化・+約 5 行・正規化 約 1,070 行・余地 約 430）・bundle.rs（digest の関数の可視性・+約 2 行・余地 約 999）。size M。外部 crate は増やさない。実の置き場 design-intent/preview/ に印を書くのは席が着地の後に周の束で撃つ（本便は書かない）。
+(e) 大きさと接続。新規 file = stamp.rs（約 220 行）・tests/stamp.rs（約 200 行）。anchor は席が置いた（本便は読むだけ）。main.rs（+約 12 行）・findings.rs（pub(crate) 化・+約 5 行・正規化 約 1,070 行・余地 約 430）・bundle.rs（digest の関数の可視性・+約 2 行・余地 約 999）。size M。外部 crate は増やさない。実の置き場 design-intent/preview/ に印を書くのは席が着地の後に周の束で撃つ（本便は書かない）。
 
 ## 2. 範囲
 
@@ -65,7 +65,7 @@ id = "bu"
 title = "命令 folio ceiling --stamp が周の結果（観点ごとの所見 file と止めるの反証の結果）から天井の印（周の id・観点ごとの 3 値と反証・正本と面と束の要約値・起動の記録・読んだ文書の id）を決定的に導出し design-intent/preview/ceiling-stamp.yaml に書く（同じなら書かない・組めなければ まだ分からない で何も書かない・凍結 anchor stamp-expected.yaml・FR20 / AC18）"
 req = ["FR20"]
 section = "1"
-write-set = ["crates/folio/src/main.rs", "+crates/folio/src/stamp.rs", "crates/folio/src/findings.rs", "crates/folio/src/bundle.rs", "+crates/folio/tests/stamp.rs", "crates/folio/tests/findings.rs", "crates/folio/tests/ceiling.rs", "crates/folio/tests/bundle.rs", "crates/folio/tests/check.rs", "+tests/fixtures/ceiling/findings/stamp-expected.yaml"]
+write-set = ["crates/folio/src/main.rs", "+crates/folio/src/stamp.rs", "crates/folio/src/findings.rs", "crates/folio/src/bundle.rs", "+crates/folio/tests/stamp.rs", "crates/folio/tests/findings.rs", "crates/folio/tests/ceiling.rs", "crates/folio/tests/bundle.rs", "crates/folio/tests/check.rs"]
 verify = ["cargo nextest run -p folio --test stamp stamp_", "cargo nextest run -p folio --test findings --test ceiling --test bundle --test check", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
 done = "stamp_ の歯 5 本（凍結の形・要約値の再計算・冪等・欠けた周は書かない・反証の結果を運ぶ）が緑、tests/findings.rs・tests/ceiling.rs・tests/bundle.rs・tests/check.rs の既存の歯が全部緑、clippy が 0 警告で CI が通る"
