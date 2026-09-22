@@ -864,7 +864,8 @@ fn f86_verify_inner_list_is_still_checked() {
 
 /// 便 90 (g) の変異の当て先 = 写しの FR19 の行の adrs（実の要件書で ADR-9 を持つ行は 1 本だけ）。
 /// 変異は ADR-9 を残す＝FR19 の散文が指す ADR-9 を外して行 R-17 の違反を足さない（便 93）。
-const F90_FR19_ADRS: &str = "\n    adrs: [ADR-9]\n";
+// 変異の当て先は要件書で 1 か所しかない adrs の行（一括 12 で FR19 の行に ADR-13 が足されたため FR17 側へ移した）
+const F90_FR19_ADRS: &str = "\n    adrs: [ADR-5]\n";
 
 #[test]
 fn f90_the_real_srs_carries_the_adrs_field() {
@@ -883,7 +884,7 @@ fn f90_the_real_srs_carries_the_adrs_field() {
         .lines()
         .filter_map(|l| l.strip_prefix("    adrs: ["))
         .collect();
-    assert_eq!(rows.len(), 13, "adrs の行の数: {rows:?}");
+    assert_eq!(rows.len(), 14, "adrs の行の数: {rows:?}");
     for row in rows {
         let body = row.strip_suffix(']').unwrap_or_else(|| panic!("一覧の形でない: {row}"));
         for id in body.split(", ") {
@@ -901,22 +902,22 @@ fn f90_the_real_srs_carries_the_adrs_field() {
 #[test]
 fn f90_an_id_that_is_not_an_adr_is_a_violation() {
     let w = Work::new("f90-not-adr");
-    w.mutate(F90_FR19_ADRS, "\n    adrs: [ADR-9, FR5]\n");
-    assert_srs_item_violation(&w, &["FR19", "adrs", "FR5", "判断の記録の id の形でない"]);
+    w.mutate(F90_FR19_ADRS, "\n    adrs: [ADR-5, FR5]\n");
+    assert_srs_item_violation(&w, &["FR16", "adrs", "FR5", "判断の記録の id の形でない"]);
 }
 
 #[test]
 fn f90_an_adr_that_does_not_exist_is_a_violation() {
     let w = Work::new("f90-missing-adr");
-    w.mutate(F90_FR19_ADRS, "\n    adrs: [ADR-9, ADR-99]\n");
+    w.mutate(F90_FR19_ADRS, "\n    adrs: [ADR-5, ADR-99]\n");
     assert_srs_item_violation(&w, &["adrs", "ADR-99", "が実在しない"]);
 }
 
 #[test]
 fn f90_adrs_that_is_not_a_list_is_a_violation() {
     let w = Work::new("f90-not-list");
-    w.mutate(F90_FR19_ADRS, "\n    adrs: ADR-9\n");
-    assert_srs_item_violation(&w, &["FR19", "adrs が一覧でない"]);
+    w.mutate(F90_FR19_ADRS, "\n    adrs: ADR-5\n");
+    assert_srs_item_violation(&w, &["FR16", "adrs が一覧でない"]);
 }
 
 // ── 規則の表の行の条以外を指す欄 refs（便 91・ADR-13 決定 (3-b)（イ）） ──
@@ -937,7 +938,7 @@ const F91_ROWS: [(&str, &[&str]); 14] = [
     ("R-15", &["P-10.3", "A-3.1", "CON2", "ADR-4"]),
     // R-9 / R-12 は便 93 (d) の書き写し（母集団の文が名指す境界）
     ("R-16", &["P-6.3", "P-10.1", "R-9", "R-12", "ADR-3"]),
-    ("R-17", &["P-4.2"]),
+    ("R-17", &["P-4.2", "P-5.6", "ADR-13"]),
     ("D-3", &["R-1"]),
     ("D-10", &["P-5.2", "R-8"]),
     ("D-11", &["P-5.6"]),
@@ -994,7 +995,7 @@ fn f91_the_real_rules_carry_the_refs_field() {
         assert_eq!(got, *want, "{id} の refs");
         total += got.len();
     }
-    assert_eq!(total, 29, "refs の id の合計");
+    assert_eq!(total, 31, "refs の id の合計");
 }
 
 #[test]
@@ -1143,18 +1144,21 @@ fn f93_deleting_the_rule_row_is_not_a_silent_escape() {
     fs::write(w.rules(), format!("{}\n", kept.join("\n"))).unwrap();
     let out = w.check();
     assert_eq!(out.status.code(), Some(1), "{}", stdout(&out));
-    // 違反は全部 種別 参照 id の R-17 の未解決で、ちょうど 2 件＝条 N-2 の関係の欄が指す先が消えた 1 件と、
-    // 要件書の承認の来歴（meta）の印が規則の行 R-17 を名指す 1 件（便 93 改訂 c）。歯そのものは黙る
+    // 違反は全部 種別 参照 id の R-17 の未解決で、ちょうど 3 件＝条 N-2 の関係の欄が指す先が消えた 1 件と、
+    // 要件書の承認の来歴（meta）の印が規則の行 R-17 を名指す 1 件（便 93 改訂 c）と、
+    // 語彙の「辺」の定義が規則の行 R-17 を名指す 1 件（一括 12）。歯そのものは黙る
     let v = violations(&out);
     assert!(
         v.iter()
             .all(|l| l.starts_with("[参照 id] ") && l.contains("id R-17 が実在しない")),
         "違反は R-17 の参照 id だけのはず: {v:?}"
     );
-    assert_eq!(v.len(), 2, "参照 id の違反はちょうど 2 件のはず: {v:?}");
+    assert_eq!(v.len(), 3, "参照 id の違反はちょうど 3 件のはず: {v:?}");
     let relation = |l: &&String| l.starts_with("[参照 id] constitution.yaml: ") && l.contains(".relations.rules");
     assert_eq!(v.iter().filter(relation).count(), 1, "条 N-2 の関係の欄の違反: {v:?}");
     let meta = |l: &&String| l.starts_with("[参照 id] srs.yaml: meta.");
     assert_eq!(v.iter().filter(meta).count(), 1, "要件書の承認の来歴の違反: {v:?}");
+    let term = |l: &&String| l.starts_with("[参照 id] vocabulary.yaml: terms");
+    assert_eq!(v.iter().filter(term).count(), 1, "語彙の定義の違反: {v:?}");
     assert!(!v.iter().any(|l| l.starts_with("[R-17]")), "{v:?}");
 }
