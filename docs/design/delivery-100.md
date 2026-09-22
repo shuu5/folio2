@@ -7,6 +7,7 @@
 - 門: 本便は design-intent の下を 1 file も書き換えない（触るのは `crates/folio/src/` の 3 本と `crates/folio/tests/` の 1 本だけ）ので、天井の門の対象外である。席は `folio ceiling --gate --write-set`（本便の 4 本）を実測し、0（通す・設計文書の正本を書き換えない便）を確かめた（2026-09-22・main 420d910）。
 - 並行する便: 便 99（`crates/folio/src/graph.rs`・`stamp.rs`・`gate.rs`・`design-intent/graph.yaml`・`tests/fixtures/schema/` の 4 本・`crates/folio/tests/graph.rs`・`tests/stamp.rs`・`tests/schema_docs.rs`）と、本便の write-set は **1 本も重ならない**。便 101（行 cx）とも重ならない。
 
+- 改訂 b（2026-09-22 17:5x JST・検証役の report handoff-2026-09-22/d100-verify.md への応答）: verify の 2 行目の --test face の scope crates/folio/tests/face.rs を write-set に足す（本文は変えない・器の受付は verify の --test X の X の file を write-set に求める）。ほかは変えない。
 ## 1. 目的と中身
 
 `crates/folio/src/face_srs.rs` は要件書の面の生成器で、器が便を受けるときに測る行数の上限（1500）に対する余地が **102 行**しか残っていない。この file に行を足す便は size S の見積（100 行）をかろうじて満たすだけで、size M の見積（300 行）では受け付けられない。設計ノート §8 の行 G8 はこの file の側に要件ごとの実装の状態を出す M の便なので、先に file を割る 1 本が要る。本便は章 03〜06（機能要件・非機能要件・受入基準・制約）の生成を新しい file へ **そのまま移す**。移す行は 1 字も変えず、関数名も部品の名札も出力の字面も 1 つも変えない。面の生成物は byte まで同じである。
@@ -117,7 +118,7 @@ id = "cw"
 title = "要件書の面の生成器 crates/folio/src/face_srs.rs のうち、章 03〜06（機能要件・非機能要件・受入基準・制約）を組む 7 つの定義 367 行を、新しい src の file crates/folio/src/face_srs_items.rs へ 1 字も変えずに移す（関数名も出力の字面も部品の名札も不変・面の生成物は byte まで同じ）。残る側に要る手当ては、使われなくなる取り込み 1 行と 8 語の削り・移した側が呼ぶ 22 か所の見え方を pub(crate) へ上げること・derive の 4 行を新しい file の口へ向けること・main.rs の mod の 1 行・単体の歯の取り込み 1 行だけとする。器の式で face_srs.rs の余地を 102 行から 477 行へ空け、設計ノート §8 の行 G8（要件ごとの実装の状態を要件書の面へ出す M の便）が受けられるようにする"
 req = ["FR4", "NFR2"]
 section = "1"
-write-set = ["-crates/folio/src/face_srs.rs", "+crates/folio/src/face_srs_items.rs", "crates/folio/src/main.rs", "crates/folio/tests/face_srs.rs"]
+write-set = ["-crates/folio/src/face_srs.rs", "+crates/folio/src/face_srs_items.rs", "crates/folio/src/main.rs", "crates/folio/tests/face_srs.rs", "crates/folio/tests/face.rs"]
 verify = ["cargo nextest run -p folio --test face_srs f100_", "cargo nextest run -p folio --test face_srs --test face", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
 done = "f100_ の歯 1 本（器の式で face_srs.rs が 1100 行以下・face_srs_items.rs が 600 行以下・移した 7 つの定義の頭が新しい file に 1 つずつ在り face_srs.rs に 1 つも無い）が緑、crates/folio/tests/face_srs.rs と crates/folio/tests/face.rs の既存の歯が全部緑（本便の前の 743 本と名前も本数も違わない 743 本 + f100_ の 1 本 = 744 本）、clippy が 0 警告で CI が通る"
