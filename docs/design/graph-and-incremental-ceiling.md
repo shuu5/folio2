@@ -554,7 +554,7 @@ A-1.1	規範文	constitution.yaml	838bbbe4	既存の文書やデータを消す�
 | **G0-a2** | **規則の表の行に条以外を指す欄を足して 33 対を写し、判断の記録に帰結の欄を足して 12 対を根拠の欄から移す** — 先に ADR-13 の決定でこの 2 つの欄を定める | ① ② | M | `refs.rs`・`rules.rs`・`adr.rs`・`face_constitution.rs` | 1,069 / 1,223 / 257 | 持ち主の承認欄 |
 | **G0'** | 後付けの床の歯 — 規則の表の行 R-17「散文の中の id の言及は型付きの欄にも在ること」を機械が数える歯。走査の範囲（来歴と生成区間を除く・囲む節点の id が取れるもの）を実装の定数で閉じる | ① ② | M | `refs.rs` か新 `mentions.rs`（+） | 1,069 | 通す |
 | **G1** | `folio graph --print` — 節点と辺の索引を正本から組む。索引の欄の決まりの正本（`design-intent/graph.yaml`）を起こし、節点の種類と辺の型の閉じた一覧をその生成区間へ導出する | ① ③ | M | 新 `graph.rs`（+）・`schema.rs` +40・`main.rs` +30 | 1,026 / 958 | 持ち主の承認欄 |
-| **G2** | `folio graph --digest` と `folio hello` の 1 行（§6） | ① ③ | S | `graph.rs`・`hello.rs` | 1,392 | 通す |
+| **G2** | `folio graph --digest` と `folio hello` の 1 行（§6） | ① ③ | M | `graph.rs`・`hello.rs`・`main.rs` | 1,392 | 通す |
 | **G3** | 束を `reads` の欄まで絞る（無関係な欄だけ落とす）。**束の凍結 anchor を folio の実装に依らず作り直す**（下記） | ① ③ | M | `bundle.rs` | 961 | 通す |
 | **G4a** | 節点の要約値の式を凍結し、索引の 5 欄目と印（節点ごとの要約値の表と残差）に置く | ③ | M | `graph.rs`・`stamp.rs`・`design-intent/graph.yaml` の生成区間 | — | **2（印が古い）** |
 | **G4b** | **周の引き金**（§3.4 の 1〜4・辺の追加は数えない）を判定して要らない周をそう出す。引き金 3 と 4 の物差しを決める | ③ | M | `stamp.rs`・`gate.rs`・`graph.rs` | — | 通す |

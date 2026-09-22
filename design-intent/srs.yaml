@@ -73,6 +73,7 @@ meta:
     - {role: 作成, who: orchestrator 席（AI・fable 5.1）, when: 2026-09-22, stamp: "v1.26 起草（辺の後付け = 散文にしか無かった依存を型付きの欄へ書き写す・要件書で動いたのは FR6 / FR20 の規則の欄と FR9 / FR19 / NFR1 / NFR2 / NFR3 の根拠の欄の 8 id だけ・規範文と平易文と確かめ方と受入の判定の式は不変・書き写しと除外の数えは docs/design/edge-retrofit-2026-09-22.md）", version: v1.26}
     - {role: 承認, who: 持ち主（shuu5）, when: 2026-09-22, stamp: "発効（f2-648 notes 2026-09-22 11:42 JST・対話面 R-8・一括 11〔🔴 9 項〕と辺の後付け〔規則の行 R-17〕と設計文書のグラフの判断の記録の発効の承認要求〔3 つをまとめて〕への回答・v1.25 と同じ承認）", verbatim: 全部承認する, version: v1.26}
     - {role: 作成, who: orchestrator 席（AI・fable 5.1）, when: 2026-09-22, stamp: "v1.27 起草（便 90・判断の記録 ADR-13 決定 (3-b)（ア）= 要件の行に任意の欄 adrs を足し、FR9〜FR20 と NFR1 の 13 行に注の中の判断の記録の言及を書き写す・規範文と平易文と確かめ方と受入の判定の式は不変・契約は docs/design/delivery-90.md）", version: v1.27}
+    - {role: 作成, who: orchestrator 席（AI・fable 5.1）, when: 2026-09-22, stamp: "v1.28 起草（一括 12 = 便 93〜101 の 🔴 24 点と天井の 24 周目の直し。🔴 の分 = FR14 の改訂〔索引の口の名と起動の条件と中身〕・新しい要件 FR21〔全体像の短い出力〕・FR17 / FR19 / FR20 の改訂・AC17 の追随。24 周目の分 = FR12 の注を規則の表の行 R-16 を指すだけに・制約 CON5 の念入りさの言い換え・FR3 の注の 1 文・語彙の「導出物」の定義。仕分けは docs/design/batch12-triage.md）", version: v1.28}
   effective: 承認欄の「承認」に持ち主の逐語と日付が入った時点で発効する（憲法 §6 発効段と同じ形）。版ごとに承認の行を足し、前の版の行は書き換えない。
   changes_from_v1_0:
     - M1 の要件を新しい番号で足した（FR9〜FR15・AC7〜AC13・CON8〜CON9）。M0 の要件（FR1〜FR8・NFR1〜NFR3・AC1〜AC6・CON1〜CON7）は据え置き（P-7.2）。NFR3 と AC6 の母集団（内部 3 空間）は広げない（ADR-3 決定 (6)）
