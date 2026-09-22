@@ -7,6 +7,7 @@
 - 門: 本便は design-intent の下の正本を 1 file も書き換えない（読むだけ）ので、天井の門の対象外である。**起草役が本便の write-set 15 本をそのまま渡して folio ceiling --gate を実測し、0（通す・断りの字は 設計文書の正本を書き換えない便）を確かめた**（2026-09-22・base main 278ba59）。
 - 前の便: 便 97（行 ct）は着地済み（main 420d910）で、独立の script `tests/fixtures/ceiling/bundle-anchor.py` と凍結 anchor `tests/fixtures/ceiling/bundle-anchor.txt` は既に main に在る。本便の base は **main 278ba59**（一括 12 = 天井の正本 v0.11 と要件書 v1.28 の発効）で、便 97 が挙げた 2 つの前提（🔴 1 = 読む欄の宣言を 8 対広げる・🔴 2 = FR17 の改訂）は **どちらも着地済み**である。
 - 並行の便との重なり: **便 102（天井の正本の版上げ・読む文書に graph.yaml を足す便）と `crates/folio/src/bundle.rs` が重なる**（便 102 は同じ file の面の名の閉じた一覧 FACE_NAMES 9 を 10 にする見込み）。**器が順に運ぶ**。どちらが先でも、後の便が凍結 anchor `tests/fixtures/ceiling/bundle-anchor.txt` と所見 fixture 10 本の要約値を組み直す（束の中身が変わるため）。本便は FACE_NAMES にも床の定数 DOCUMENT_IDS（`crates/folio/src/ceiling.rs`）にも触らない。
+- 改訂 b（2026-09-22 22:0x JST・検証役の report `~/.local/share/folio2/handoff-2026-09-22/d98-verify.md` への応答）: §1 (c) の逐語の注釈を規則どおり path の byte 順に並べ替え（並びだけで凍結 anchor の要約値が 4 観点とも変わることを検証役が実測した）、宣言に在るが正本に無い節 の行の字面を逐語で置き、anchor の新しい種別 落とした節の数 を 節の名の総数 と定め、**組み直した anchor の 6 種別 × 4 観点の値を §1 (d) に逐語で置いた**（起草役の 2 つの実装が byte 一致で出した値）。ほかに数と字を 4 点直した（根拠の件数・当たる file の本数 14 → 13・欄の名の数え方・reads.yaml を読む口 1 か所 → 2 か所）。**歯の本数 8・write-set 15 本・見積・size M・門の結果は 1 つも変えていない。**
 
 ## 1. 目的と中身
 
@@ -26,7 +27,7 @@
 
 **触る src は bundle.rs 1 本で、余地 961 は M の見積 300 を上回る。** crates/folio/tests/findings.rs の余地は 236 しか無いので、そこへ置くのは 30 行以内に収める（見積は (f) の 25 行）。
 
-**束の byte**（25 周目の束を土台に、v0.11 の宣言で絞ったときの大きさを測った）。
+**束の byte**（25 周目の束を土台に、v0.11 の宣言で絞ったときの大きさを測った）。**束 後 は (c) の注釈を足す前の値**である（注釈は観点あたり 1,607〜1,942 byte・21〜25 行で、束の 0.1% にも満たないので割合は動かない）。
 
 | 観点 | 束 前 | 束 後 | 割合 | うち sources 前 | sources 後 |
 | --- | --- | --- | --- | --- | --- |
@@ -42,13 +43,16 @@
 
 | 窓 | 所見の根拠 | 絞った束の外 |
 | --- | --- | --- |
-| 直近 10 周（16〜25 周） | 171 | **0** |
+| 直近 10 周（16〜25 周） | 185 | **0** |
+| 25 周目を外した 9 周（16〜24 周） | 165 | **0** |
 | 便 97 が測った窓（14〜23 周） | 183 | **0** |
-| 全 25 周 | 627 | 17 |
+| 全 25 周 | 641 | 17 |
 
-**全 25 周の 17 件は 1〜13 周に全部ある**（1 周 1・2 周 3・3 周 1・5 周 2・6 周 1・7 周 1・9 周 2・10 周 2・11 周 2・12 周 1・13 周 1）。その時期の読む欄の宣言は今より狭く、一括 12 が広げた 8 対がまだ無かった。**14 周目以降は 1 件も落ちない**（14〜25 周の 12 周・根拠 210 件で 0 件）。便 97 が測った 17 件（9.3%）は一括 12 の宣言の是正で消えており、本便は **前提がそろった状態で着地する**。
+**25 周目は進行中**なので、その周を含む窓の根拠の数は測り直すたびに増える（落ちの数は動かない）。上の値は 2026-09-22 22:0x JST の実測である。
 
-**宣言に在るが正本に無い節**（その doc のどの file にも無い節）は、**実の正本では 0 件**（4 観点・宣言の対 29・欄の名 80 を全部当てた）。凍結の土台では 2 件（読みやすさ の index.yaml の sections・整合 の rules.yaml の rows）出る。
+**全 25 周の 17 件は 1〜13 周に全部ある**（1 周 1・2 周 3・3 周 1・5 周 2・6 周 1・7 周 1・9 周 2・10 周 2・11 周 2・12 周 1・13 周 1）。その時期の読む欄の宣言は今より狭く、一括 12 が広げた 8 対がまだ無かった。**14 周目以降は 1 件も落ちない**（14〜25 周の 12 周・根拠 224 件で 0 件）。便 97 が測った 17 件（9.3%）は一括 12 の宣言の是正で消えており、本便は **前提がそろった状態で着地する**。
+
+**宣言に在るが正本に無い節**（その doc のどの file にも無い節）は、**実の正本では 0 件**（4 観点・宣言の対 29 を全部当てた。対ごとに相異なる最上位の節の名で数えて 80 個・宣言に書かれた fields の字の総数では 86 個。`articles.plain` と `articles.statements.text` のように最上位が同じ字が 6 つあるので 2 つの数え方が割れる）。凍結の土台では 2 件（読みやすさ の index.yaml の sections・整合 の rules.yaml の rows）出る。
 
 ### (b) 絞る規則（採る案）
 
@@ -67,7 +71,7 @@
 
 規則 3 と規則 4 は、**起草役の 2 つの実装が食い違った 2 点**である。どちらも便 97 の設計には書かれていなかった。
 
-- 規則 3 が無いと、file の末尾の注釈の連なりがどの節にも寄らずに落ちる。実の正本では `# folio:schema:end` がこれに当たり、**写しに開きの印だけが残る**（ceiling.yaml・index.yaml・intake.yaml・srs.yaml・vocabulary.yaml の 5 本が末尾に閉じの印を持つ）。
+- 規則 3 が無いと、file の末尾の注釈の連なりがどの節にも寄らずに落ちる。実の正本では `# folio:schema:end` がこれに当たり、**写しに開きの印だけが残る**（ceiling.yaml・index.yaml・intake.yaml・srs.yaml・vocabulary.yaml の 5 本が末尾に閉じの印を持つ。design-intent には graph.yaml も末尾に持つが、いまの読む文書の一覧に無いので束に入らない＝便 102 が足すと 6 本になる）。
 - 規則 4 が無いと、閉じの印が **次の節に寄ってしまい**、その節が宣言に無い観点では印だけが落ちる。実の正本で生成区間を持つ写しは 4 観点で 25 対あり、規則 4 が無いと **6 対で閉じの印だけが落ちる**（`adr/schema.yaml` が 整合 と 実態 の 2 対・`design-note/schema.yaml` が 4 観点の 4 対）。規則 4 を入れると **25 対とも開きと閉じが 1 つずつ残る**（起草役が実測）。生成区間に入る最上位の節は **9 file とも `schema` の 1 つだけ**なので、規則 4 がほかの節を巻き込むことは無い（全数で確かめた）。
 
 **退けた案 1: 行の中の欄まで降りる。** sources はさらに縮むが、便 97 の実測で根拠の落ちが増える（当時の宣言で 17 件 → 25 件）。加えて、行の中の欄の多くは 1 行の flow の表（`- {id: P-1.1, pattern: ubiquitous, strength: must, text: …}`）で、その一部だけを落とすには行を組み直すしかない。組み直すと byte が変わり、床の根拠の逐語の照合（1 行の中の byte 列）が総崩れになる。**逐語の照合を守る限り、切る単位は行より細かくできない。** 持ち主の裁定（2026-09-22・一括 12 の問 5）も最上位の章までとした。
@@ -76,42 +80,96 @@
 
 **退けた案 3: 束を切らない（今のまま）。** ADR-13 決定 (5) と要件 FR17 の第 1.28 版が既に決めている。
 
-### (c) 落とした欄の知らせ方（P-4.1 / P-4.2）
+### (c) 落とした欄の知らせ方（P-4.1）
 
-落としたことを黙らない。置き場は **reads.yaml の末尾の注釈の行**にする。凍結の土台の 忠実さ で組んだときの形（起草役が独立の実装で出した）。
+落としたことを黙らない。置き場は **reads.yaml の末尾の注釈の行**にする。**注釈の字面は下の 2 つの逐語で決める**（歯 2・歯 3 と凍結 anchor の要約値がこの字面に依るため）。凍結の土台の 忠実さ で組んだときの reads.yaml の全体（746 byte・起草役の 2 つの独立の実装が byte 一致で出した）。
 
 ```
 - {doc: constitution, fields: [articles.plain, articles.statements.text]}
 - {doc: srs, fields: [requirements.plain, requirements.shall, acceptance.plain, acceptance.title]}
 - {doc: adr, fields: [plain, decision, options.text, figures.refs]}
 - {doc: design-note, fields: [sections, figures.refs]}
-# 落とした節 constitution.yaml: north_star, precedence, rules_pointer, amendment, glossary_pointer, sources
-# 落とした節 srs.yaml: goals, scope, scope_m1, actors, outputs, rail, verdicts, nonfunctional, not_frozen, constraints, glossary_pointer, figures
 # 落とした節 adr/ADR-2.yaml: context, basis, retreat, amends, consequences
+# 落とした節 constitution.yaml: north_star, precedence, rules_pointer, amendment, glossary_pointer, sources
 # 落とした節 design-note/full.yaml: sources
+# 落とした節 srs.yaml: goals, scope, scope_m1, actors, outputs, rail, verdicts, nonfunctional, not_frozen, constraints, glossary_pointer, figures
 # 常に残す節: meta, id, title, status, date, schema
 ```
 
-行の並びは決定的にする。**落とした節の行は sources/ からの相対 path の byte 順（＝束の file の並びと同じ）で 1 file に 1 行**、節の名は正本に出る順。次に **宣言に在るが正本に無い節の行**（doc の一覧の順・doc の file を名指す）、最後に **常に残す節の 1 行**。落とす節が 1 つも無い file は行を出さない。実の正本では落とした節の行が観点あたり 20〜24 行、凍結の土台では 3〜5 行になる（起草役の実測）。
+同じく 読みやすさ の全体（860 byte）。**宣言に在るが正本に無い節の行の字面はこの逐語で決める**（忠実さ にはこの行が出ない）。
+
+```
+- {doc: index, fields: [shelf, sections]}
+- {doc: constitution, fields: [articles.title, articles.plain]}
+- {doc: srs, fields: [goals, scope, requirements.title, requirements.plain]}
+- {doc: adr, fields: [title, plain]}
+- {doc: design-note, fields: [sections]}
+# 落とした節 adr/ADR-2.yaml: context, decision, options, basis, retreat, amends, consequences, figures
+# 落とした節 constitution.yaml: north_star, precedence, rules_pointer, amendment, glossary_pointer, sources
+# 落とした節 design-note/full.yaml: figures, sources
+# 落とした節 index.yaml: audience, lanes, intake
+# 落とした節 srs.yaml: scope_m1, actors, outputs, rail, verdicts, nonfunctional, acceptance, not_frozen, constraints, glossary_pointer, figures
+# 宣言に在るが正本に無い節 index.yaml: sections
+# 常に残す節: meta, id, title, status, date, schema
+```
+
+行の並びと字面は決定的にする。
+
+| 何 | 決め |
+| --- | --- |
+| 落とした節の行 | `# 落とした節 <path>: <節の名>` の形。`<path>` は **sources/ からの相対 path**（接頭の sources/ は付けない・dir 形の doc は `adr/ADR-2.yaml` のように dir を含む）。**行は path の byte 順**（＝束の file の並びと同じ）で **1 file に 1 行**、節の名は **正本に出る順**で `, ` 区切り。落とす節が 1 つも無い file は行を出さない |
+| 宣言に在るが正本に無い節の行 | `# 宣言に在るが正本に無い節 <file>: <節の名>` の形。`<file>` は **天井の正本の documents の行が書く file の字**（`index.yaml`・dir 形の doc なら `adr/`）。行は reads の doc の順、節の名は宣言の順で `, ` 区切り |
+| 常に残す節の行 | `# 常に残す節: meta, id, title, status, date, schema` の 1 行。**必ず末尾に 1 行だけ**出す |
+
+上の 2 つの逐語と この表が食い違うときは **逐語が正**。実の正本では落とした節の行が観点あたり 20〜24 行、凍結の土台では 3〜5 行になる（起草役の実測）。
 
 置き場を reads.yaml にする理由。
 
 - **束の中身の閉じた一覧を動かさない。** 束の中身は床の定数 BUNDLE_CONTENTS の 5 つ（sources・faces・question・finding・reads）で、天井の正本 ceiling.yaml の生成区間にその写しが在る。file を 1 本足すと、床の定数・生成区間・凍結 anchor `tests/fixtures/schema/ceiling-region.txt`・`crates/folio/src/findings.rs` の読み直し・歯が同時に動き、**design-intent を書き換える便**（＝門の対象・承認が要る）になる。reads.yaml に入れれば 1 つも動かない。
 - **sources/ の中へ書かない。** 床の根拠の照合は sources/ の下の行だけを見る。折り込みの注釈を写しに足すと、**folio が書いた字が根拠として通る穴**が開く。reads.yaml は照合の母集団の外なので、この穴が開かない。
-- **YAML として今までどおり読める。** 束の reads.yaml を読むのは `crates/folio/src/findings.rs` の 1 か所で、そこは YAML の parser（`yaml::parse`）に渡すので注釈の行は無視される（起草役が読んで確かめた・src の直しは要らない）。行の字面を見る読み手は歯の側に 2 か所あり（`crates/folio/tests/findings.rs`）、そこへ `#` で始まる行を読み飛ばす枝を足す（2 行）。
+- **YAML として今までどおり読める。** src の側で束の reads.yaml に触るのは `crates/folio/src/findings.rs` の **2 か所**で、1 つは doc の集合を取る読み（YAML の parser `yaml::parse` に渡すので注釈の行は無視される）、もう 1 つは反証の束へ **byte のまま写す**口である（注釈も一緒に写るので反証の束の凍結の値が動く＝ (d) の末尾）。**どちらも注釈の行では壊れないので src の直しは bundle.rs 1 本で足りる**（起草役が両方を読んで確かめた）。行の字面を見る読み手は歯の側に 2 か所あり（`crates/folio/tests/findings.rs`）、そこへ `#` で始まる行を読み飛ばす枝を足す（2 行）。
 
-**宣言に在るが正本に無い節は別立てで出す。** その doc の**どの file にも無い**節だけを数える（file ごとの欠け＝ある判断の記録にだけ figures の節が無い等は普通のことなので数えない）。**束を組むのは止めない**（P-4.2 の 表に出す であって、P-4.1 の 実行できなかった ではない。宣言の古さは正本の側の問題で、束は完全に組めている）。終了コードは 0 のまま。標準出力の 1 行にも、落とした節の数と 正本に無い節 の数を足す。
+**宣言に在るが正本に無い節は別立てで出す。** その doc の**どの file にも無い**節だけを数える（file ごとの欠け＝ある判断の記録にだけ figures の節が無い等は普通のことなので数えない）。**束を組むのは止めない**。落としたことを黙らないのは P-4.1（実行できなかった結果を異常なしとして扱わない）の向きで、ここに判定できないものは無い（宣言と正本の食い違いは判定できた事実である）ので **まだ分からない の札は出さず**、終了コードは 0 のままにする。標準出力の 1 行にも、落とした節の数と 正本に無い節 の数を足す。
 
 ### (d) 凍結 anchor の組み直し（P-10.1 / P-10.2 / P-10.3）
 
 便 97 が置いた独立の script `tests/fixtures/ceiling/bundle-anchor.py`（python3 の標準 library だけ・folio の code を 1 行も呼ばない）に、**(b) の 4 つの規則を写した絞りの口**を足し、その出力で凍結 anchor `tests/fixtures/ceiling/bundle-anchor.txt` を組み直す。
 
-- anchor の種別は今の 4 つ（観点・file数・byte・要約値）に **2 つ足して 6 つ**にする（落とした節の数・正本に無い節の数）。1 行 = 種別 + タブ区切りの形は変えない。
-- **file の一覧は 1 本も増減しない**（落とすのは行であって file ではない）。凍結の土台の絞りの実測（起草役の独立の実装）= 忠実さ 13,041 → 9,274 byte（71.1%）・読みやすさ 15,333 → 9,284（60.5%）・整合 13,880 → 9,076（65.4%）・実態 9,690 → 5,521（57.0%）。**確定の値は anchor file が持ち、歯はそれと突き合わせる**（設計ノートに byte も要約値も凍結しない）。
+- anchor の種別は今の 4 つ（観点・file数・byte・要約値）に **2 つ足して 6 つ**にする（落とした節の数・正本に無い節の数）。1 行 = 種別 + タブ区切りの形は変えない。**落とした節の数 = 落とした節の名の総数であって、注釈の行の数ではない**（凍結の土台では 名の数 24 / 30 / 24 / 20 に対して 行の数は 4 / 5 / 5 / 3 になる）。名で数えるのは、落ちた中身の量を表すのが節の数であり、行の数は doc の file の分け方に依るからである。**正本に無い節の数**も同じく名の総数で数える。
+- **file の一覧は 1 本も増減しない**（落とすのは行であって file ではない）。凍結の土台の sources の絞りの実測（起草役の独立の実装）= 忠実さ 13,041 → 9,274 byte（71.1%）・読みやすさ 15,333 → 9,284（60.5%）・整合 13,880 → 9,076（65.4%）・実態 9,690 → 5,521（57.0%）。
+- **組み直した anchor file の中身**は次のとおりである。**起草役の 2 つの独立の実装が byte 一致で出した値**で、1 つ目は便 97 の script の写しに (b) の規則を差したもの、2 つ目は `folio ceiling --write` が組んだ今の束（凍結 anchor と一致することが歯で分かっている）を土台に絞りと注釈を独立に当てたものである。**値の正本は着地する anchor file の側**で、歯はそれと突き合わせる。**組んだ値がここと違うときは (c) の注釈の字面のどこかが違う**（字面が正・値は従）。
+
+```
+# 凍結 anchor: 天井の材料の束（tests/fixtures/ceiling/bundle-anchor.py が組んだ・folio の code を 1 行も呼ばない）
+観点	fidelity
+file数	13
+byte	11738
+要約値	d2e153b29a2b46b88295d10f782163636a5613649ceb9efa80dcebfb48473782
+落とした節の数	24
+正本に無い節の数	0
+観点	readability
+file数	15
+byte	11867
+要約値	877fcb5b03de9be5f6d8c4c1f61602e0f578a15e054cff9109eeb37834d08c68
+落とした節の数	30
+正本に無い節の数	1
+観点	coherence
+file数	14
+byte	11489
+要約値	b0030a3fa1e1dc4d4e4710bbba07ec65f80bf1fa14bd2b4c75eea186b26f281d
+落とした節の数	24
+正本に無い節の数	1
+観点	reality
+file数	11
+byte	7560
+要約値	d8734c77995da9034593d27e757890ec9133c86444a466b05c85a1a9e1250d89
+落とした節の数	20
+正本に無い節の数	0
+```
 - python3 を起動できない環境では、便 97 と同じ形（標準エラーへ `# まだ分からない: ` の 1 行・歯は落とさない）を保つ。**新しい例外の口は足さない**（N-3.1）。
 - 正本が UTF-8 として読めないときは、絞りに入る前に まだ分からない（終了コード 2）で止め、何も書かない（P-4.1・今の 全部か無しか と同じ形）。
 
-**巻き添えの確認（起草役が repo 全体で実測した）。** 束の要約値 4 本を repo 全体で grep すると、当たるのは `crates/folio/tests/bundle.rs`・`crates/folio/tests/findings.rs`・`tests/fixtures/ceiling/bundle-anchor.txt`・`tests/fixtures/ceiling/findings/` の 10 本（fabricated-evidence・fail-no-findings・missing-field・pass-coherence・pass-fidelity・pass-readability・pass-reality・stop-refuted・stop-unrefuted・stop-upheld）と、着地済みの設計ノート 5 本（散文）だけで、**14 本とも write-set に入れた**。
+**巻き添えの確認（起草役が repo 全体で実測した）。** 束の要約値 4 本を repo 全体で grep すると、当たるのは `crates/folio/tests/bundle.rs`・`crates/folio/tests/findings.rs`・`tests/fixtures/ceiling/bundle-anchor.txt`・`tests/fixtures/ceiling/findings/` の 10 本（fabricated-evidence・fail-no-findings・missing-field・pass-coherence・pass-fidelity・pass-readability・pass-reality・stop-refuted・stop-unrefuted・stop-upheld）と、着地済みの設計ノート 5 本（散文）だけで、**13 本とも write-set に入れた**（`crates/folio/src/bundle.rs` は要約値を 1 つも持たないので、write-set の 15 本のうち要約値が当たるのはこの 13 本である）。
 
 write-set の外の凍結 anchor は全部列挙して当たらないことを確かめた。
 
@@ -136,9 +194,9 @@ write-set の外の凍結 anchor は全部列挙して当たらないことを�
 
 **`crates/folio/tests/bundle.rs`（7 本）**
 
-1. **f98_the_cut_bundle_matches_the_rebuilt_anchor** — 独立の script `tests/fixtures/ceiling/bundle-anchor.py` の出力が組み直した anchor file と **byte 一致**し、凍結の土台から `folio ceiling --write` で組んだ 4 観点の束の file の数・連結の byte 数・要約値が anchor file の 6 種別の値と一致すること（要約値は sha256sum でも測り直す）。python3 が無いときは まだ分からない の 1 行を出して落とさない（P-10.3）。**赤い歯**。
-2. **f98_the_dropped_sections_are_named_in_reads** — 凍結の土台の 忠実さ の reads.yaml に、constitution.yaml の落とした 6 節（north_star・precedence・rules_pointer・amendment・glossary_pointer・sources）と srs.yaml の落とした 12 節（goals・scope・scope_m1・actors・outputs・rail・verdicts・nonfunctional・not_frozen・constraints・glossary_pointer・figures）と adr/ADR-2.yaml の 5 節と design-note/full.yaml の 1 節が **sources/ の path の byte 順**に出て、常に残す 6 語の行が末尾に来ること。**数を固定してよいのは凍結の土台だからである**（実の正本には当てない）。**赤い歯**。
-3. **f98_a_section_absent_from_every_source_is_named** — 凍結の土台の 読みやすさ の reads.yaml に index.yaml の sections が、整合 の reads.yaml に rules.yaml の rows が 宣言に在るが正本に無い節 として出ること。どちらの場合も束は組めて終了コードは 0 であること。**赤い歯**。
+1. **f98_the_cut_bundle_matches_the_rebuilt_anchor** — 独立の script `tests/fixtures/ceiling/bundle-anchor.py` の出力が組み直した anchor file と **byte 一致**し、凍結の土台から `folio ceiling --write` で組んだ 4 観点の束が anchor file の **6 種別とも**一致すること。file の数・連結の byte 数・要約値は束から直に測り（要約値は sha256sum でも測り直す）、**落とした節の数と 正本に無い節の数は束の reads.yaml の注釈の行から数え直して**突き合わせる。python3 が無いときは まだ分からない の 1 行を出して落とさない（P-10.3）。**赤い歯**。
+2. **f98_the_dropped_sections_are_named_in_reads** — 凍結の土台の 忠実さ の reads.yaml が **(c) の 1 つ目の逐語と byte 一致**すること（adr/ADR-2.yaml の 5 節・constitution.yaml の 6 節・design-note/full.yaml の 1 節・srs.yaml の 12 節が **sources/ の path の byte 順**に出て、常に残す 6 語の行が末尾に来る）。**字面と数を固定してよいのは凍結の土台だからである**（実の正本には当てない）。**赤い歯**。
+3. **f98_a_section_absent_from_every_source_is_named** — 凍結の土台の 読みやすさ の reads.yaml が **(c) の 2 つ目の逐語と byte 一致**し（index.yaml の sections が 宣言に在るが正本に無い節 の行として落とした節の行の後・常に残す節の行の前に出る）、整合 の reads.yaml に rules.yaml の rows が同じ形で出ること。どちらの場合も束は組めて終了コードは 0 であること。**赤い歯**。
 4. **f98_the_skeleton_and_the_head_survive_every_cut** — 凍結の土台と**実の正本**の両方で、4 観点の sources/ の下の全 file について、骨格の 6 つの節の見出しの行と file の頭の行が 1 行も落ちていないこと。**不変条件で書き、節の数も byte も固定しない**（実の正本は便のたびに動くため）。**赤い歯**。
 5. **f98_every_kept_line_is_verbatim_and_in_order** — 凍結の土台と実の正本の両方で、絞った写しの各行が正本の同じ file の行として byte のまま在り、写しの中の順序が正本の中の順序と同じであること（＝折り返しも組み直しもしていない＝床の逐語の照合が成り立つ）。**不変条件**。**赤い歯**。
 6. **f98_a_column_zero_sequence_is_not_a_new_section** — 実の正本の `srs.yaml` と `adr/ADR-4.yaml`・`ADR-5.yaml`・`ADR-7.yaml` について、`figures` を宣言に持たない観点の写しに figures の節の行が 1 行も残らず、`figures` を宣言に持つ観点の写しには残ること（規則 2）。**不変条件で書き、節の byte も行数も固定しない。凍結の土台にはこの形が無いので、この歯だけが列 0 の連なりの読み違いを捕まえる。** **赤い歯**。
@@ -203,12 +261,12 @@ schema = 1
 
 [[contract]]
 id = "cy"
-title = "天井の材料の束が写す正本を、観点が読むと宣言した最上位の節まで絞る。残すのは ① その観点の reads が挙げた節 ② 骨格の 6 語（meta・id・title・status・date・schema）③ file の頭で、切る単位は行とし、残した行は正本の byte のまま・正本の順のまま写す（行の中の欄には降りない）。最上位の節の始まりは 列 0 の 名: の行だけで、列 0 の - で始まる行は直前の節の続きである。注釈と空行の連なりは直後の節へ寄せ、直後に節が無ければ直前の節へ寄せる。生成区間（folio:schema:begin から folio:schema:end まで）は 1 つの塊として中の節と一緒に残す。落とした節は黙らず、束の reads.yaml の末尾に注釈の行として出す（落とした節は sources からの相対 path の byte 順に 1 file 1 行・次に その doc のどの file にも無い宣言の節・最後に常に残す 6 語）。束の中身の閉じた一覧は動かさず、注釈を sources の写しへは書かない。標準出力の 1 行に落とした節の数と 正本に無い節 の数を足す。凍結 anchor は便 97 の独立の script tests/fixtures/ceiling/bundle-anchor.py に同じ絞りの規則を写して組み直し、種別を 6 つ（観点・file数・byte・要約値・落とした節の数・正本に無い節の数）にする。file の一覧は 1 本も増減しない。python3 を起動できない環境では まだ分からない の 1 行を標準エラーへ出して歯を落とさない。design-intent の下は 1 file も書き換えない"
+title = "天井の材料の束が写す正本を、観点が読むと宣言した最上位の節まで絞る。残すのは ① その観点の reads が挙げた節 ② 骨格の 6 語（meta・id・title・status・date・schema）③ file の頭で、切る単位は行とし、残した行は正本の byte のまま・正本の順のまま写す（行の中の欄には降りない）。最上位の節の始まりは 列 0 の 名: の行だけで、列 0 の - で始まる行は直前の節の続きである。注釈と空行の連なりは直後の節へ寄せ、直後に節が無ければ直前の節へ寄せる。生成区間（folio:schema:begin から folio:schema:end まで）は 1 つの塊として中の節と一緒に残す。落とした節は黙らず、束の reads.yaml の末尾に注釈の行として出す（落とした節は sources からの相対 path の byte 順に 1 file 1 行・次に その doc のどの file にも無い宣言の節・最後に常に残す 6 語。注釈の行の字面は §1 (c) の 2 つの逐語で決まる）。束の中身の閉じた一覧は動かさず、注釈を sources の写しへは書かない。標準出力の 1 行に落とした節の数と 正本に無い節 の数を足す。凍結 anchor は便 97 の独立の script tests/fixtures/ceiling/bundle-anchor.py に同じ絞りの規則を写して組み直し、種別を 6 つ（観点・file数・byte・要約値・落とした節の数・正本に無い節の数。数は節の名の総数であって注釈の行の数ではない）にして §1 (d) の逐語の値にする。file の一覧は 1 本も増減しない。python3 を起動できない環境では まだ分からない の 1 行を標準エラーへ出して歯を落とさない。design-intent の下は 1 file も書き換えない"
 req = ["FR17"]
 section = "1"
 write-set = ["crates/folio/src/bundle.rs", "crates/folio/tests/bundle.rs", "crates/folio/tests/findings.rs", "tests/fixtures/ceiling/bundle-anchor.py", "tests/fixtures/ceiling/bundle-anchor.txt", "tests/fixtures/ceiling/findings/fabricated-evidence.yaml", "tests/fixtures/ceiling/findings/fail-no-findings.yaml", "tests/fixtures/ceiling/findings/missing-field.yaml", "tests/fixtures/ceiling/findings/pass-coherence.yaml", "tests/fixtures/ceiling/findings/pass-fidelity.yaml", "tests/fixtures/ceiling/findings/pass-readability.yaml", "tests/fixtures/ceiling/findings/pass-reality.yaml", "tests/fixtures/ceiling/findings/stop-refuted.yaml", "tests/fixtures/ceiling/findings/stop-unrefuted.yaml", "tests/fixtures/ceiling/findings/stop-upheld.yaml"]
 verify = ["cargo nextest run -p folio --test bundle --test findings f98_", "cargo nextest run -p folio --test bundle --test findings", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "f98_ の歯 8 本（独立の script の出力が組み直した凍結 anchor tests/fixtures/ceiling/bundle-anchor.txt と byte 一致し、凍結の土台から組んだ 4 観点の束の file の数と連結の byte 数と要約値が anchor の 6 種別の値と一致し sha256sum で測り直しても同じで、python3 が無い環境では まだ分からない の 1 行で落ちない／凍結の土台の 忠実さ の reads.yaml に constitution.yaml の落とした 6 節と srs.yaml の落とした 12 節と adr/ADR-2.yaml の 5 節と design-note/full.yaml の 1 節が sources からの相対 path の byte 順に出て常に残す 6 語の行が末尾に来る／読みやすさ の reads.yaml に index.yaml の sections が 整合 の reads.yaml に rules.yaml の rows が 宣言に在るが正本に無い節 として出て終了コードは 0／凍結の土台と実の正本の両方で 4 観点の sources の全 file の骨格 6 節の見出しの行と file の頭の行が 1 行も落ちない／凍結の土台と実の正本の両方で絞った写しの各行が正本の同じ file の行として byte のまま在り順序も同じ／実の正本の srs.yaml と adr/ADR-4.yaml と ADR-5.yaml と ADR-7.yaml で figures を宣言に持たない観点の写しに figures の節の行が 1 行も残らず持つ観点の写しには残る／実の正本の生成区間を持つ写しで開きの印と閉じの印がどちらも 1 つずつ残る／絞った束に凍結の所見 fixture を当てて 3 値が今と同じ）が全部緑、crates/folio/tests/bundle.rs と crates/folio/tests/findings.rs の歯が全部緑、clippy が 0 警告で CI が通る"
+done = "f98_ の歯 8 本（独立の script の出力が組み直した凍結 anchor tests/fixtures/ceiling/bundle-anchor.txt と byte 一致し、凍結の土台から組んだ 4 観点の束が anchor の 6 種別とも一致する＝file の数と連結の byte 数と要約値は束から直に測って sha256sum で測り直しても同じ・落とした節の数と 正本に無い節の数 は束の reads.yaml の注釈の行から数え直して同じで、python3 が無い環境では まだ分からない の 1 行で落ちない／凍結の土台の 忠実さ の reads.yaml が §1 (c) の 1 つ目の逐語と byte 一致する＝adr/ADR-2.yaml の 5 節と constitution.yaml の 6 節と design-note/full.yaml の 1 節と srs.yaml の 12 節が sources からの相対 path の byte 順に出て常に残す 6 語の行が末尾に来る／凍結の土台の 読みやすさ の reads.yaml が §1 (c) の 2 つ目の逐語と byte 一致して index.yaml の sections が 宣言に在るが正本に無い節 の行として落とした節の行の後・常に残す節の行の前に出て、整合 の reads.yaml に rules.yaml の rows が同じ形で出て、どちらも終了コードは 0／凍結の土台と実の正本の両方で 4 観点の sources の全 file の骨格 6 節の見出しの行と file の頭の行が 1 行も落ちない／凍結の土台と実の正本の両方で絞った写しの各行が正本の同じ file の行として byte のまま在り順序も同じ／実の正本の srs.yaml と adr/ADR-4.yaml と ADR-5.yaml と ADR-7.yaml で figures を宣言に持たない観点の写しに figures の節の行が 1 行も残らず持つ観点の写しには残る／実の正本の生成区間を持つ写しで開きの印と閉じの印がどちらも 1 つずつ残る／絞った束に凍結の所見 fixture を当てて 3 値が今と同じ）が全部緑、crates/folio/tests/bundle.rs と crates/folio/tests/findings.rs の歯が全部緑、clippy が 0 警告で CI が通る"
 
 <!-- contracts:end -->
