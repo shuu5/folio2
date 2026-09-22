@@ -942,7 +942,7 @@ const F91_ROWS: [(&str, &[&str]); 14] = [
     ("D-3", &["R-1"]),
     ("D-10", &["P-5.2", "R-8"]),
     ("D-11", &["P-5.6"]),
-    ("D-12", &["ADR-8"]),
+    ("D-12", &["ADR-8", "ADR-13"]),
 ];
 
 /// 写しの rules.yaml に変異を当てた結果が 不合格 1・違反はちょうど 1 件（rules.yaml の場所）で `words` を全部含む。
@@ -995,7 +995,7 @@ fn f91_the_real_rules_carry_the_refs_field() {
         assert_eq!(got, *want, "{id} の refs");
         total += got.len();
     }
-    assert_eq!(total, 31, "refs の id の合計");
+    assert_eq!(total, 32, "refs の id の合計");
 }
 
 #[test]
@@ -1111,22 +1111,24 @@ fn f93_a_kind_without_a_receptacle_is_not_counted() {
     assert_eq!(out.status.code(), Some(0), "{}", stdout(&out));
     assert!(violations(&out).is_empty(), "{:?}", violations(&out));
     let text = fs::read_to_string(w.srs()).unwrap();
-    let (_, rest) = text
-        .split_once("\n  - id: FR12\n")
-        .expect("FR12 の行が無い");
-    let row = rest.split("\n  - id: ").next().unwrap();
-    let note = row
-        .lines()
-        .find(|l| l.starts_with("    note: "))
-        .expect("FR12 の note が無い");
-    for id in ["FR11", "FR13", "FR14"] {
-        assert!(note.contains(id), "FR12 の note に {id} が無い");
-        for key in ["basis", "rules", "adrs", "verify", "goals", "figures"] {
+    // 要件 → 要件 は受け皿の表に無い組なので、散文が指していても数えない。
+    // 当て先は実の正本で互いの注が相手を指す 2 組（一括 12 で FR12 の注の二重の記述を外したので移した）。
+    for (owner, id) in [("FR3", "FR21"), ("FR21", "FR3")] {
+        let (_, rest) = text
+            .split_once(&format!("\n  - id: {owner}\n"))
+            .unwrap_or_else(|| panic!("{owner} の行が無い"));
+        let row = rest.split("\n  - id: ").next().unwrap();
+        let note = row
+            .lines()
+            .find(|l| l.starts_with("    note: "))
+            .unwrap_or_else(|| panic!("{owner} の note が無い"));
+        assert!(note.contains(id), "{owner} の note に {id} が無い");
+        for key in ["basis", "verify", "goals", "figures"] {
             let typed = row
                 .lines()
                 .find(|l| l.starts_with(&format!("    {key}: ")))
-                .unwrap_or_else(|| panic!("FR12 の {key} が無い"));
-            assert!(!typed.contains(id), "FR12 の {key} に {id} が在る: {typed}");
+                .unwrap_or_else(|| panic!("{owner} の {key} が無い"));
+            assert!(!typed.contains(id), "{owner} の {key} に {id} が在る: {typed}");
         }
     }
 }
