@@ -5,6 +5,7 @@
 - 出所: 判断の記録 ADR-13 決定 (1)（節点の欄は 5 つ＝id・種類・所属 file・欄の要約値・1 行の題）・決定 (8)（天井の印に節点ごとの要約値の表を足す。辺を足すだけの変更は周の引き金に数えない。欄の分類は実装の型付きの定数に置き、生成区間へ導出する）・決定 (16) の ⑤。設計ノート docs/design/graph-and-incremental-ceiling.md §3.4・§4.3・§8 の便の列の G4。便 94 の 🔴 3 点目（docs/design/delivery-94.md §1 (f)）が「節点の要約値の欄は G4 で、印の側の凍結 anchor と一緒に定める」と決めている。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 cu が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は 2 本で先頭に + を付ける・縮む file は無い・新しい dir は作らない）。
 - 門: 本便は design-intent の下の正本 design-intent/graph.yaml の生成区間を書き換えるので、天井の門の対象である。席が本便の write-set をそのまま渡して `folio ceiling --gate --dir design-intent` を実測すると **2（まだ分からない・断りの字は 印が古い）**（2026-09-22）。持ち主の指示（2026-09-22 00:0x JST・対話面 R-8・台帳 f2-648 notes・逐語「一通り完成を目指して速度を上げたいので、あまりにも無駄に似たような審査を繰り返しまくっているならやめてどんどん進めて」の (2)）により、**設計文書を触る便は印が古くても門を経ずに出し、その裁定を根拠に記帳する**。24 周目は一括 12 の前に回す。
+- 改訂 b（2026-09-22 17:2x JST・検証役の report handoff-2026-09-22/d99-verify.md への応答）: (f) が凍結する生成区間の 3 行（node_note・edge_fields_note・digest_note）を逐語で置いた（blocker・これが無いと runner の書いた別の字の生成区間が歯の緑のまま着地する）。🔴 4 の直す先を判断の記録から設計ノート §3.4 へ改めた。字の直し 4 点（見本の digest の 1 行ずれ・印の大きさ 7,689・作り直す anchor は 3 本・設計ノート §4.3 の節点 285 の実測）と、式の曖昧な 3 点と、大きさの見積の取り直し（graph.rs は +300 前後）を入れた。**式・anchor の 4 対・契約表の行 cu の字は 1 つも変えていない。**
 - 前の便: 便 94（行 cq・`folio graph --print`）・便 95（行 cr・`design-intent/graph.yaml`）・便 96（行 cs・`folio graph --digest` と `folio hello` の 1 行）。**3 本とも着地済み**で、本便の base は `main 0806433` である。§1 の余地と数はその base の実測。**便 97（行 ct・束の凍結 anchor の独立 script・検証中）とは write-set が 1 file も重ならない**（便 97 は `tests/fixtures/ceiling/bundle-anchor.py` と `bundle-anchor.txt` と `crates/folio/tests/bundle.rs`・本便は `tests/fixtures/ceiling/findings/stamp-expected.yaml` と `crates/folio/tests/stamp.rs`）。
 
 ## 1. 目的と中身
@@ -52,6 +53,12 @@
 - 落とすときは対の区切りも 1 つだけ落とす＝直前が `, ` ならそれを、直前が `{` なら対の後ろの `, ` を落とす。
 - **単引用符は引用符として数えない。** 実の正本と凍結した土台の両方で、単引用符も数える式と数えない式の出力は 1 字も違わなかった（席が両方で実測）。日本語の散文の中の 1 つだけのアポストロフィで式が崩れないほうを採る。
 
+**式の細かい 3 点**（今の 3 つの置き場では出力を変えないが、runner の迷いを消すために字で閉じる）:
+
+- **欄の決まりの file（`adr/schema.yaml`・`design-note/schema.yaml`）は節点でない。** 判断の記録の節点は `adr/ADR-<数>.yaml` の形の file だけである（索引が数えるのと同じ）。この 2 本は (d) の残差の母集団には入る（dir 形の文書の直下の .yaml だから）。誤ると節点が 190 になり、歯 1 と (c) の食い違いの断りが同時に落ちる。
+- **対の頭を探すときも二重引用符の中は跳ばす。** 終わりの走査だけでなく頭の走査も跳ばす。今の正本では差が出ないが、`rules.yaml` の ruling や note の二重引用符の中に `, refs: ` の形の字が 1 度でも入れば、跳ばさない式はその日から静かに壊れる。
+- **空白だけの行も空行とみなす**（block の終わりの判定と末尾の落としの両方で）。実の正本にも凍結した土台にも空白だけの行は 0 行である（席が全数を数えた）。
+
 **要約値が 8 字である理由。** 印の今の束の要約値（`bundle: a9b8a6aa`）と同じ幅に揃える。198 節点での取り違え（別の本文が同じ 8 字になる）の見込みは約 4.6 × 10⁻⁶ で、起きても効くのは「その節点の変更を 1 度見落とす」ところまでである。撤退条件 6（周の引き金が漏れる）がそれを数える。
 
 **実測（この式を独立の実装で当てた値）。** 母集団の全 byte は、本文・辺の欄・残差 の 3 つにちょうど 1 度ずつ入る。
@@ -92,13 +99,13 @@
 ```
 rest: sha256 <16 進 64 字>
 nodes:
-  - {id: P-1, digest: 03796068}
-  - {id: P-1.1, digest: 6d2c5e19}
+  - {id: P-1, digest: 8b0e9bb3}
+  - {id: P-1.1, digest: 03796068}
 ```
 
 - **nodes = 節点ごとの要約値の表**（索引と同じ並び＝id の byte 順）。実の正本で 198 行・6,635 byte。
 - **rest = 残差の要約値**（「sha256 」に 16 進 64 字・sources と faces と同じ形）。**残差 = 母集団の全 byte から、節点の本文と辺の欄を除いた残り。** 母集団は、索引の正本（憲法・規則の表・要件書・判断の記録の各 file）と、天井の正本 ceiling.yaml の観点の reads が指した文書の file（dir 形の文書は直下の .yaml）の**和集合**を、置き場からの相対 path の byte 順に並べたもの。
-- 印の大きさ: 976 byte → **約 7,696 byte**。生成物 1 file の上書きなので、版管理の履歴は行単位の差分として読める（条 P-6.2）。
+- 印の大きさ: 976 byte → **7,689 byte**（976 + nodes の 1 行と 198 行で 6,635 + rest の 1 行で 78）。生成物 1 file の上書きなので、版管理の履歴は行単位の差分として読める（条 P-6.2）。
 - **印に種類と file と題は写さない。** その 3 つは索引が毎回正本から組み直す導出物で、前の周から覚えておく必要があるのは要約値だけである（条 P-6.3）。設計ノート §4.3 は 4 列・約 16 キロバイトと見積もっていたので、その字の直しを (f) の 🔴 2 点目に上げる。
 - **全部か無しか。** 表か残差を組めないときは、印を 1 byte も書かずに「まだ分からない」（終了コード 2）で終える（今の印の持ち方と同じ・条 P-4.1）。
 - **印を書き直すのは次の周である。** 本便は `design-intent/preview/ceiling-stamp.yaml` を write-set に入れない（24 周目の `--stamp` が新しい形で書く）。面の天井の名札は印の at と viewpoints だけを読むので、欄が 2 つ増えても名札の字は変わらない（席が `crates/folio/src/face.rs` の読み口を逐語で読んで確かめた）。
@@ -123,7 +130,7 @@ A-1.1	df732d5b
 - 席はこの値を、folio の code を 1 行も呼ばない python3 の標準 library だけの実装で出し、byte 数と要約値は OS の道具 `sha256sum` と `wc` で独立に測った（2026-09-22）。
 - 突き合わせは唯一の合格判定ではない（条 P-10.2）。anchor の中身の出所は独立の実装で、folio の出力との一致は歯が見る事実の側である。**python3 を起動できない環境では、要約値を測れないときと同じ形で「まだ分からない」の 1 行を標準エラーへ出して歯を落とさない**（条 P-10.3・便 97 と同じ持ち方）。
 
-**作り直す anchor は 2 本、足す anchor は 2 本。**
+**作り直す anchor は 3 本、足す anchor は 2 本。**
 
 | anchor | 今 | 本便の後 |
 | --- | --- | --- |
@@ -173,15 +180,20 @@ nodes:
 2. `node_note` の末尾の 1 文（欄の要約値は天井の印と同じ便で足す）を、digest の言い換えに替える。
 3. 末尾に **edge_fields**（辺の欄の閉じた一覧・file ごと）と **edge_fields_note** と **digest_note**（(b) の式）を足す。
 
-生成区間は 28 行・2,106 byte → **35 行・3,607 byte** になる（新しい行は次のとおり・席が導出の規則を写して組み、`sha256sum` で測った）。
+生成区間は 28 行・2,106 byte → **35 行・3,607 byte** になる。**替える行と足す行の逐語は次の 8 行で、この 8 行がそのまま 3,607 byte と要約値 7e2515a7… を決める**（席が導出の規則を写して組み、`sha256sum` と `wc` で測った。床の木の側の字がこの 8 行と 1 字でも違えば、生成区間の byte 数も要約値も §1 が凍結した値にならない）。
 
 ```
+  node_note: 索引の節点 1 つの欄。id は設計文書の全体で 1 つに定まる id、kind は node_kinds の値、file は正本の置き場からの相対の path、digest は節点の本文の要約値（式は digest_note）、title は空白を 1 つに畳んで Unicode の字で 36 に切った 1 行の題
   edge_fields:
     constitution.yaml: [relations]
     rules.yaml: [article, refs]
     srs.yaml: [basis, goals, rules, adrs, verifies, verify.ac]
     adr: [basis, produced]
+  edge_fields_note: 辺の欄の閉じた一覧（正本の file ごと・欄の名）。節点の要約値はこの欄を落とした本文だけを数えるので、この欄に id を足すだけの変更は周の引き金にならない（判断の記録 ADR-13 決定 (8)）。正本は実装の型付きの定数 crates/folio/src/graph.rs の EDGE_FIELDS で、この節はその写しである（P-5.1・P-5.6）。verify.ac は要件の verify の中の対を指す。図の欄（figures）と改訂の来歴の欄（amended_by・amends）は散文を持つので本文の側に残す
+  digest_note: 節点の要約値の式（正本の読み口に依らず、行の逐語の byte で決まる）。① 節点の block は、その id を持つ行から、空行でなく字下げが頭の行以下である最初の行の直前まで（判断の記録は file の全行）。② block から、入れ子の節点の block と 辺の欄の行（その行より深い続きの行も）を落とし、流れの形の行からは辺の欄の対を落とす。③ 末尾の空行を落とし、残った行を改行ごと連結した byte の sha256 の先頭 8 字が要約値。天井の印はこの要約値の表と、節点にも辺の欄にも属さない残りの byte の要約値（残差）を持つ（ADR-13 決定 (8)）
 ```
+
+内訳（行末の改行を含む byte）は 2,106 → 3,607 の +1,501 で、`node` の行が +8・`node_note` の行が **−16**（新しい行 325・古い行 341）・edge_fields の 5 行が +172・edge_fields_note が +593・digest_note が +744 である。**替えるのは 2 行、足すのは 7 行で、残る 26 行は今の anchor `tests/fixtures/schema/graph-region.txt` と 1 字も変わらない。**
 
 `crates/folio/tests/schema_docs.rs` の f95_ の 3 つの定数（生成区間の行数 28・byte 数 2106・要約値 c4385eb3…）を **35・3607・7e2515a7727d84e4df0449d54577f842778f4e244701622986f3098c51eb947b** に替える。同じ file の歯 `f95_the_closed_lists_are_the_same_as_the_index` は索引の節点の行の 2 列目（種類）と辺の行の 3 列目（型）しか読まないので、欄が 1 つ増えても字は変わらない（席が本体を逐語で読んで確かめた）。
 
@@ -190,11 +202,11 @@ nodes:
 - **design-intent の下は `graph.yaml` の生成区間だけ**。憲法・規則の表・要件書・語彙・天井の正本・入口の棚・相談窓口・判断の記録・設計ノートの正本・凍結 anchor の列（anchors/）・生成物の棚（preview/）は読むだけである。**語彙も要件書も 1 字も動かさない。**
 - **`crates/folio/src/main.rs`・`check.rs`・`refs.rs`・`link.rs`・`mentions.rs`・`adr.rs`・`schema.rs`・`rules.rs`・`entrance.rs`・`intake.rs`・`ceiling.rs`・`bundle.rs`・`site.rs`・面の生成器は 1 字も触らない。** `gate.rs` は**関数 2 つの可視化を crate の中へ広げるだけ**（門の判定も断りの字も 1 つも変えない）で、天井が読む文書の file を集める口を索引の側から呼べるようにする＝同じ集め方を 2 面に増やさないため（条 P-6.3）。
 - **`crates/folio/tests/check.rs`・`tests/floor_cases.yaml`・id の一覧の凍結 anchor・`tests/fixtures/schema/graph-digest-anchor.txt`・欄の決まりの写し 17 本は 1 字も触らない。**
-- 🔴 **1 点目（G4 を 2 便に割った）**: 設計ノート §8 の G4 の行と判断の記録 ADR-13 決定 (16) の ⑤ は「節点ごとの要約値の印と周の引き金」を 1 便として数えている。本便は**式と表と索引の欄まで**で、**周の引き金を判定する口（要る／要らない／まだ分からない）を運ばない**。割った理由は 2 つ。① 式と anchor だけで src が 190 行の見積になり、判定の口まで入れると M（300 行）を超える。② §3.4 の引き金 4 つのうち、**3（面の生成器と部品目録と様式）と 4（実態の観点の実装の証拠）は設計文書の中の byte では判定できない**ので、印にもう 2 欄が要る（3 は印の faces の要約値を面を組み直して測り直す形・4 は物差しが未定）。1 と 2 だけで「周は要らない」と出すと、判定していない 2 つを異常なしとして扱うことになる（条 P-4.1 が禁じる形）。**G4 を 2 便に改めるか、G4b を便の列に足すかを持ち主が決める。** 次の一括の承認要求に載せる。
-- 🔴 **2 点目（設計ノート §4.3 の印の見積が違う）**: §4.3 は「8 字の要約値と id と種類と file で 1 行 40〜60 byte、表全体で約 16 KB」と書くが、本便の表は id と要約値の 2 列で **198 行・6,635 byte**（印の全体で約 7,696 byte）である。種類と file を写さないのは、索引が毎回正本から組み直す導出物だからである（条 P-6.3）。**設計ノートのこの 1 文の直しを次の一括に載せる**（値も判定も動かない字の直し）。
+- 🔴 **1 点目（G4 を 2 便に割った）**: 設計ノート §8 の G4 の行と判断の記録 ADR-13 決定 (16) の ⑤ は「節点ごとの要約値の印と周の引き金」を 1 便として数えている。本便は**式と表と索引の欄まで**で、**周の引き金を判定する口（要る／要らない／まだ分からない）を運ばない**。割った理由は 2 つ。① 式と anchor だけで src が 325 行前後の見積（(i) の取り直し）で M の見積 300 に並ぶので、判定の口まで入れれば確実に超える。② §3.4 の引き金 4 つのうち、**3（面の生成器と部品目録と様式）と 4（実態の観点の実装の証拠）は設計文書の中の byte では判定できない**ので、印にもう 2 欄が要る（3 は印の faces の要約値を面を組み直して測り直す形・4 は物差しが未定）。1 と 2 だけで「周は要らない」と出すと、判定していない 2 つを異常なしとして扱うことになる（条 P-4.1 が禁じる形）。**G4 を 2 便に改めるか、G4b を便の列に足すかを持ち主が決める。** 同じ項に 3 つ添える＝① 判断の記録 ADR-13 決定 (16) は「①〜⑤ と ⑦ ⑧ は**設計文書の正本を書き換えないか**持ち主の承認欄で発効するので、門の対象外である」と書くが、**本便（⑤ そのもの）は `design-intent/graph.yaml` の生成区間を書き換える**ので、決定 (16) が挙げた理由は当たらない（本便が決定 (16) を根拠に使わず持ち主の裁定だけを引いたのはそのためである） ② 設計ノート §8 の G4 の行は門の欄を「通す」と書くが、実測は **2（印が古い）** ③ 同じ行の触る src の欄は `stamp.rs`・`graph.rs` だけで、`gate.rs` と `design-intent/graph.yaml` が抜けている。次の一括の承認要求に載せる。
+- 🔴 **2 点目（設計ノート §4.3 の印の見積が違う）**: §4.3 は「8 字の要約値と id と種類と file で 1 行 40〜60 byte、表全体で約 16 KB」と書くが、本便の表は id と要約値の 2 列で **198 行・6,635 byte**（印の全体で 7,689 byte）である。種類と file を写さないのは、索引が毎回正本から組み直す導出物だからである（条 P-6.3）。**同じ 1 文の「節点は 285」も実測とずれている**（索引の実測は **198**）。**設計ノートのこの 1 文の直しを次の一括に載せる**（値も判定も動かない字の直し）。
 - 🔴 **3 点目（要件書 FR20 の版上げ）**: FR20 の規範文は印の中身を「周の id・観点ごとの 3 値と反証の結果・正本の要約値・面の要約値・束の要約値・起動の記録・読んだ文書の id」と数え上げている。本便が足す **節点ごとの要約値の表と残差の要約値はその字の外**にある。判断の記録 ADR-13 決定 (8) が定めているが要件の字は追いついていない。**FR20 の版上げを次の一括の承認要求に載せる**（便 94 の 🔴 1 点目の FR14 の版上げと同じ一括にまとめる）。本便は要件の字を 1 字も動かさない。
-- 🔴 **4 点目（決定 (8) の辺の欄の字と実装の一覧が違う）**: 決定 (8) は辺の欄を「basis・rules・relations・rows.ref・rows.req」と書くが、本便の閉じた一覧は 10 欄（relations・article・refs・basis・goals・rules・adrs・verifies・verify.ac・produced）である。差は 2 つ。① 便 90〜92 が足した 3 欄（adrs・refs・produced）と、正本の欄がもともと分かれている 4 欄（article・goals・verifies・verify.ac）が決定の字に入っていない。② **rows.ref と rows.req は設計ノートの節の欄**で、設計ノートの節は今の索引の節点でない（便 94 の 🔴 2 点目）ので当たらない。**決定 (8) の字を改めるか、欄の一覧の正本は実装の定数であるという注を付けるかを持ち主が決める。** 次の一括の承認要求に載せる。
-- 🔴 **5 点目（graph.yaml が天井の読む文書の一覧に無い）**: 残差の母集団は天井の正本 ceiling.yaml の観点の reads が指した文書と索引の正本だが、**`design-intent/graph.yaml` はそのどちらにも入っていない**（便 95 の 🔴 9 点目が同じ穴を挙げている）。したがって本便が替える graph.yaml の生成区間そのものは、残差の要約値を動かさない＝引き金 2 の穴が 1 つ残る。**graph.yaml を天井の文書の一覧に載せる一括の項と同じ問いなので、そこへまとめて載せる。**
+- 🔴 **4 点目（設計ノート §3.4 の辺の欄の字と実装の一覧が違う）**: **設計ノート §3.4**（`docs/design/graph-and-incremental-ceiling.md:379`）は辺の欄を「basis・rules・relations・rows.ref・rows.req」と書き、同じ節の少し上は関係の欄を「relations・basis・rules・refs」と書くが、本便の閉じた一覧は 10 欄（relations・article・refs・basis・goals・rules・adrs・verifies・verify.ac・produced）である。差は 2 つ。① 便 90〜92 が足した 3 欄（adrs・refs・produced）と、正本の欄がもともと分かれている 4 欄（article・goals・verifies・verify.ac）が設計ノートの字に入っていない。② **rows.ref と rows.req は設計ノートの節の欄**で、設計ノートの節は今の索引の節点でない（便 94 の 🔴 2 点目）ので当たらない。**判断の記録 ADR-13 決定 (8) は欄を数え上げず「欄の分類は実装の型付きの定数に置き、生成区間へ導出する」とだけ書く**（席が決定 (8) の全文と `design-intent/` の全数を読んで、rows.ref と rows.req が判断の記録に 1 か所も無いことを確かめた）ので、**直す先は設計ノートの字であり、判断の記録の改訂は要らない**。設計ノートの版を上げる項として次の一括の承認要求に載せる。
+- 🔴 **5 点目（graph.yaml が天井の読む文書の一覧に無い）**: 残差の母集団は天井の正本 ceiling.yaml の観点の reads が指した文書と索引の正本だが、**`design-intent/graph.yaml` はそのどちらにも入っていない**（便 95 の 🔴 9 点目が同じ穴を挙げている）。したがって本便が替える graph.yaml の生成区間そのものは、残差の要約値を動かさない＝引き金 2 の穴が 1 つ残る。**入口の棚 `design-intent/index.yaml` にも graph の字は 1 件も無い**ので、判断の記録 ADR-13 決定 (1) の「この正本は入口の棚と天井の正本の文書の一覧に載る」は **2 面とも未了**である。ただし棚は自分の explain で「道具自身の正本は載せない」と書いており、`graph.yaml` も道具自身の正本なので、**棚に載せるべきかは自明でない＝決定 (1) の「入口の棚に載る」のほうを直す案も並べる**。**graph.yaml を天井の文書の一覧に載せる一括の項と同じ問いなので、そこへまとめて載せる。**
 - 節点ごとの要約値の欄（便 94 の 🔴 3 点目）は本便が閉じるので、次の一括では上げない。
 
 ### (h) 歯（関数名は f99_ で始める・置き場は tests/graph.rs 6 本と tests/stamp.rs 3 本）
@@ -206,7 +218,7 @@ nodes:
 1. **f99_the_independent_script_matches_the_anchor** — 独立の実装 `tests/fixtures/schema/node-digest.py` を凍結した土台 `tests/fixtures/floor_base/design-intent` に当て、標準出力が凍結 anchor `tests/fixtures/schema/node-digest-anchor.txt` と **byte 一致**（192 行・3,007 byte）し、anchor の要約値が `sha256sum` で測って **e71740609965710c1994257d9454ad8485b65b55c75cb5c30a74cfd6d411e21f** であること。python3 を起動できない環境では「まだ分からない」の 1 行を標準エラーへ出して落とさない（条 P-10.3）。**赤い歯**。
 2. **f99_the_index_carries_the_digest_column** — 凍結した土台に `folio graph --print` を当て、節点の行が 5 列で 4 列目が 16 進の小文字 8 字、見出しの行が新しい字、節点の表と出力全体の要約値が凍結 anchor `graph-anchor.txt` の新しい 2 値と一致し、**辺の表の要約値が今の値 a09c3f55… のまま**であること（768 行・31,277 byte・要約の 1 行は anchor の 2 行目と byte 一致）。**赤い歯**。
 3. **f99_the_digest_column_is_the_independent_value** — 同じ出力の 4 列目 189 本が、独立の実装の anchor の同じ id の値と 1 本残らず一致すること（folio の出力を folio で確かめない・条 P-10.2）。**赤い歯**。
-4. **f99_an_edge_only_change_moves_no_digest** — 一時 dir へ凍結した土台を写し、辺の欄だけを 5 か所（憲法の条の relations・規則の行の refs の対・要件の basis・要件の verify の中の ac・判断の記録の basis）変えて `--print` を当て、**節点の表の 4 列目 189 本が 1 字も変わらない**こと。判断の記録 ADR-13 決定 (8) の「辺を足すだけの変更は引き金に数えない」の歯である。**赤い歯**。
+4. **f99_an_edge_only_change_moves_no_digest** — 一時 dir へ凍結した土台を写し、辺の欄だけを 5 か所（憲法の条の relations・規則の行の refs の対〔**凍結した土台には refs の欄が 1 つも無いので新設になる**〕・要件の basis・要件の verify の中の ac・判断の記録の basis）変えて `--print` を当て、**節点の表の 4 列目 189 本が 1 字も変わらない**こと。判断の記録 ADR-13 決定 (8) の「辺を足すだけの変更は引き金に数えない」の歯である。**赤い歯**。
 5. **f99_a_body_change_moves_exactly_one_digest** — 同じ写しで要件 FR1 の shall を 1 字変えると、要約値が変わるのは **FR1 の 1 本だけ**であること。**赤い歯**。
 6. **f99_a_scan_that_disagrees_is_inconclusive** — 一時 dir の写しの規範文の行を索引が読めない形に崩し（頭の行の id の欄を残したまま流れの形を壊す）、`--print` が終了コード **2（まだ分からない）**で表を 1 行も出さないこと。写しの file の名と中身の要約値が 1 つも変わらないこと（repo へ書かない・条 N-1.1）。**赤い歯**。
 
@@ -220,10 +232,12 @@ nodes:
 
 ### (i) 大きさ
 
-- src は `crates/folio/src/graph.rs`（409・余地 1091・行の逐語から block を切り出す口と辺の欄を落とす口と要約値と残差を組む口と 5 列目で **+165 行**の見込み）と `crates/folio/src/stamp.rs`（331・余地 1169・rest と nodes の 2 欄で **+25 行**）と `crates/folio/src/gate.rs`（252・余地 1248・関数 2 つの可視化だけで **+0 行**）の 3 本。
+- src は `crates/folio/src/graph.rs`（409・余地 1091・行の逐語から block を切り出す口と辺の欄を落とす口と要約値と残差を組む口と 5 列目で **+300 行前後**の見込み）と `crates/folio/src/stamp.rs`（331・余地 1169・rest と nodes の 2 欄で **+25 行**）と `crates/folio/src/gate.rs`（252・余地 1248・関数 2 つの可視化だけで **+0 行**）の 3 本。
 - 歯は `crates/folio/tests/graph.rs`（456・余地 1044・**+110 行**の見込み・題の欄を読む 1 か所を 4 列目から 5 列目へ直す）と `crates/folio/tests/stamp.rs`（412・余地 1088・**+55 行**・要約値を落とす関数に rest の行を足す）と `crates/folio/tests/schema_docs.rs`（1136・余地 364・**定数 3 つの値だけ**）。
 - 独立の実装と凍結 anchor は新しい file 2 本（`tests/fixtures/schema/node-digest.py` と `tests/fixtures/schema/node-digest-anchor.txt`・192 行・3,007 byte）。
-- size **M**（src の増えは合わせて 190 行の見積で S の 100 を超える。触る src 3 本の余地はどれも M の見積 300 を上回る）。新しい dir は作らず、縮む file も無い。外部 crate は増やさない。
+- size **M**（src の増えは合わせて **325 行前後**の見積で S の 100 を大きく超える。触る src 3 本の余地 1091 / 1169 / 1248 はどれも M の見積 300 を上回るので、行が入らないことは無い）。新しい dir は作らず、縮む file も無い。外部 crate は増やさない。
+- **見積の取り直しの根拠。** 起草の時点の +165 行は楽観的だった。この式を (b)(d) の字だけから書いた独立の実装（python3）は、**式の核だけで 258 行**（流れの形の対を落とす走査が 126 行）・母集団と出力を足して 390 行になる。Rust 側は母集団を `gate.rs` から借りられるぶん短くなるが、この repo の書き方（doc 注釈と結果の持ち回り）では **+250〜350 行**が現実的である。
+- **M の上限に当たったときの割り方。** `graph.rs` の増えが **350 行**を超えたら、そこで止めて 2 便に割る。切る所は**印の 2 欄**（`stamp.rs`・`gate.rs`・`tests/fixtures/ceiling/findings/stamp-expected.yaml`・`crates/folio/tests/stamp.rs` の f99_ 3 本＝合わせて +80 行）で、式と索引の 5 列目と生成区間と anchor 3 本はそのまま 1 便目に残る（(j) の撤退条件が言うとおり、索引の 5 列目と印の 2 欄は別々に運べる・別々に捨てられる）。**先に割らないのは、印の anchor を 2 度書き直すことになるからである**（1 便目で `nodes` の無い印を凍結し、2 便目でまた凍結し直す）。
 
 ### (j) 本便が運ばないもの・撤退条件
 
@@ -235,7 +249,7 @@ nodes:
 
 ## 2. 範囲
 
-- 入れる: `crates/folio/src/graph.rs` の要約値の式（block の切り出し・辺の欄の落とし・流れの形の対の落とし・sha256 の先頭 8 字）と辺の欄の閉じた一覧と残差を組む口と節点の行の 5 列目と見出しの行と索引との食い違いの断り・`crates/folio/src/stamp.rs` の印の 2 欄（rest と nodes）・`crates/folio/src/gate.rs` の関数 2 つの可視化・`design-intent/graph.yaml` の生成区間（`folio schema --write` の出力）・凍結 anchor 4 本（`tests/fixtures/schema/graph-anchor.txt` と `graph-region.txt` の作り直し・`+tests/fixtures/schema/node-digest.py` と `+node-digest-anchor.txt` の新設・`tests/fixtures/ceiling/findings/stamp-expected.yaml` への 24 行）・`crates/folio/tests/graph.rs` の f99_ 6 本と題の欄の列の直し・`crates/folio/tests/stamp.rs` の f99_ 3 本と要約値を落とす関数・`crates/folio/tests/schema_docs.rs` の定数 3 つ。
+- 入れる: `crates/folio/src/graph.rs` の要約値の式（block の切り出し・辺の欄の落とし・流れの形の対の落とし・sha256 の先頭 8 字）と辺の欄の閉じた一覧と残差を組む口と節点の行の 5 列目と見出しの行と索引との食い違いの断り・`crates/folio/src/stamp.rs` の印の 2 欄（rest と nodes）・`crates/folio/src/gate.rs` の関数 2 つの可視化・`design-intent/graph.yaml` の生成区間（`folio schema --write` の出力）・凍結 anchor（作り直し 3 本と新設 2 本）（`tests/fixtures/schema/graph-anchor.txt` と `graph-region.txt` の作り直し・`+tests/fixtures/schema/node-digest.py` と `+node-digest-anchor.txt` の新設・`tests/fixtures/ceiling/findings/stamp-expected.yaml` への 24 行）・`crates/folio/tests/graph.rs` の f99_ 6 本と題の欄の列の直し・`crates/folio/tests/stamp.rs` の f99_ 3 本と要約値を落とす関数・`crates/folio/tests/schema_docs.rs` の定数 3 つ。
 - 入れない: 周の引き金を判定する口・引き金 3 と 4 の物差し・注意の先・束の絞り込み・門の単位・印の file そのものの書き直し・要件書と設計ノートと判断の記録の本文・語彙・`crates/folio/src/main.rs` と `check.rs` と `refs.rs` と `link.rs` と `mentions.rs` と `adr.rs` と `schema.rs` と `rules.rs` と `entrance.rs` と `intake.rs` と `ceiling.rs` と `bundle.rs` と `site.rs` と面の生成器・`crates/folio/tests/check.rs`・`tests/floor_cases.yaml`・`tests/fixtures/schema/graph-digest-anchor.txt`・id の一覧の凍結 anchor・欄の決まりの写し 17 本・新しい dir・外部 crate。
 
 ## 3. 部品
