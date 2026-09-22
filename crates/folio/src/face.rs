@@ -11,7 +11,7 @@
 //! 設計ノート・判断の記録・要件書の 3 面が同じ字面で出すので、`figure_body` と `figure_panel` をここに 1 つ持つ。
 //! 天井の名札（便 40・delivery-40.md §1 (c)(d)・ADR-8 決定 (4)・P-3.3）: 5 面の site-bar に床の名札（freshness-stamp）の
 //! 直後に部品 ceiling-stamp を置く。字は `ceiling_stamp` の 1 つで組む（面ごとに組み直さない）ので 5 面で同じになる。
-//! 束の置き場は任意の旗 `--ceiling` で受け、無ければ 4 観点とも「まだ分からない」（未実施）を出す（P-4.2）。
+//! 出所は天井の印 preview/ceiling-stamp.yaml の 1 つ（便 83・P-6.3）で、印が無ければ 4 観点とも「まだ分からない」（未実施）を出す（P-4.2）。
 
 use std::fs;
 use std::path::Path;
@@ -20,7 +20,7 @@ use crate::constitution_enums as ce;
 use crate::figure;
 use crate::findings;
 use crate::parts::catalog::{self, Component};
-use crate::rules;
+use crate::stamp;
 use crate::verdict::Verdict;
 use crate::yaml::{self, Value};
 use crate::{face_adr, face_constitution, face_index, face_note, face_srs};
@@ -51,15 +51,8 @@ impl Outcome {
 
 // ── 命令の口 ──
 
-/// `--out` と `--ceiling` は相対なら `--dir` からの相対・絶対ならそのまま。
-pub fn run(
-    face: &str,
-    id: Option<&str>,
-    dir: &Path,
-    out: &Path,
-    ceiling: Option<&Path>,
-    mode: Mode,
-) -> Outcome {
+/// `--out` は相対なら `--dir` からの相対・絶対ならそのまま。
+pub fn run(face: &str, id: Option<&str>, dir: &Path, out: &Path, mode: Mode) -> Outcome {
     if !matches!(face, "index" | "constitution" | "srs" | "adr" | "note") {
         return Outcome::unknown(format!(
             "面の名「{face}」は index・constitution・srs・adr・note のどれでもない"
@@ -84,14 +77,12 @@ pub fn run(
     if !out_path.parent().is_some_and(Path::is_dir) {
         return Outcome::unknown(format!("{}: 出力先の親 dir が無い", out_path.display()));
     }
-    let ceiling_dir = ceiling.map(|c| dir.join(c));
-    let ceiling = ceiling_dir.as_deref();
     let derived = match face {
-        "index" => face_index::derive(dir, ceiling),
-        "constitution" => face_constitution::derive(dir, ceiling),
-        "srs" => face_srs::derive(dir, ceiling),
-        "note" => face_note::derive(dir, doc_id, ceiling),
-        _ => face_adr::derive(dir, doc_id, ceiling),
+        "index" => face_index::derive(dir),
+        "constitution" => face_constitution::derive(dir),
+        "srs" => face_srs::derive(dir),
+        "note" => face_note::derive(dir, doc_id),
+        _ => face_adr::derive(dir, doc_id),
     };
     let html = match derived {
         Ok(h) => h,
@@ -362,47 +353,58 @@ pub fn hint(label: &str, body: &str) -> String {
     )
 }
 
-/// 天井の名札の字（部品 ceiling-stamp の中身・便 40・§1 (c)）。`ceiling` = 束の置き場（解決済み・None = `--ceiling` なし）。
-/// 観点の名は天井の正本 `<dir>/ceiling.yaml` の viewpoints の name の逐語・順も正本のとおり（`findings::stamps`）。
-/// 置き場が在るとき「天井 <b>名 3 値</b> · …（<日付>・束 <8 字>/<8 字>/<8 字>/<8 字>）」——日付 = 4 観点の at のうち読めた
-/// ものの byte 順で最大の 1 つ（1 つも読めなければ「日付なし」）・読めない観点の要約値は「--------」。
-/// 置き場が無いとき「天井 <b>名 まだ分からない</b> · …（未実施）」。天井の正本が読めなければ Err（面は導出できない・P-4.1）。
-pub fn ceiling_stamp(dir: &Path, ceiling: Option<&Path>) -> R<String> {
-    let place = ceiling.filter(|p| p.is_dir());
-    let stamps = findings::stamps(dir, place)?;
+/// 天井の名札の字（部品 ceiling-stamp の中身・便 40 §1 (c)・便 83 §1 (b)(d)）。出所は天井の印
+/// `<dir>/preview/ceiling-stamp.yaml`（`stamp::marks`）と天井の正本の viewpoints の名（`findings::viewpoint_names`）の 2 つだけ。
+/// 印が在るとき「天井 <b>名 3 値</b> · …（<印の at>・束 <8 字>/…）」——日付と要約値は印の値のまま（面の側で数え直さない）。
+/// 印が無いとき「天井 <b>名 まだ分からない</b> · …（未実施）」。印の観点の id の列が正本と順まで同じでなければ Err
+/// （印・正本が読めないときも Err＝面は導出できない・P-4.1）。字の後ろに説明の小窓を 1 つ置く（5 面で同じ字）。
+pub fn ceiling_stamp(dir: &Path) -> R<String> {
     let names = findings::viewpoint_names(dir)?;
-    let cells = stamps
-        .iter()
-        .map(|s| {
-            let name = names
+    let (cells, tail) = match stamp::marks(dir)? {
+        None => (
+            names
                 .iter()
-                .find(|(id, _)| *id == s.id)
-                .map(|(_, name)| name.as_str())
-                .ok_or_else(|| format!("ceiling.yaml: viewpoints[{}].name: 読めない", s.id))?;
-            Ok(format!("<b>{} {}</b>", esc(name), s.verdict))
-        })
-        .collect::<R<Vec<_>>>()?
-        .join(" · ");
-    let tail = if place.is_some() {
-        let date = stamps
-            .iter()
-            .filter_map(|s| s.at.as_deref())
-            .max()
-            .map_or_else(|| "日付なし".to_string(), esc);
-        let digests = stamps
-            .iter()
-            .map(|s| {
-                s.digest
-                    .as_deref()
-                    .map_or_else(|| "--------".to_string(), esc)
-            })
-            .collect::<Vec<_>>()
-            .join("/");
-        format!("{date}・束 {digests}")
-    } else {
-        "未実施".to_string()
+                .map(|(_, name)| format!("<b>{} {}</b>", esc(name), Verdict::Unknown))
+                .collect::<Vec<_>>(),
+            "未実施".to_string(),
+        ),
+        Some((at, marks)) => {
+            let ids: Vec<&str> = marks.iter().map(|m| m.id.as_str()).collect();
+            let want: Vec<&str> = names.iter().map(|(id, _)| id.as_str()).collect();
+            if ids != want {
+                return Err(format!(
+                    "{}: 印の観点が天井の正本と違う（印 {}・正本 {}）",
+                    stamp::STAMP_FILE,
+                    ids.join(", "),
+                    want.join(", ")
+                ));
+            }
+            let cells = marks
+                .iter()
+                .zip(&names)
+                .map(|(m, (_, name))| format!("<b>{} {}</b>", esc(name), esc(&m.verdict)))
+                .collect();
+            let digests: Vec<String> = marks.iter().map(|m| esc(&m.bundle)).collect();
+            (cells, format!("{}・束 {}", esc(&at), digests.join("/")))
+        }
     };
-    Ok(format!("天井 {cells}（{tail}）"))
+    Ok(format!(
+        "天井 {}（{tail}）{}",
+        cells.join(" · "),
+        hint_q(&ceiling_hint()?)
+    ))
+}
+
+/// 天井の名札の小窓の本体（便 83 §1 (d)・面によらず同じ字）。用語集への導線は `glossary_chip` と同じ規則で章を引く。
+fn ceiling_hint() -> R<String> {
+    let c = ANNEXES
+        .iter()
+        .find(|(id, _)| *id == "vocabulary")
+        .map(|(_, (c, _))| *c)
+        .ok_or("付録の表に vocabulary が無い")?;
+    Ok(format!(
+        "<p>天井は AI が意味を読む検査です。観点ごとに 合格・不合格・まだ分からない の 3 値を出します。1 つでも まだ分からない が在れば合格にしません。</p><p>括弧の中は、最後に数えた日付と、観点ごとの材料の束の要約値の先頭 8 字です。</p><p><a href=\"constitution.html#s{c}\">用語集（天井の判定の印）</a></p>"
+    ))
 }
 
 /// 「?」の小窓。
@@ -477,313 +479,8 @@ pub fn count_word(n: usize, noun: &str) -> String {
     }
 }
 
-// ── 名札（β・憲法の値域の名札は導出した型への網羅の場合分け・便 50）──
-// 憲法の値域（`constitution_enums`・組み立て時に憲法の正本から導出）の名札は、型の値の全部を並べた場合分けで持ち、
-// その他を受ける枝を置かない = 憲法の側で値が足されても消えても組み立てが通らない（ADR-11 決定 (4)②）。
-// 値域の値の字面（must-not・ask-first など）を鍵にした表は持たない。
-
-/// 段の名札。
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Tier {
-    pub name: &'static str,
-    pub en: &'static str,
-    pub class: &'static str,
-    pub color: &'static str,
-    pub meaning: &'static str,
-    /// 外すのに要るもの（字面）
-    pub remove: &'static str,
-    /// 外すのに要るもの（§6 への xref を含む HTML）
-    pub remove_html: &'static str,
-}
-
-/// 段 → 名札。
-pub fn tier_label(t: ce::Tier) -> Tier {
-    match t {
-        ce::Tier::Always => Tier {
-            name: "いつも守る",
-            en: "Always",
-            class: "tier-always",
-            color: "ok",
-            meaning: "道具も AI も、毎回これに従う",
-            remove: "憲法の改訂（§6: 判断の記録 + 持ち主の承認）",
-            remove_html: "憲法の改訂（<a class=\"xref\" href=\"#s6\">§6</a>: 判断の記録 + 持ち主の承認）",
-        },
-        ce::Tier::AskFirst => Tier {
-            name: "確認してから変える",
-            en: "Ask-first",
-            class: "tier-askfirst",
-            color: "warn",
-            meaning: "やってよいが、実行前に持ち主へ確認する",
-            remove: "その場の持ち主の確認",
-            remove_html: "その場の持ち主の確認",
-        },
-        ce::Tier::Never => Tier {
-            name: "絶対にやらない",
-            en: "Never",
-            class: "tier-never",
-            color: "bad",
-            meaning: "確認があってもやらない",
-            remove: "憲法の改訂（確認では解けない）",
-            remove_html: "<a class=\"xref\" href=\"#s6\">憲法の改訂</a>（確認では解けない）",
-        },
-    }
-}
-
-/// 段の表引き（値域に無い値は Err）。
-pub fn tier_of(key: &str) -> R<Tier> {
-    ce::Tier::from_name(key)
-        .map(tier_label)
-        .ok_or_else(|| format!("段 の表に無い値「{key}」"))
-}
-
-/// 強度 → 規範の語。
-pub fn strength_label(s: ce::Strength) -> &'static str {
-    match s {
-        ce::Strength::Must => "MUST",
-        ce::Strength::MustNot => "MUST NOT",
-        ce::Strength::Should => "SHOULD",
-    }
-}
-
-/// 強度 → 意味（要件書の凡例）。
-pub fn strength_meaning(s: ce::Strength) -> &'static str {
-    match s {
-        ce::Strength::Must => "必ず守る",
-        ce::Strength::MustNot => "決してしない",
-        ce::Strength::Should => "強い推奨（外すなら理由が要る）",
-    }
-}
-
-/// 強度 → 色の class（prio）。
-pub fn strength_prio(s: ce::Strength) -> &'static str {
-    match s {
-        ce::Strength::Must | ce::Strength::MustNot => "must",
-        ce::Strength::Should => "should",
-    }
-}
-
-/// 型（EARS の pattern）→ 名札。
-pub fn pattern_label(p: ce::Pattern) -> &'static str {
-    match p {
-        ce::Pattern::Ubiquitous => "つねに",
-        ce::Pattern::Event => "〜のとき",
-        ce::Pattern::State => "〜のあいだ",
-        ce::Pattern::Unwanted => "〜になったら",
-        ce::Pattern::Optional => "〜ならば",
-    }
-}
-
-/// 縛る相手 → 名札。
-pub fn binds_label(b: ce::Binds) -> &'static str {
-    match b {
-        ce::Binds::Tool => "道具",
-        ce::Binds::Practice => "作法",
-        ce::Binds::Both => "両方",
-    }
-}
-
-/// 機構の種別 → 名札。
-pub fn mechanism_kind_label(k: ce::MechanismKind) -> &'static str {
-    match k {
-        ce::MechanismKind::Reject => "機械が拒む",
-        ce::MechanismKind::BuildCheck => "生成時の検査",
-        ce::MechanismKind::HumanReview => "人が目で確かめる",
-        ce::MechanismKind::None => "なし",
-    }
-}
-
-/// 機構の live → 名札。
-pub fn mechanism_live_label(l: ce::MechanismLive) -> &'static str {
-    match l {
-        ce::MechanismLive::Now => "いま動く",
-        ce::MechanismLive::M0 => "M0 で動く",
-        ce::MechanismLive::Delivery0 => "便 0 で動く",
-        ce::MechanismLive::M1 => "M1 で動く",
-        ce::MechanismLive::Adr => "判断の記録の欄の決まりの後",
-    }
-}
-
-/// stage → 名札。
-pub fn stage_label(s: ce::Stage) -> &'static str {
-    match s {
-        ce::Stage::InLoop => "編集時",
-        ce::Stage::Post => "事後",
-    }
-}
-
-/// polarity → 名札。
-pub fn polarity_label(p: ce::Polarity) -> &'static str {
-    match p {
-        ce::Polarity::FailOpen => "開く",
-        ce::Polarity::FailClosed => "閉じる",
-    }
-}
-
-/// 根拠の種別 → 名札。
-pub fn rationale_kind_label(k: ce::RationaleKind) -> &'static str {
-    match k {
-        ce::RationaleKind::V1Incident => "v1 の実害",
-        ce::RationaleKind::Scribe2Article => "scribe2 の条",
-        ce::RationaleKind::Folio2Ruling => "持ち主の裁定",
-    }
-}
-
-/// 撤退条件の種別 → 名札（憲法の面・判断の記録の面の名札は `face_adr.rs`）。
-pub fn retreat_kind_label(k: ce::RetreatKind) -> &'static str {
-    match k {
-        ce::RetreatKind::Spike => "試して測る",
-        ce::RetreatKind::Measure => "測る",
-        ce::RetreatKind::Ruling => "持ち主に問う",
-    }
-}
-
-/// rules 行の種別 → 名札（便 54・値域は `rules::RuleKind`・網羅の場合分けで値が足されても消えても組み立てが通らない）。
-pub fn rule_kind_label(k: rules::RuleKind) -> &'static str {
-    match k {
-        rules::RuleKind::Deny => "測って落とす",
-        rules::RuleKind::BuildCheck => "生成時の検査",
-        rules::RuleKind::Detect => "記録のみ",
-        rules::RuleKind::HumanReview => "人が守る作法",
-    }
-}
-
-/// rules 行の状態 → state の chip の class（便 54・値域は `rules::RuleStatus`）。
-pub fn rule_status_class(s: rules::RuleStatus) -> &'static str {
-    match s {
-        rules::RuleStatus::Provisional => "state warn",
-        rules::RuleStatus::Frozen => "state ok",
-        rules::RuleStatus::Undecided => "state",
-    }
-}
-
-// ── 名札の表（β・値域に依らない表・表に無い値は導出できない）──
-
-pub const DOC_STATUS: &[(&str, &str)] = &[
-    ("effective", "発効・拘束力あり"),
-    ("draft", "未承認・拘束力なし"),
-];
-/// 確かめ方の 1 語の名札（test+inspection は 2 つを「 + 」で繋ぐ・関数 method_label）。
-pub const METHOD: &[(&str, &str)] = &[
-    ("test", "実際に動かして確かめる（Test）"),
-    ("inspection", "目で見て確かめる（Inspection）"),
-];
-/// 図の色（class は tone-<値>・凡例の sw は sw <値>）。
-pub const TONE: &[(&str, &str)] = &[
-    ("ok", "tone-ok"),
-    ("bad", "tone-bad"),
-    ("neutral", "tone-neutral"),
-    ("warn", "tone-warn"),
-];
-
-/// 入口の棚の文書（便 16）。
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Shelf {
-    /// 棚の置き場（見本の css の shelf-grid の class）
-    pub place: &'static str,
-    /// 読める面の file（面が無ければ None）
-    pub face: Option<&'static str>,
-    /// 原語の札
-    pub en: &'static str,
-    /// minimap でこの文書の前に置く区切り
-    pub sep: &'static str,
-}
-
-/// 文書の id → 棚（並びは棚の置き場の順）。
-pub const SHELF_DOCS: &[(&str, Shelf)] = &[
-    (
-        "constitution",
-        Shelf {
-            place: "shelf-c",
-            face: Some("constitution.html"),
-            en: "CONSTITUTION",
-            sep: "→",
-        },
-    ),
-    (
-        "srs",
-        Shelf {
-            place: "shelf-s",
-            face: Some("srs.html"),
-            en: "SRS",
-            sep: "→",
-        },
-    ),
-    (
-        "design-note",
-        Shelf {
-            place: "shelf-d",
-            face: None,
-            en: "DESIGN",
-            sep: "→",
-        },
-    ),
-    (
-        "adr",
-        Shelf {
-            place: "shelf-adr",
-            face: None,
-            en: "ADR",
-            sep: "｜",
-        },
-    ),
-];
-
-/// 関係の id → 棚の置き場（shelf-link の class）。
-pub const SHELF_RELATIONS: &[(&str, &str)] = &[
-    ("binds", "shelf-l1"),
-    ("before-build", "shelf-l2"),
-    ("inside", "shelf-branch branch"),
-    ("amends", "up"),
-];
-
-/// 付録の id → （憲法の章の番号・数の単位）。
-pub const ANNEXES: &[(&str, (u8, &str))] = &[("vocabulary", (7, "語")), ("rules", (5, "行"))];
-
-/// 棚の凡例の id → sw の class。
-pub const SHELF_LEGEND: &[(&str, &str)] = &[
-    ("readable", "sw ok"),
-    ("absent", "sw neutral"),
-    ("binds", "sw line"),
-    ("inside", "sw dash"),
-];
-
-/// 入口の状態の名札。
-pub const INDEX_STATUS: &[(&str, &str)] = &[("draft", "下書き・拘束力なし"), ("effective", "発効")];
-
-/// 読む順番の行き先（stops の at）→ その面の anchor か。憲法は s0〜s8・要件書は s1〜s8 と 3 つの図・
-/// 判断の記録は `ADR-<1 以上の数>`（記録の面は 1 本 1 枚なので行き先は記録の id そのもの・便 66）。
-pub fn stop_anchor(doc: &str, at: &str) -> R<()> {
-    let chapter = |from: u8| matches!(at.as_bytes(), [b's', d] if (b'0' + from..=b'8').contains(d));
-    let record = || match at.strip_prefix("ADR-") {
-        Some(n) => n.bytes().all(|b| b.is_ascii_digit()) && n.parse::<u64>().is_ok_and(|n| n >= 1),
-        None => false,
-    };
-    let ok = match doc {
-        "constitution" => chapter(0),
-        "srs" => chapter(1) || matches!(at, "fig-context" | "fig-rail" | "fig-verdicts"),
-        "adr" => record(),
-        _ => false,
-    };
-    if ok {
-        Ok(())
-    } else {
-        Err(format!(
-            "行き先「{doc}#{at}」はその面の節の id（判断の記録は記録の id）に無い"
-        ))
-    }
-}
-
-/// 確かめ方（verify の method）の名札。表に無い値は Err。
-pub fn method_label(x: &X<'_>) -> R<String> {
-    if x.v.as_str() == Some("test+inspection") {
-        return Ok(METHOD
-            .iter()
-            .map(|(_, l)| *l)
-            .collect::<Vec<_>>()
-            .join(" + "));
-    }
-    Ok(x.lookup(METHOD, "確かめ方")?.to_string())
-}
+// ── 名札と名札の表は face_labels.rs へ移した（便 87・振る舞いは不変）──
+pub use crate::face_labels::*;
 
 // ── 部品目録の上限（組み立て時に部品目録から導出する・便 52・ADR-11 決定 (4)③）──
 
@@ -1037,8 +734,9 @@ pub fn card(class: &str, id: Option<&str>, cid: &str, body: &str) -> String {
 /// 語彙の正本（`v` = vocabulary.yaml の根）の terms を正本の順に 1 語 1 行で出す（部品 glossary-term-table の中身）。
 /// 1 行 = div.grow〔id g-語の id〕・div.gword〔term + en が在れば span.en〕・div〔p.gdef の def + note が在れば
 /// p.gdef + a.back「目次へ」〕。目次へのリンクは同じ面の #toc。憲法の面の章 07 と要件書の面の章 08 が同じ字面で出す。
-pub(crate) fn glossary_rows(o: &mut Vec<String>, v: &X<'_>) -> R<()> {
-    for t in v.f("terms")?.seq()? {
+/// `section` = 読む節の名（terms か field_terms・便 84）。
+pub(crate) fn glossary_rows(o: &mut Vec<String>, v: &X<'_>, section: &str) -> R<()> {
+    for t in v.f(section)?.seq()? {
         let en = t.f("en")?;
         let en = if matches!(en.v, Value::Null) {
             String::new()
@@ -1056,6 +754,23 @@ pub(crate) fn glossary_rows(o: &mut Vec<String>, v: &X<'_>) -> R<()> {
             t.ef("def")?
         ));
     }
+    Ok(())
+}
+
+/// 用語集の欄の名前の節（便 84）: 語彙の根が field_terms を持ち空でないときだけ h3 1 行と部品 glossary-term-table の
+/// div 1 つ（`dc` = その面の属性 data-component）を足す。無い・空なら 1 行も足さない。2 面が同じ字面で出す。
+pub(crate) fn glossary_field_terms(o: &mut Vec<String>, v: &X<'_>, dc: &str) -> R<()> {
+    let Some(ft) = v.g("field_terms")? else {
+        return Ok(());
+    };
+    let n = ft.seq()?.len();
+    if n == 0 {
+        return Ok(());
+    }
+    o.push(format!("<h3>欄の名前 — {}</h3>", count_word(n, "語")));
+    o.push(format!("<div {dc}>"));
+    glossary_rows(o, v, "field_terms")?;
+    o.push("</div>".to_string());
     Ok(())
 }
 
@@ -1123,6 +838,7 @@ pub fn figure_panel(
 #[cfg(test)]
 mod face_tests {
     use super::*;
+    use crate::rules;
 
     #[test]
     fn face_tier_lookup_has_three_values_and_rejects_others() {
@@ -1206,6 +922,20 @@ mod face_tests {
                 ("delivery-0", "便 0 で動く"),
                 ("M1", "M1 で動く"),
                 ("adr", "判断の記録の欄の決まりの後")
+            ]
+        );
+        assert_eq!(
+            pairs(
+                &ce::MechanismLive::ALL,
+                ce::MechanismLive::name,
+                mechanism_live_meaning
+            ),
+            [
+                ("now", "今の folio に在る"),
+                ("M0", "M0 = 要件書の scope の 作る の側に在る段"),
+                ("delivery-0", "便 0 = 最初の便の段"),
+                ("M1", "M1 = 要件書の scope_m1 の 作る の側に在る段"),
+                ("adr", "判断の記録の欄の決まりが定まった後")
             ]
         );
         assert_eq!(

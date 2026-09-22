@@ -181,8 +181,8 @@ struct Target {
     title: String,
 }
 
-/// 正本 1 本 → 判断の記録の面の HTML（決定的）。`ceiling` = 天井の束の置き場（解決済み・None = `--ceiling` なし・便 40）。
-pub fn derive(dir: &Path, id: &str, ceiling: Option<&Path>) -> R<String> {
+/// 正本 1 本 → 判断の記録の面の HTML（決定的）。天井の名札は印から読む（便 40・便 83）。
+pub fn derive(dir: &Path, id: &str) -> R<String> {
     check_id_shape(id)?;
     let name = format!("adr/{id}.yaml");
     let a_doc = face::load(dir, &name)?;
@@ -207,7 +207,7 @@ pub fn derive(dir: &Path, id: &str, ceiling: Option<&Path>) -> R<String> {
     };
     let counts = counts(&a, figs.len())?;
     let f = frame(CHAPTERS.len() + usize::from(!figs.is_empty()), dir, id)?;
-    let stamp = face::ceiling_stamp(dir, ceiling)?;
+    let stamp = face::ceiling_stamp(dir)?;
 
     let mut o: Vec<String> = Vec::new();
     head(&mut o, &f, &a, id, &st, &stamp)?;
@@ -731,8 +731,10 @@ fn amends_chapter(o: &mut Vec<String>, f: &Frame, a: &X<'_>, dir: &Path, ctx: &C
         }
     }
     if let Some(note) = a.g("note")? {
-        o.push("<h3>注</h3>".to_string());
-        o.push(format!("<p>{}</p>", note.e()?));
+        o.push(format!(
+            "<details class=\"note\"><summary>注</summary><div><p>{}</p></div></details>",
+            note.e()?
+        ));
     }
     o.push("</div>".to_string());
     Ok(())

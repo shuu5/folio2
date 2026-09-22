@@ -11,6 +11,7 @@ mod face;
 mod face_adr;
 mod face_constitution;
 mod face_index;
+mod face_labels;
 mod face_note;
 mod face_srs;
 mod face_srs_rtm;
@@ -20,6 +21,7 @@ mod freeze;
 mod gate;
 mod gitcheck;
 mod hello;
+mod ids;
 mod inject;
 mod intake;
 mod lineage;
@@ -66,6 +68,9 @@ enum Command {
         /// 全検査が 0 違反で測れないも無いときだけ、現行の写しを新しい版の anchor として書き索引に追記する
         #[arg(long)]
         freeze_anchor: bool,
+        /// 全検査が 0 違反で測れないも無いときだけ、要件・判断・受入基準の id の一覧を anchors/ids-<要件書の版>.yaml として書く（書いたら commit する）
+        #[arg(long, conflicts_with_all = ["emit_amends", "freeze_anchor"])]
+        freeze_ids: bool,
     },
     /// 憲法の前文と規範文を CLAUDE.md の生成区間へ書く（--write）・検査する（--check）・出す（--print）
     #[command(group(ArgGroup::new("mode").required(true).args(["write", "check", "print"])))]
@@ -120,9 +125,6 @@ enum Command {
         /// 出力先（既定なし・相対なら --dir からの相対・絶対ならそのまま）
         #[arg(long)]
         out: PathBuf,
-        /// 天井の束の置き場（folio ceiling の --out・相対なら --dir からの相対・絶対ならそのまま・無ければ名札は「未実施」）
-        #[arg(long)]
-        ceiling: Option<PathBuf>,
         /// 導出した面を出力先へ書く
         #[arg(long)]
         write: bool,
@@ -161,9 +163,6 @@ enum Command {
         /// 配信先（既定なし・相対なら --dir からの相対・絶対ならそのまま）
         #[arg(long)]
         out: PathBuf,
-        /// 天井の束の置き場（folio ceiling の --out・相対なら --dir からの相対・絶対ならそのまま・無ければ名札は「未実施」）
-        #[arg(long)]
-        ceiling: Option<PathBuf>,
         /// 3 面 + 判断の記録の面 + 設計ノートの面 + 様式 2 本を配信先へ書く（全部か無しか）
         #[arg(long)]
         write: bool,
@@ -263,11 +262,14 @@ fn main() -> ExitCode {
             dir,
             emit_amends,
             freeze_anchor,
+            freeze_ids,
         } => {
             let flag = if emit_amends {
                 Flag::EmitAmends
             } else if freeze_anchor {
                 Flag::FreezeAnchor
+            } else if freeze_ids {
+                Flag::FreezeIds
             } else {
                 Flag::None
             };
@@ -361,7 +363,6 @@ fn main() -> ExitCode {
             id,
             dir,
             out,
-            ceiling,
             write,
             check: _,
         } => {
@@ -370,7 +371,7 @@ fn main() -> ExitCode {
             } else {
                 face::Mode::Check
             };
-            let outcome = face::run(&face, id.as_deref(), &dir, &out, ceiling.as_deref(), mode);
+            let outcome = face::run(&face, id.as_deref(), &dir, &out, mode);
             if let Some(line) = &outcome.stdout {
                 println!("{line}");
             }
@@ -404,7 +405,6 @@ fn main() -> ExitCode {
         Command::Build {
             dir,
             out,
-            ceiling,
             write,
             check: _,
         } => {
@@ -413,7 +413,7 @@ fn main() -> ExitCode {
             } else {
                 site::Mode::Check
             };
-            let outcome = site::run(&dir, &out, ceiling.as_deref(), mode);
+            let outcome = site::run(&dir, &out, mode);
             if let Some(line) = &outcome.stdout {
                 println!("{line}");
             }

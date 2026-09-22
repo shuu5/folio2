@@ -274,10 +274,16 @@ fn face_census_on_the_real_sources_counts_and_verbatims() {
         seq(&c["amendment"]["steps"], "steps").len(),
         "rail-node の数"
     );
+    // 語の行 = terms の数 + 欄の名前の節（field_terms・便 84）の数
     assert_eq!(
         count("class=\"grow\""),
-        seq(&v["terms"], "terms").len(),
+        seq(&v["terms"], "terms").len() + v["field_terms"].as_vec().map_or(0, Vec::len),
         "grow の数"
+    );
+    assert_eq!(
+        parts_of("glossary-term-table"),
+        1 + usize::from(v["field_terms"].as_vec().is_some_and(|f| !f.is_empty())),
+        "glossary-term-table の数"
     );
     assert_eq!(
         count("<tr id=\"r-"),
@@ -873,11 +879,16 @@ fn face_srs_glossary_chapter_has_the_constitution_h2_and_no_glossary_links() {
         !html.contains("説明は憲法 §7 で"),
         "便 35 までの章 08 の h2 の字が面に残っている"
     );
+    // 語の表 1 つ + 写しの語彙が field_terms を持つので欄の名前の表 1 つ（便 84）
+    let vocab = fs::read_to_string(fixture().join("vocabulary.yaml")).unwrap();
+    let vocab = YamlLoader::load_from_str(&vocab).unwrap().remove(0);
+    let fields = vocab["field_terms"].as_vec().map_or(0, Vec::len);
+    assert!(fields > 0, "写しの語彙に field_terms が無い");
     assert_eq!(
         html.matches("data-component=\"glossary-term-table\"")
             .count(),
-        1,
-        "glossary-term-table が 1 つでない"
+        2,
+        "glossary-term-table が 2 つでない"
     );
 }
 
@@ -1758,4 +1769,15 @@ fn f74_srs_cover_figure_href_comes_from_the_source() {
     assert_eq!(links.len(), 4, "{links:?}");
     assert_eq!(links[3], ("fig-x".to_string(), "図 4".to_string()));
     assert_eq!(figure_panel_ids(&html)[3], "fig-x");
+}
+
+// ── 便 85（docs/design/delivery-85.md §1 (d) 3）: 章 05 の種別の凡例に deny の新しい意味が届く ──
+
+#[test]
+fn f85_constitution_legend_shows_the_new_meaning() {
+    let (td, _, html) = real_face("f85-legend");
+    let _ = fs::remove_dir_all(&td);
+    let five = between(&html, "<section id=\"s5\"", "<section id=\"s6\"");
+    assert!(five.contains("値域の外なら落とす"), "章 05 の凡例に新しい deny の意味が無い");
+    assert_eq!(five.matches("超過なら落とす").count(), 0, "章 05 に古い字が残っている");
 }
