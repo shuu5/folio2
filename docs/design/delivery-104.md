@@ -8,6 +8,7 @@
 - 門: 本便は `design-intent/` の下の正本を 1 file も書き換えない（読むだけ）ので、天井の門の対象外である。**起草役が本便の write-set 5 本をそのまま渡して実測し、`folio ceiling --gate` が 0（通す・断りの字は 設計文書の正本を書き換えない便）を返すことを確かめた**（2026-09-22・base main 44f22ab・印は 23 周目のままで古いが、門はその手前で 通す を返す）。**したがって本便は規則の表の開発規律行 D-12 の裁定（設計文書を触る便は門の外で受ける）を要しない。** 受付の手順はふだんどおり preflight → dispatch。
 - 前の便: 便 72（印・`crates/folio/src/stamp.rs`）・便 73（門・`crates/folio/src/gate.rs`）・便 98（束を絞る・main f547ce7）・便 99（印の `rest` と `nodes`）。どれも着地済み。base は **main 44f22ab**。
 
+- 改訂 b（2026-09-23 00:2x JST・検証役の report `~/.local/share/folio2/handoff-2026-09-22/d104-verify.md` §7 への応答）: §1 (e) 2 の「まだ分からない」に逃げてよい条件を外の命令の起動失敗だけに狭め、それ以外の測れない理由では歯を落とすと明記。既に在る歯の測り直しを残すことを明記。数値・write-set・歯の本数・done・verify は変えない。
 ## 1. 設計
 
 ### (a) いま起きていること（実測）
@@ -67,7 +68,7 @@
 置き場は印の歯の file で、余地は十分に在る（§1 (g)）。新しい歯の file も新しい dir も作らない。
 
 1. **`f104_the_stamp_survives_viewpoints_reading_different_fields`** — (d) の周で、同じ文書の写しが観点で違う byte であること（`sources/srs.yaml` を fidelity と readability で読み比べる＝便 98 の後の実態がこの周に在ることの確かめ）、`--stamp` が 0 で「印を書いた」を出すこと、そして書けた印が要約値を落とした形で凍結 anchor `stamp-expected.yaml` と byte 一致すること。**base では `--stamp` が 2 を返して印を書かないので 赤い歯。**
-2. **`f104_the_stamp_sources_is_the_canonical_digest`** — (d) の周の印の `sources` が、**folio を呼ばずに測った正本の要約値と一致する**こと。測り方は歯の側で天井の正本 `ceiling.yaml` の `documents` と `viewpoints[].reads` を読み、文書の file（dir 形は直下の `.yaml`）を `<dir>` からの相対 path の byte 順に連結して**外の命令 `sha256sum`** に流す（P-10.2 = 生成物どうしの突き合わせを唯一の合格判定にしない。`sha256sum` を起動できない環境では「まだ分からない」の 1 行を標準エラーへ出して歯を落とさない＝`tests/schema.rs` と同じ形）。あわせて、**読む欄を揃えた周（`Round::passing`）の `sources` と (d) の周の `sources` が同じ値であること**を数える（＝印の `sources` は正本だけの関数で、どの観点がどの欄を読むかに依らない）。**base では (d) の周で印が書けないので 赤い歯。**
+2. **`f104_the_stamp_sources_is_the_canonical_digest`** — (d) の周の印の `sources` が、**folio を呼ばずに測った正本の要約値と一致する**こと。測り方は歯の側で天井の正本 `ceiling.yaml` の `documents` と `viewpoints[].reads` を読み、文書の file（dir 形は直下の `.yaml`）を `<dir>` からの相対 path の byte 順に連結して**外の命令 `sha256sum`** に流す（P-10.2 = 生成物どうしの突き合わせを唯一の合格判定にしない。`sha256sum` を起動できない環境〔外の命令の起動そのものが Err〕**だけ**は「まだ分からない」の 1 行を標準エラーへ出して歯を落とさない＝`tests/schema.rs` と同じ形。**それ以外の理由で測れないとき（天井の正本や文書の一覧が読めない・文書の file が集められない・要約値が空）は歯を落とす**＝測れなかった結果を一致として扱わない〔P-4.1〕。起草役の実測 patch では、印の行から id を取り出す助けの関数が常に空で「文書の一覧に無い」の Err に落ち、照合が 1 度も走らないまま緑になった〔検証役の指摘〕。作業者は `--no-capture` で標準エラーに「まだ分からない」の行が出ないことを確かめる）。また、既に在る歯 `stamp_sources_digest_is_recomputable` は印の `sources` を**実際に測り直す**形を残す（測り直す先を正本からの独立の測りに替えるのはよいが、測り直しそのものを無くさない＝P-10.2）。あわせて、**読む欄を揃えた周（`Round::passing`）の `sources` と (d) の周の `sources` が同じ値であること**を数える（＝印の `sources` は正本だけの関数で、どの観点がどの欄を読むかに依らない）。**base では (d) の周で印が書けないので 赤い歯。**
 3. **`f104_the_gate_passes_the_stamp_it_just_wrote`** — (d) の周で `--stamp` を撃った直後に、同じ `--dir` に `folio ceiling --gate --write-set <dir>/srs.yaml` を撃つと 0（通す）で、断りの字が「正本の要約値が同じ」であること。**base では印が書けないので 赤い歯。**
 
 **3 件とも起草役が実測した**＝本便の全部を当てた木で 3 件とも緑、実装（`src/`）だけを main の字に戻した木で 3 件とも赤（2026-09-22・赤のときの 1 行は `まだ分からない（sources/adr/ADR-2.yaml: 観点で中身が違う（readability））`）。
