@@ -1,10 +1,12 @@
 # 設計: 便 94 — 設計文書の索引を正本から組んで出す口 folio graph --print（FR14 / NFR3）
 
+**改訂 b（2026-09-22 15:1x JST・検証役の report d94-verify.md への応答）。** 直したのは write-set 1 本（`crates/folio/tests/check.rs`）と文だけで、索引の数え・凍結 anchor の要約値・size は 1 つも動かない。
+
 - 要件: FR14（機械が読む id の索引を出す — 文書・要件・契約の id と 1 行の題）/ NFR3（文書間の参照 id の未解決は行 R-4 の値にする＝参照は必ずつながる）
 - 条: P-5.1（規則・閾値・型の一覧は型付きデータに置く）/ P-5.2（文書と台帳からは規則を id で参照する）/ P-3.1（機械で決定的に検査できる項目は床に置く）/ P-4.1（実行できなかった結果を異常なしとして扱わない）/ P-4.2（判定できないものは「まだ分からない」として表に出す）/ P-6.3（同じ内容を 2 つの面が持つとき一方を正本とし他方は導出する）/ P-6.4（2 つの面を人が書き一致を検査で強制する設計を採らない）/ P-10.1（検査は生成側からも検査側からも独立した凍結 anchor を 1 本以上持つ）/ P-10.2（生成物どうしの突き合わせを唯一の合格判定にしない）/ P-10.3（anchor が維持できなくなった検査の結果は「まだ分からない」に落とす）/ N-1.1（管理下の対象を回復不能に削除する操作を拒む）/ N-3.1（規則の例外機構を足さない）
 - 出所: 判断の記録 ADR-13 決定 (1)（節点と辺を型で定める・節点の欄は 5 つ・種類は閉じた一覧で正本は実装の型付きの定数）・決定 (2)（辺の型を閉じた一覧にする）・決定 (4)（グラフの正本は設計文書そのもので索引は導出物・索引の file を人が書く面は作らない・組めないときは「まだ分からない」）。設計ノート docs/design/graph-and-incremental-ceiling.md §2・§6・§8 の便の列の 4 本目（G1）。席の実験 ~/.local/share/folio2/handoff-2026-09-21/grill/graph.py が節点と辺の組み方の見本である。
-- 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 cq が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は crates/folio/src/graph.rs と crates/folio/tests/graph.rs と凍結 anchor の 3 本で先頭に + を付ける・縮む file は無い）。
-- 門: 本便は design-intent の下の正本を 1 file も書き換えない（読むだけ）ので、天井の門の対象外である（要件書 FR20 の規範文の 1 つ目＝書き換える file の一覧に設計文書の正本が 1 つも無ければ 0）。席は `folio ceiling --gate` を実測し 0（通す）を確かめた。持ち主の裁定 D-12（2026-09-21 23:45 JST・逐語「推奨で進めて」）は本便には掛からない。
+- 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 cq が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は crates/folio/src/graph.rs と crates/folio/tests/graph.rs と凍結 anchor の 3 本で先頭に + を付ける。既にある file は crates/folio/src/main.rs と crates/folio/tests/check.rs の 2 本・縮む file は無い）。
+- 門: 本便は design-intent の下の正本を 1 file も書き換えない（読むだけ）ので、天井の門の対象外である（要件書 FR20 の規範文の 1 つ目＝書き換える file の一覧に設計文書の正本が 1 つも無ければ 0）。席は `folio ceiling --gate` を実測し 0（通す）を確かめた。本便が足す歯 1 行（(d) の閉じた一覧）は `crates/folio/tests/check.rs` で design-intent の外なので、この判定は変わらない。
 - 前の便: 便 90（要件の欄 adrs）・便 91（規則の表の行の欄 refs）・便 92（判断の記録の帰結の欄 produced）・便 93（行 R-17 の床の歯・crates/folio/src/mentions.rs）。4 本とも着地済み。本便はその 4 本が型付きにした辺を、初めて 1 枚の索引として取り出す。
 - 次の便: 便 95（行 cr・docs/design/delivery-95.md）が索引の欄の決まりの正本 design-intent/graph.yaml を起こし、本便が置く閉じた一覧 2 本をその生成区間へ導出する（条 P-5.6）。本便と便 95 のあいだは、閉じた一覧の写しが設計文書の置き場に無い窓が開く。窓を 1 便ぶんに閉じるため、2 本は続けて出す。
 
@@ -16,15 +18,16 @@
 
 ### (a) 実測（2026-09-22・main 43dd1c7・便 93 の着地後）
 
-- 器の受付の行数の式（空行を含む全行を数え、1 行の字数が 120 を超える行は 切り上げ(字数 ÷ 120) − 1 だけ足す）で測った値と余地（1500 − 値）。src = **新しい file crates/folio/src/graph.rs 0・余地 1500**／main.rs 543・余地 957／check.rs 879・余地 621／refs.rs 431・余地 1069／link.rs 657・余地 843／mentions.rs 341・余地 1159／schema.rs 474・余地 1026。本便が触る src は新しい file と main.rs の 2 本で、**どちらも余地が M の見積 300 を上回る**。ほかの src は 1 字も触らない。
+- 器の受付の行数の式（空行を含む全行を数え、1 行の字数が 120 を超える行は 切り上げ(字数 ÷ 120) − 1 だけ足す）で測った値と余地（1500 − 値）。src = **新しい file crates/folio/src/graph.rs 0・余地 1500**／main.rs 543・余地 957／check.rs 879・余地 621／refs.rs 431・余地 1069／link.rs 657・余地 843／mentions.rs 341・余地 1159／schema.rs 474・余地 1026。本便が触る src は新しい file と main.rs の 2 本で、**どちらも余地が M の見積 300 を上回る**。ほかの src は 1 字も触らない。歯 = 新しい file crates/folio/tests/graph.rs 0・余地 1500／crates/folio/tests/check.rs 1161・余地 339（(d) の閉じた一覧の 1 行だけを触る）。
 - 歯の関数名の接頭辞。`grep -rn 'fn f94_' crates/folio/tests` は今 **0 本**（使われている最大は f93_）。歯の file `crates/folio/tests/graph.rs` も今は無い。
 - **節点の材料は既に床が読んでいる。** 憲法の条と規範文・規則の表の 2 節・要件書の 7 節・判断の記録の記録は、便 93 の `crates/folio/src/mentions.rs` が数える母集団と同じ集合である（席が両方を数えて突き合わせた）。**節点の数は 198**（条 27・規範文 67・規則の表の行 29・要件書の 7 節の行 62・判断の記録 13）。
 - **id の空間は 3 つで、接頭辞が全部違うので重複が無い**（設計ノート §1.4）。床が解く 3 空間（条と規範文・要件書の 5 接頭辞・規則の表の行）は `crates/folio/src/refs.rs` の `scan_ids`（202 行・pub）が、判断の記録の id は `crates/folio/src/link.rs` の `scan_adr_ids`（便 93 で pub(crate)）が拾う。**索引はその 3 つを 1 つにまとめるが、走査の口は 1 つも呼ばない**（索引は欄の値を読むのであって散文を走査しない）。
 - 索引の実測（席が独立の script を main の作業ツリーに当てて出した・(e) の script）。**節点 198・辺 777・型 15・端が節点でない参照 27。出力は 978 行・34,297 byte。**
 - 節点の内訳: 規範文 67・規則行 29・条 27・要件 20・受入基準 18・判断の記録 13・制約 9・登場人物 5・目的 4・非機能要件 3・出力 3。
 - 辺の内訳: basis 352・in-article 134・relations.rules 50・relations.articles 35・article 29・refs 29・goals 29・relations.reqs 25・verifies 21・verify.ac 21・rules 18・produced 15・adrs 13・amended_by 3・amends 3。
+- 索引が読まない id の欄は 4 つある。`outputs.from` 3 本（要件書・両端が節点だが 17 型に無い）・`approval.surface` 13 本（判断の記録・床も `crates/folio/src/mentions.rs` の来歴の一覧で数えない）・憲法の `amendment` の `article` 10 本・要件書の `rail` の `basis` と `reqs` 14 本。後ろの 3 つは行が節点でないか来歴の欄で、`outputs.from` だけは辺にできる（足すと辺が 777 から 780・型が 16 になる）。**本便は 17 型を動かさない**（(f) の 🔴 4 点目）。
 - 表に出ない参照 27 の内訳: figures 21・relations.sections 5・amends 1。図の名は文書の中だけで通じる名で id の 3 空間の外（設計ノート §1.4）、`relations.sections` の指す先は憲法の節の名、`amends` の 1 本の指す先は改訂の範囲の節の名である。**判断の記録と要件書の最上位の `figures` の節は図の定義であって参照ではないので、索引は辺にしない**（その節の行は id と型と説明と `refs` を持つ表で、id の形の値ではない）。
-- **設計ノート §1.2 の 790 本との差は、便 90〜92 が足した 3 欄と、節点の取り方の違いの 2 つである。** 便 90〜92 が足した辺（要件の `adrs`・判断の記録の `produced`・規則の表の行の `refs`）は設計ノートの数えより後に入った。節点の取り方の差で落ちるのは、設計ノートの節と語と欄の語と天井の観点と文書を節点にしたときだけ立つ辺 **48 本**（観点が読む文書 `reads` 29・入口の棚の関係 4・入口の棚の付録 2・設計ノートの節の `refs` 13）と、上の「表に出ない参照」27 である。**本便が節点にしない理由は (c) に書く。**
+- **設計ノート §1.2 の 790 本は、便 90〜92 が足した 3 欄より前の数えであり、席の実験 graph.py が文書と語と設計ノートの節も節点にしたときの数えでもある。** 本便が節点にしない置き場の側で落ちる辺は **48 本**（観点が読む文書 `reads` 29・入口の棚の関係 4・入口の棚の付録 2・設計ノートの節の `refs` 13）である。**本便が節点にしない理由は (c) に書く。**
 - 生成区間・凍結 anchor の列（design-intent/anchors/）・土台の写しの正本 tests/floor_cases.yaml・部品目録・様式は **1 byte も動かない**（本便は design-intent を読むだけで書かない）。
 
 ### (b) 出力の形（標準出力・repo へは書かない）
@@ -56,6 +59,10 @@ A-1	A-4	relations.articles
 
 辺の型 17（順も固定）: in-article・relations.articles・relations.reqs・relations.rules・relations.sections・amended_by・article・refs・basis・goals・rules・adrs・verify.ac・verifies・figures・produced・amends。
 
+**ADR-13 決定 (2) の 11 型との対応。** 決定 (2) は第 1 版の 9 型に構造の辺と書き写した辺を足して 11 型としているが、そのうち `relations` は名前空間ごとに 4 型へ、`verifies` は `verifies` と `verify.ac` の 2 型へ、`amends` は `amends` と `amended_by` の 2 型へ割れる（正本の欄がその単位で分かれているため）。`prose`（書き写した辺）は決定 (2) 自身が 実装が別の型として持つ必要は無い と書くので持たず、`reads` は観点を節点にしないので持たない。ここへ決定 (3-b) が後から足した 2 欄（要件の `adrs`・判断の記録の `produced`）を加えると **11 − 2 + 8 = 17** になる。**決定 (2) の 11 型 の字を 17 に改めるかは (f) の 🔴 4 点目に上げる。**
+
+**ADR-13 決定 (2) の 11 型との対応。** 決定 (2) は第 1 版の 9 型に構造の辺と書き写した辺を足して 11 型としているが、そのうち `relations` は名前空間ごとに 4 型へ、`verifies` は `verifies` と `verify.ac` の 2 型へ、`amends` は `amends` と `amended_by` の 2 型へ割れる（正本の欄がその単位で分かれているため）。`prose`（書き写した辺）は決定 (2) 自身が「実装が別の型として持つ必要は無い」と書くので持たず、`reads` は観点を節点にしないので持たない。ここへ決定 (3-b) が後から足した 2 欄（要件の `adrs`・判断の記録の `produced`）を加えると **11 − 2 + 8 = 17** になる。**決定 (2) の「11 型」の字を 17 に改めるかは (f) の 🔴 4 点目に上げる。**
+
 - **節点にするのは、id が設計文書の全体で 1 つに定まる行だけである。** 本便はその 198 行を取る。設計ノート §2.1 の一覧は所見の置き場（設計ノートの節・語・欄の語・天井の観点・各文書の節）も種類に挙げているが、それらの節点の id は正本の中に無く、席の実験 graph.py は `doc:` `term:` `vp:` `<文書>§<番号>` という接頭辞を自分で作って与えていた。**正本に無い id を索引が作ると、条 P-5.2（文書からは id で参照する）の指す先が索引にしか無い id になる。** その形を採るかは判断が要るので、本便は採らず (f) の 🔴 に上げる。
 - **辺は両端が節点のときだけ表に出す。** 端が節点でない参照（図の名・節の名）は数だけ要約の 1 行に出す。図の参照を辺の型の一覧に残すのは ADR-13 決定 (2) が名指しているからで、伝播に使わないことも同じ決定が定めている。
 - **伝播の向きと半径は本便が持たない。** ADR-13 決定 (2) の「伝播は両向き」と決定 (6) の 2 段は、注意の先の一覧を組む便の話である。本便の索引は有向の辺をそのまま出す。
@@ -63,7 +70,7 @@ A-1	A-4	relations.articles
 
 ### (d) 組み方（新しい module crates/folio/src/graph.rs）
 
-正本 1 file を読む口は `crates/folio/src/yaml.rs` の `parse`（pub）で、木の型は同じ file の `Node`（`get` / `as_seq` / `as_str` を持つ）である。**`check.rs` の `load_all` と `Sources` は private で 7 file ぶんしか持たないので、索引は自分で読む**（`check.rs` を触らないため・その代わり `yaml::parse` と同じ断りで読む）。判断の記録は `design-intent/adr/` の下の `ADR-*.yaml` を名の byte 順に読む（`adr.rs` の `load_records` と同じ集め方だが、床の検査は掛けない）。
+正本 1 file を読む口は `crates/folio/src/yaml.rs` の `parse`（pub）で、木の型は同じ file の `Node`（`get` / `as_seq` / `as_str` を持つ）である。**`crates/folio/src/check.rs` の `load_all` と `Sources` は private で 7 file ぶんしか持たないので、索引は自分で読む**（この src を触らないため・その代わり `yaml::parse` と同じ断りで読む）。判断の記録は `design-intent/adr/` の下の `ADR-*.yaml` を名の byte 順に読む（`adr.rs` の `load_records` と同じ集め方だが、床の検査は掛けない）。
 
 module の中身は次の 9 つで、新しい外部 crate は 1 つも増やさない。
 
@@ -78,6 +85,8 @@ module の中身は次の 9 つで、新しい外部 crate は 1 つも増やさ
 9. 索引を 2 つの表と要約の 1 行に組み立てる口と、`folio graph --print` の本体（組めたら標準出力の字と 合格、組めなければ「まだ分からない」）。
 
 `crates/folio/src/main.rs` には副命令 `Graph` を 1 つ足す（旗は `--dir`〔既定 design-intent〕と `--print`）。置き場は副命令の一覧と分岐のどちらも `Schema` の次とする。**ほかの副命令の字は 1 字も変えない。**
+
+公開する命令の閉じた一覧の歯 `p1_commands_closed_list`（`crates/folio/tests/check.rs`）の `CLOSED` を 11 本から 12 本にし、`schema` と `serve` のあいだへ `graph` を入れる（この歯は `folio --help` の並びと全数・順を突き合わせ、clap は宣言順に並べるため）。**憲法 P-1 の機構の注は命令の名を 1 つも並べていない**（注が書くのは、公開する命令の値域は実装の型付きの定数で閉じ、その全数一致をこの歯が数える、ということだけ）ので、**design-intent は 1 file も動かない**。席は歯の逐語と `--help` の並びを実測した。
 
 ### (e) 凍結 anchor（P-10.1 / P-10.2）
 
@@ -95,33 +104,38 @@ anchor の中身は 5 行で、**索引の出力そのものは置かない**（
 出力全体 sha256 = 7b2fbfe49515da3117c845bac789871fb1fb3d68f9a60c6c02b2a6a258cb18fb（768 行・29,558 byte）
 ```
 
-歯は、土台の写しに `folio graph --print` を当てた出力を 2 つの表に割り、それぞれの要約値と出力全体の要約値が anchor の 3 つと一致することを見る（(g) の 1 本目）。**anchor が維持できなくなったら、その検査の結果は「まだ分からない」に落とす**（条 P-10.3）。
+3 つの要約値が覆う byte の範囲は次のとおり。**2 つの表は見出しの行を含まない行の連なりで、各行は改行で終える**（節点の表なら節点の行だけ・辺の表なら辺の行だけ）。**出力全体は見出し 2 行と要約の 1 行を含む全部**（末尾に改行 1 つ）である。
+
+歯は、土台の写しに `folio graph --print` を当てた出力をこの範囲で 2 つの表に割り、それぞれの要約値と出力全体の要約値が anchor の 3 つと一致することを見る（(g) の 1 本目）。**anchor が維持できなくなったら、その検査の結果は「まだ分からない」に落とす**（条 P-10.3）。
 
 ### (f) 本便が触らないもの・次の一括の 🔴
 
 - **design-intent の下は 1 file も書き換えない。** 憲法・規則の表・要件書・語彙・天井の正本・入口の棚・相談窓口・判断の記録・設計ノートの正本・生成区間・凍結 anchor の列（anchors/）・生成物の棚（preview/）のどれも読むだけである。
-- **`check.rs`・`refs.rs`・`link.rs`・`mentions.rs`・`adr.rs`・`schema.rs`・面の生成器・`bundle.rs`・`stamp.rs`・`gate.rs` は 1 字も触らない。** 床の判定も天井の印も門も変わらない。
+- **`crates/folio/src/check.rs`・`refs.rs`・`link.rs`・`mentions.rs`・`adr.rs`・`schema.rs`・面の生成器・`bundle.rs`・`stamp.rs`・`gate.rs` は 1 字も触らない。** 床の判定も天井の印も門も変わらない。歯の側の `crates/folio/tests/check.rs` は (d) の閉じた一覧の 1 行だけを触り、ほかの歯は 1 字も変えない。
 - 🔴 **1 点目（要件書の版上げ）**: 要件 FR14 の起動の条件は `folio build が実行されたとき` で、規範文が挙げる索引の中身は 文書・要件・契約の id と 1 行の題 である。本便が置く口は `folio graph --print` で、索引の中身は 節点（11 種類）と辺（17 型）である。**要件の趣旨（機械が読む id の索引を出す）は同じだが、口の名と起動の条件と索引の中身は要件の字と違う。** 設計ノート §8.1 は新しい要件 3 本（索引・全体像・注意の先）を挙げており、その 1 本目が本便に当たる。**要件書の版上げを次の一括の承認要求に載せる**（FR14 の改訂か新しい要件かを含めて持ち主が決める）。本便は要件の字を 1 字も動かさない。
-- 🔴 **2 点目（正本に無い id を索引が作るか）**: (c) のとおり、設計ノート §2.1 が挙げる所見の置き場（設計ノートの節・語・欄の語・天井の観点・各文書の節・文書）を節点にするには、正本に無い id（`doc:` `term:` `vp:` `<文書>§<番号>` の形）を索引が自分で作ることになる。**採るなら判断の記録の改訂が要る**（条 P-5.2 の指す先が索引にしか無い id になるため）。本便は採らず、索引を 198 節点に閉じた。採ったときに増える辺は 48 本（観点が読む文書 reads 29・入口の棚の関係 4・入口の棚の付録 2・設計ノートの節の refs 13）で、その効き目は注意の先の一覧を組む便で測れる。**次の一括の承認要求に載せる。**
+- 🔴 **2 点目（節点の範囲＝決定 (1) の後半を運ばない）**: 判断の記録 ADR-13 決定 (1) は 節点 = 設計文書の中で id を持つ行と、所見の置き場になる節 と定めるが、**本便は前半（id を持つ行 198）だけを実装し、後半（所見の置き場になる節）を運ばない。** 後半（設計ノートの節・語・欄の語・天井の観点・各文書の節・文書）を節点にするには、正本に無い id（`doc:` `term:` `vp:` `<文書>§<番号>` の形）を索引が自分で作ることになり、条 P-5.2 の指す先が索引にしか無い id になる。**後半を運ぶ便を起こすか、決定 (1) を改訂するかを持ち主が決める。** 後半を入れたときに増える辺は 48 本（観点が読む文書 reads 29・入口の棚の関係 4・入口の棚の付録 2・設計ノートの節の refs 13）で、その効き目は注意の先の一覧を組む便で測れる。**次の一括の承認要求に載せる。**
 - 🔴 **3 点目（節点の 5 つ目の欄）**: ADR-13 決定 (1) は節点の欄を 5 つ（id・種類・所属 file・欄の要約値・1 行の題）と定めるが、本便は 4 つ（要約値を除く）で出す。**要約値の式は周の引き金の物差し（決定 (8)）であり、凍結 anchor を folio の実装に依らずに組める形で定める必要がある**（P-10.2）。欄の値の要約値は正本を読む道具ごとに字面が割れうる（block の字の末尾の改行・引用符の扱い）ので、式を本便で決め打つと anchor が独立でなくなる。**節点ごとの要約値の表を天井の印に足す便（設計ノート §8 の G4）と同じ便で、印の側の anchor と一緒に定める。** 決定 (1) の中身を変える話ではなく、1 つの欄を 2 便に割って運ぶ話である。**次の一括の承認要求に載せる。**
+- 🔴 **4 点目（辺の型の数）**: (c) のとおり、本便の閉じた一覧は 17 型で、ADR-13 決定 (2) の字は 11 型である。対応は (c) に書いたとおり取れるが、**決定の字と実装の数が違うまま残ると、次の周の 整合 の観点が止める所見を立てる見込みが高い。** 決定 (2) の 11 型 を 17 に改めるか、11 型を 名前空間を畳んだ数え と読む注を付けるかを持ち主が決める。索引が読まない `outputs.from`（(a) の 4 つの欄の 1 つ・足すと 18 型）を足すかも同じ問いに含める。**次の一括の承認要求に載せる。**
 
 ### (g) 歯（関数名は f94_ で始める・置き場は新しい file crates/folio/tests/graph.rs）
 
 歯は binary 経由で測る（`env!(CARGO_BIN_EXE_folio)` を起動する形＝`crates/folio/tests/hello.rs` の 9 行目と同じ持ち方）。実の正本を触らない歯は一時 dir に写しを組む。器の受付は verify の旗 `--bin` の次の語を filter 語と読むので、**verify の行に `--bin` は書かない**。
 
 1. **f94_the_frozen_base_index_matches_the_anchor** — 凍結した土台の写し `tests/fixtures/floor_base/design-intent` に `--print` を当て、終了コード 0・出力を 2 つの表に割って それぞれの要約値と出力全体の要約値が `tests/fixtures/schema/graph-anchor.txt` の 3 つと一致し、要約の 1 行が `# 節点 189・辺 576・型 10・端が節点でない参照 26` であること。**本便の前の main には口が無いので赤い歯。**
-2. **f94_the_real_sources_build_the_measured_index** — 実の `design-intent` に `--print` を当て、終了コード 0・要約の 1 行が `# 節点 198・辺 777・型 15・端が節点でない参照 27` であること。節点の表の行が 198 本・辺の表の行が 777 本で、節点の行の 2 つ目の欄がどれも `NODE_KINDS` の 11 語のどれか、辺の行の 3 つ目の欄がどれも `EDGE_TYPES` の 17 語のどれかであること。同じ理由で **赤い歯**。
-3. **f94_every_edge_end_is_a_node** — 実の `design-intent` に `--print` を当て、辺の表の 1 つ目と 2 つ目の欄の値がすべて節点の表の id の集合に在ること（端が節点でない辺が 1 本も出ないこと）。同じ理由で **赤い歯**。
+2. **f94_the_real_sources_build_the_closed_lists** — 実の `design-intent` に `--print` を当て、終了コード 0・節点の行の 2 つ目の欄がどれも `NODE_KINDS` の 11 語のどれか、辺の行の 3 つ目の欄がどれも `EDGE_TYPES` の 17 語のどれかであること。**数そのものは固定しない**（(a) の実測は本便の時点の事実であって歯の期待値ではない・理由は下の断り）。同じ理由で **赤い歯**。
+3. **f94_the_summary_line_agrees_with_the_tables** — 実の `design-intent` に `--print` を当て、辺の表の 1 つ目と 2 つ目の欄の値がすべて節点の表の id の集合に在ること（端が節点でない辺が 1 本も出ないこと）と、要約の 1 行の 節点の数・辺の数・型の数 が実際の節点の表の行数・辺の表の行数・辺の表に出た型の異なり数と一致すること。同じ理由で **赤い歯**。
 4. **f94_the_output_is_deterministic_and_writes_nothing** — 一時 dir へ実の正本を写し、`--print` を 2 度当てて出力が byte 一致すること。写しの dir の下の file の名と中身の要約値が当てる前と後で 1 つも変わらないこと（索引を repo へ書かない・N-1.1）。同じ理由で **赤い歯**。
 5. **f94_a_broken_source_is_inconclusive** — 一時 dir の写しから `constitution.yaml` を消して `--print` を当て、終了コード 2（まだ分からない）で標準出力に表が 1 行も出ないこと。同じ理由で **赤い歯**。
 6. **f94_the_title_is_folded_into_one_line** — 一時 dir の写しの規範文 P-1.1 の `text` を、改行と連なった空白を含む block の字に替えて `--print` を当て、その節点の行の 4 つ目の欄に改行もタブも連なった空白も含まれず、Unicode の字が 36 以下であること。同じ理由で **赤い歯**。
 
-6 本とも席は独立の script の出力で期待値を出した。回帰は verify の 2 行目（`crates/folio/tests/graph.rs` の全部）と、`.vessel.toml` の common-verify（workspace 全体の nextest と clippy）が見る。
+**厳密な数（節点 198・辺 777・型 15・端が節点でない参照 27）を固定するのは、凍結した土台に当てる 1 本目だけとする。** 実の正本の数は id を持つ行か型付きの欄が 1 つ増えるたびに動く（便 90・91・92・93 がそれぞれ動かした）ので、実の正本の歯に数を置くと、以後 設計文書を触る便がすべて `crates/folio/tests/graph.rs` を書き換える便になる。凍結 anchor の求め（条 P-10.1）は 1 本目で満たされる。
+
+**凍結した土台に当てる 1 本目の期待値だけを、席が独立の script の出力と `sha256sum` で出した。** ほかの 5 本は不変条件と終了コードで、数を固定しない。回帰は verify の 2 行目（`crates/folio/tests/graph.rs` の全部）と、`.vessel.toml` の common-verify（workspace 全体の nextest と clippy）が見る。
 
 ### (h) 大きさ
 
 - src は **新しい file `crates/folio/src/graph.rs`（0 行・余地 1500・席の実測で +306 行）**と `crates/folio/src/main.rs`（543・余地 957・席の実測で +20 行）の 2 本。着地後の graph.rs は 306 行・余地 1194 で、次の便（便 95 の床の木 `FLOOR`）を入れる余地が残る。
-- 歯は新しい file `crates/folio/tests/graph.rs`（0 行・余地 1500・+160 行の見込み）。
+- 歯は新しい file `crates/folio/tests/graph.rs`（0 行・余地 1500・+160 行の見込み）と `crates/folio/tests/check.rs`（1161 行・余地 339・(d) の閉じた一覧の 1 行だけ）。
 - 凍結 anchor は新しい file `tests/fixtures/schema/graph-anchor.txt`（5 行）。
 - size **M**（触る src は 2 本で、余地は 1500 と 957。どちらも M の見積 300 を上回る）。新しい dir は作らず、縮む file も無い。外部 crate は増やさない。
 
@@ -134,12 +148,12 @@ anchor の中身は 5 行で、**索引の出力そのものは置かない**（
 - 天井の材料の束を読む欄まで絞ること（同 G3）・周の引き金（同 G4）・門の単位の変更（同 G9）。
 - 正本に無い id を作って設計ノートの節や語や文書を節点にすること（(f) の 🔴 2 点目）。
 - 要件書・憲法・規則の表・語彙・天井の正本・入口の棚・相談窓口・判断の記録の本文。図の正本と部品目録と様式。台帳への記帳。
-- 撤退条件: 索引の閉じた一覧 2 本が、正本の欄から機械で決まる形で閉じていられなくなったとき（欄の意味が文脈で変わり、同じ欄が辺になったりならなかったりするとき）は、`main.rs` から副命令 `Graph` を外し、`crates/folio/src/graph.rs` と `crates/folio/tests/graph.rs` と anchor を消す。**便 1 本で戻せる**（ほかの src を 1 字も触らないため）。索引を人が手で直せる面にする形は取らない（条 P-6.4）。
+- 撤退条件: 索引の閉じた一覧 2 本が、正本の欄から機械で決まる形で閉じていられなくなったとき（欄の意味が文脈で変わり、同じ欄が辺になったりならなかったりするとき）は、`main.rs` から副命令 `Graph` を外し、`crates/folio/tests/check.rs` の `CLOSED` を 11 本へ戻し、`crates/folio/src/graph.rs` と `crates/folio/tests/graph.rs` と anchor を消す。**便 1 本で戻せる**（ほかの src を 1 字も触らないため）。索引を人が手で直せる面にする形は取らない（条 P-6.4）。
 
 ## 2. 範囲
 
-- 入れる: 新しい module `crates/folio/src/graph.rs`（閉じた一覧 2 本・索引の型・題を 1 行にする口・欄から id を取る口・正本 4 種の口・組み立てと `--print` の本体）・`crates/folio/src/main.rs` の副命令 `Graph` 1 つ・新しい歯の file `crates/folio/tests/graph.rs` の f94_ 6 本・凍結 anchor `tests/fixtures/schema/graph-anchor.txt` 1 本。
-- 入れない: design-intent の下の file の書き換え（読むだけ）・`design-intent/graph.yaml`・生成区間への導出・`--digest` と `folio hello` の 1 行・節点ごとの要約値・注意の先・周の引き金・門・`check.rs` と `refs.rs` と `link.rs` と `mentions.rs` と `adr.rs` と `schema.rs` と面の生成器と `bundle.rs` と `stamp.rs` と `gate.rs`・`tests/floor_cases.yaml`・id の一覧の凍結 anchor・新しい dir・外部 crate。
+- 入れる: 新しい module `crates/folio/src/graph.rs`（閉じた一覧 2 本・索引の型・題を 1 行にする口・欄から id を取る口・正本 4 種の口・組み立てと `--print` の本体）・`crates/folio/src/main.rs` の副命令 `Graph` 1 つ・新しい歯の file `crates/folio/tests/graph.rs` の f94_ 6 本・`crates/folio/tests/check.rs` の閉じた一覧 `CLOSED` の 11 本から 12 本への 1 行・凍結 anchor `tests/fixtures/schema/graph-anchor.txt` 1 本。
+- 入れない: design-intent の下の file の書き換え（読むだけ）・`design-intent/graph.yaml`・生成区間への導出・`--digest` と `folio hello` の 1 行・節点ごとの要約値・注意の先・周の引き金・門・`crates/folio/src/check.rs` と `refs.rs` と `link.rs` と `mentions.rs` と `adr.rs` と `schema.rs` と面の生成器と `bundle.rs` と `stamp.rs` と `gate.rs`・`crates/folio/tests/check.rs` の `p1_commands_closed_list` 以外の歯・`tests/floor_cases.yaml`・id の一覧の凍結 anchor・新しい dir・外部 crate。
 
 ## 3. 部品
 
@@ -150,7 +164,7 @@ anchor の中身は 5 行で、**索引の出力そのものは置かない**（
 | render | 出力 | 2 つの表と要約の 1 行（タブ区切り・標準出力だけ・repo へ書かない） |
 | cli | 口 | `crates/folio/src/main.rs` の副命令 `Graph`（`--dir` と `--print`） |
 | anchor | 凍結 anchor | `tests/fixtures/schema/graph-anchor.txt`（土台の索引の 3 つの要約値と数え） |
-| teeth | 歯 | `crates/folio/tests/graph.rs` の f94_ 6 本 |
+| teeth | 歯 | `crates/folio/tests/graph.rs` の f94_ 6 本と、`crates/folio/tests/check.rs` の `CLOSED` の 1 行 |
 
 ## 4. 検査（歯）
 
@@ -165,11 +179,11 @@ schema = 1
 
 [[contract]]
 id = "cq"
-title = "設計文書の正本から 節点と辺の索引 を決定的に組み、標準出力へ 2 つの表（節点 = id / 種類 / file / 題 36 字・辺 = 端 / 端 / 型・どちらもタブ区切り）と要約の 1 行（節点の数・辺の数・型の数・端が節点でない参照の数）で出す口 folio graph --print を、新しい module crates/folio/src/graph.rs に置く。節点は id が設計文書の全体で 1 つに定まる行だけ（条・規範文・規則の表の行・要件書の 7 節の行・判断の記録 = 198）で、辺は両端が節点のときだけ表に出す。節点の種類 11 と辺の型 17 の閉じた一覧の正本は実装の型付きの定数（P-5.1）とし、その写しを設計文書の置き場へ導出するのは次の便 95 である。索引は導出物なので repo へは 1 byte も書かず、組めなければ表を出さずに まだ分からない で終える"
+title = "設計文書の正本から 節点と辺の索引 を決定的に組み、標準出力へ 2 つの表（節点 = id / 種類 / file / 題 36 字・辺 = 端 / 端 / 型・どちらもタブ区切り）と要約の 1 行（節点の数・辺の数・型の数・端が節点でない参照の数）で出す口 folio graph --print を、新しい module crates/folio/src/graph.rs に置く。節点は id が設計文書の全体で 1 つに定まる行だけ（条・規範文・規則の表の行・要件書の 7 節の行・判断の記録 = 198）で、辺は両端が節点のときだけ表に出す。節点の種類 11 と辺の型 17 の閉じた一覧の正本は実装の型付きの定数（P-5.1）とし、その写しを設計文書の置き場へ導出するのは次の便 95 である。公開する命令の閉じた一覧の歯 p1_commands_closed_list の CLOSED を 11 本から 12 本にして schema と serve のあいだへ graph を入れる（憲法は命令の名を並べていないので design-intent は 1 file も動かない）。索引は導出物なので repo へは 1 byte も書かず、組めなければ表を出さずに まだ分からない で終える"
 req = ["FR14", "NFR3"]
 section = "1"
-write-set = ["+crates/folio/src/graph.rs", "crates/folio/src/main.rs", "+crates/folio/tests/graph.rs", "+tests/fixtures/schema/graph-anchor.txt"]
+write-set = ["+crates/folio/src/graph.rs", "crates/folio/src/main.rs", "+crates/folio/tests/graph.rs", "crates/folio/tests/check.rs", "+tests/fixtures/schema/graph-anchor.txt"]
 verify = ["cargo nextest run -p folio --test graph f94_", "cargo nextest run -p folio --test graph", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "f94_ の歯 6 本（凍結した土台の索引が anchor の 3 つの要約値と一致し要約の 1 行が 節点 189・辺 576・型 10・端が節点でない参照 26／実の正本の索引の要約の 1 行が 節点 198・辺 777・型 15・端が節点でない参照 27 で表の行数と種類と型が閉じた一覧の中／辺の端がすべて節点／2 度当てて byte 一致し写しの file を 1 つも変えない／正本を 1 つ消すと終了コード 2 で表が 1 行も出ない／改行を含む題が 1 行 36 字以下に畳まれる）が全部緑、crates/folio/tests/graph.rs の歯が全部緑、clippy が 0 警告で CI が通る"
+done = "f94_ の歯 6 本（凍結した土台の索引が anchor の 3 つの要約値と一致し要約の 1 行が 節点 189・辺 576・型 10・端が節点でない参照 26／実の正本の索引の節点の種類が閉じた一覧 NODE_KINDS の中で辺の型が EDGE_TYPES の中（数は固定しない）／辺の端がすべて節点で要約の 1 行の 3 つの数が実際の表の行数と型の異なり数に一致／2 度当てて byte 一致し写しの file を 1 つも変えない／正本を 1 つ消すと終了コード 2 で表が 1 行も出ない／改行を含む題が 1 行 36 字以下に畳まれる）が全部緑、crates/folio/tests/graph.rs の歯が全部緑、clippy が 0 警告で CI が通る"
 <!-- contracts:end -->

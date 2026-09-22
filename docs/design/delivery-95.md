@@ -1,10 +1,12 @@
 # 設計: 便 95 — 索引の欄の決まりの正本 design-intent/graph.yaml を起こし、閉じた一覧 2 本を生成区間へ導出する（FR19 / NFR3）
 
+**改訂 b（2026-09-22 15:1x JST・検証役の report d94-verify.md への応答）。** 直したのは文だけで、生成区間の逐語・行数・byte 数・要約値・write-set・size は 1 つも動かない。
+
 - 要件: FR19（文書の決まりの部分を、機械の中の決まりから各 file の生成区間へ写す）/ NFR3（参照は必ずつながる）
 - 条: P-5.1（規則・閾値・型の一覧は型付きデータに置く）/ P-5.6（実装の型付きの定数を規則の正本とするあいだ、その写しを人が読める型付きデータとして設計文書の置き場へ決定的に導出する）/ P-6.2（生成物を手で直さない）/ P-6.3（同じ内容を 2 つの面が持つとき一方を正本とし他方は導出する）/ P-6.4（2 つの面を人が書き一致を検査で強制する設計を採らない）/ P-10.1（独立した凍結 anchor）/ P-13.3（設計文書の変更は判断の記録か版付きの文書として残す）/ N-2.1（散文にしか無い規則を規則として扱わない）/ N-3.1（規則の例外機構を足さない）
 - 出所: 判断の記録 ADR-13 決定 (1)（節点の種類と辺の型の閉じた一覧の写しを受ける file は、便が新しく起こす索引の欄の決まりの正本 design-intent/graph.yaml の生成区間とする・要件書 FR19 の対象に足す）。設計ノート docs/design/graph-and-incremental-ceiling.md §2.3・§8 の便の列の 4 本目（G1）の後半。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 cr が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は design-intent/graph.yaml と凍結 anchor の 2 本で先頭に + を付ける・縮む file は無い）。**本便の行は便 94 が着地するまで器へ出さない。** 便 94 が作る module は本便の起草の時点の base に無いので、いま `scribe2 contracts check` を当てると本便の行だけに 4 件（write-set-item-unresolved 1・name-unresolved 3・どれも同じ module を指す）が出る。**便 94 が着地した base では 0 件になる**（席が便 94 の枝に module の殻を置いて実測し、findings が着手前の 6 件＝ほかの便の古い行だけに戻ることを確かめた）。
-- 門: 本便は design-intent の下に正本を 1 file 新設するので天井の門の対象である。席が実測した `folio ceiling --gate` は 2（まだ分からない・印が古い）を返す。持ち主の裁定 D-12（2026-09-21 23:45 JST・逐語「推奨で進めて」）により門の外で受ける。
+- 門: 本便は design-intent の下に正本を 1 file 新設するので天井の門の対象である。席が実測した `folio ceiling --gate` は 2（まだ分からない・印が古い）を返す。持ち主の裁定（2026-09-22 00:0x JST・対話面 R-8・逐語「一通り完成を目指して速度を上げたいので、あまりにも無駄に似たような審査を繰り返しまくっているならやめてどんどん進めて」・台帳 f2-648 notes）を規則の表の開発規律行 D-12 が言う持ち主の裁定として受け、設計文書を触る便は印が古くても門を経ずに出す。
 - 前の便: 便 94（行 cq・docs/design/delivery-94.md）。本便は便 94 が置いた閉じた一覧 2 本（`crates/folio/src/graph.rs` の `NODE_KINDS` と `EDGE_TYPES`）の写しを設計文書の置き場へ導出する。**2 本は続けて出す**＝そのあいだだけ、実装の型付きの定数が規則の正本でありながら写しが設計文書の置き場に無い窓（条 P-5.6）が開く。
 
 ## 1. 目的と中身
@@ -17,7 +19,7 @@
 - 対象の file の一覧の正本は `crates/folio/src/schema.rs` の定数 `TARGETS`（33 行）で、今は 8 対（`adr/schema.yaml`・`design-note/schema.yaml`・`ceiling.yaml`・`rules.yaml`・`index.yaml`・`srs.yaml`・`vocabulary.yaml`・`intake.yaml`）である。**9 本目として、`graph.yaml` と、その正本になる `graph.rs` の床の木を指す 1 対を末尾に足す。**
 - 床の木の型 `Floor` と導出の口 `derive` と突き合わせの口 `floor_diff` は同じ file に在り、`ceiling.rs` と `rules.rs` と `entrance.rs` が同じ形で床の木を持っている。**本便の床の木も同じ形で `graph.rs` に置く**（閉じた一覧 2 本は既に定数なので、床の木はその 2 本を指すだけ＝同じ一覧を 2 回書かない）。
 - 導出の体裁は `schema.rs` の module の頭が持つ 5 つの規則（幅 W = 100 字・一覧は flow が W 以内なら flow さもなくば block・表は子が全部 字と数と真偽かその一覧で W 以内なら flow）。席はこの 5 つの規則を写した独立の実装を書き、`schema.rs` の中の単体の歯 `schema_layout_switches_flow_and_block_at_the_width` の期待値と 1 字も違わない出力を出すことを確かめた（2026-09-22）。
-- 生成区間の凍結の定数は 2 つの歯の file に在る。`crates/folio/tests/schema.rs` の `TARGETS`（47 行・値 8）と `crates/folio/tests/schema_docs.rs` の `TARGETS`（110 行・値 8）で、どちらも合格の標準出力の行数を数えている。**2 つとも 9 に直す。**
+- 合格の標準出力の行数を数える定数は **3 か所**に在る。`crates/folio/tests/schema.rs` の `TARGETS`（48 行・値 8）と `crates/folio/tests/schema_docs.rs` の `TARGETS`（111 行・値 8）に加えて、同じ file の歯 `f77_check_covers_the_three_files`（722 行〜）の中に直の 8 が 1 つ（727 行の `assert_eq!(lines.len(), 8, ...)`）ある。**3 か所とも 9 に直す。** 直の 8 を残すと verify の 2 行目で落ちる。
 - `folio check` は `graph.yaml` を読まない（`check.rs` の `FILES` は 7 file の固定の一覧で、design-intent の下の知らない file を落とす検査は無い＝席が実測した）。天井の材料の束も読まない（束の中身は天井の正本の `documents` と観点の `reads` が決め、本便はそのどちらも触らない）。**`folio check` と `folio ceiling` と面の生成器は 1 字も変わらない。**
 - 歯の関数名の接頭辞。`grep -rn 'fn f95_' crates/folio/tests` は今 **0 本**。
 
@@ -85,7 +87,7 @@ schema:
 
 床の木 `FLOOR` は `Floor::Map` の 10 対で、閉じた一覧の 2 つの葉は便 94 が置いた定数 `NODE_KINDS` と `EDGE_TYPES` をそのまま指す（同じ一覧を 2 回書かない）。欄の順は (c) の逐語のとおり＝`top_level`・`top_level_note`・`node`・`node_note`・`node_kinds`・`node_kinds_note`・`edge`・`edge_note`・`edge_types`・`edge_types_note`。`_note` で終わる 5 つは人が読む説明で、`floor_diff` は読まない。
 
-`crates/folio/src/schema.rs` は `TARGETS` の末尾に 1 対と、その注釈の 1 行（9 本目は索引の欄の決まり）を足すだけで、ほかは 1 字も触らない。`crates/folio/src/main.rs` は副命令 `Schema` の説明の字（生成区間を持つ file 8 本 の並び）を 9 本に直す 1 行だけ。
+`crates/folio/src/schema.rs` は `TARGETS` の末尾に 1 対と、その注釈の 1 行（9 本目は索引の欄の決まり）を足すだけで、ほかは 1 字も触らない。`crates/folio/src/main.rs` は副命令 `Schema` の `--dir` の説明の字（生成区間を持つ file 8 本 の並び）を 9 本に直す 1 行だけで、**名の並びの末尾に `・graph.yaml` を足す形にする**。`crates/folio/tests/check.rs` の歯 `r11_schema_help_names_the_schema_files` が 8 本の名の連なりを部分文字列で見ており、末尾に足すぶんには残るが、順を変えたり語を挟んだりすると落ちるためである（席が `--help` の折り返しが無いことを実測した）。
 
 ### (e) 本便が触らないもの・次の一括の 🔴
 
