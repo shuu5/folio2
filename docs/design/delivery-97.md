@@ -3,10 +3,10 @@
 - 要件: FR17（天井の材料の束を観点ごとに組む）
 - 条: P-3.1（機械で決定的に検査できる項目は床に置く）/ P-4.1（検査・生成が実行できなかった結果を異常なしとして扱わない）/ P-4.2（判定できないものは まだ分からない として表に出す）/ P-5.1（規則・閾値・型の一覧は型付きデータに置く）/ P-5.6（実装の型付きの定数を規則の正本とするあいだ、写しを設計文書の置き場へ導出する）/ P-6.2（生成物を手で直さない）/ P-10.1（独立した凍結 anchor を 1 本以上持つ）/ P-10.2（生成物どうしの突き合わせを唯一の合格判定にしない）/ P-10.3（anchor が維持できなくなった検査の結果は まだ分からない に落とす）/ N-1.1（管理下の対象を回復不能に削除する操作を拒む）/ N-3.1（規則の例外機構を足さない）
 - 出所: 判断の記録 ADR-13 決定 (5)（天井の束を影響集合で切らない。束は観点が宣言する読む欄まで絞ったうえで丸ごと渡す）・決定 (10)（絞るとき、束の凍結 anchor を folio の実装に依らずに作り直す。欄を切り出す独立の script を anchor と一緒に凍結し、維持できなくなったらその検査の結果を まだ分からない に落とす）・決定 (16) の 4 本目（束を読む欄まで絞る・凍結 anchor の作り直しを含む）。設計ノート docs/design/graph-and-incremental-ceiling.md §3.1・§8 の便の列の G3 と、その下の節「G3 の凍結 anchor」。
-- 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 ct と行 cu が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は 2 本で先頭に + を付ける・縮む file は無い・新しい dir は作らない）。
+- 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 ct が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書き（新しい file は 2 本で先頭に + を付ける・縮む file は無い・新しい dir は作らない）。
 - 門: 2 便とも design-intent の下の正本を 1 file も書き換えない（読むだけ）ので、天井の門の対象外である（要件書 FR20 の規範文の 1 つ目・判断の記録 ADR-13 決定 (16) の末尾も ④ を門の対象外と書く）。**起草役が本便の write-set をそのまま渡して folio ceiling --gate を実測し、0（通す・断りの字は 設計文書の正本を書き換えない便）を確かめた**（2026-09-22・main 0806433）。
 - 前の便: 便 94（行 cq）・便 95（行 cr）・便 96（行 cs）は **3 本とも着地済み**で、本便の base は main 0806433 である。便 96 の write-set（graph.rs・hello.rs・main.rs・tests/graph.rs・tests/hello.rs・tests/fixtures/schema/graph-digest-anchor.txt）と本便の write-set は **1 file も重ならない**。
-- **G3 を 2 便に割った**。理由は §1 (b)。行 ct（便 97）は前提を持たず今すぐ出せる。行 cu（便 98）は先に一括の承認（§1 (f)）が要る。
+- **G3 を 2 便に割った**。理由は §1 (b)。**契約表に置くのは行 ct（便 97）だけ**で、便 98 の行はこの便の着地後に docs/design/delivery-98.md で起こす。便 98 の write-set は行 ct が作る 2 本（bundle-anchor.py と .txt）を含み、その 2 本が base に無いあいだは write-set が解けないためである（起草役が 2 行の契約表で scribe2 contracts check を実測し、行 cu に write-set-item-unresolved が 2 件出ることを確かめた）。**便 98 の中身は §1 (d)(e)(f)(g)(h)(i) に全部書いてあるので、そのまま delivery-98.md へ移せる。**
 
 ## 1. 目的と中身
 
@@ -62,7 +62,7 @@
 
 ### (b) なぜ 2 便に割るか
 
-| | 便 97（行 ct） | 便 98（行 cu） |
+| | 便 97（行 ct・この文書の契約表） | 便 98（delivery-98.md で起こす） |
 | --- | --- | --- |
 | 中身 | 凍結 anchor を独立の script とその出力へ作り直す | 束を読む欄まで絞る |
 | 触る src | **無し** | crates/folio/src/bundle.rs |
@@ -204,7 +204,7 @@ byte	11385
 
 src は 1 行も触らない。新しい dir は作らない。縮む file は無い。外部 crate は増やさない。
 
-**便 98（行 cu・M）**
+**便 98（delivery-98.md の行・M の見込み）**
 
 | 何 | 行 |
 | --- | --- |
@@ -255,7 +255,7 @@ src は 1 行も触らない。新しい dir は作らない。縮む file は�
 
 - 外部 crate は増やさない。便 94（行 cq）・便 95（行 cr）・便 96（行 cs）は 3 本とも着地済み（main 0806433）で、本便の write-set はその 3 便と 1 file も重ならない。
 - **行 ct（便 97）は先に要るものが無い。** 今の main でそのまま運べる。
-- **行 cu（便 98）は行 ct の着地が前提**（anchor file と script が無いと値を組み直せない）。加えて §1 (f) の 🔴 1 と 🔴 2 の一括（天井の正本の reads を広げる版上げと、要件 FR17 の改訂）が **先に main へ入っていること**が前提である。入る前に着地させると、直近 10 周の実測で 13 件（7.1%）の根拠が束の外に出て、床が正しい所見を落とす。
+- **便 98 は行 ct の着地が前提**（anchor file と script が無いと値を組み直せない）。加えて §1 (f) の 🔴 1 と 🔴 2 の一括（天井の正本の reads を広げる版上げと、要件 FR17 の改訂）が **先に main へ入っていること**が前提である。入る前に着地させると、直近 10 周の実測で 13 件（7.1%）の根拠が束の外に出て、床が正しい所見を落とす。
 - python3 は host（/usr/bin/python3）に在る。CI の runner には支度の段が無いので、歯は python3 が無くても落ちない形にする（§1 (c)）。
 
 <!-- contracts:begin -->
@@ -271,13 +271,4 @@ verify = ["cargo nextest run -p folio --test bundle f97_", "cargo nextest run -p
 size = "M"
 done = "f97_ の歯 3 本（独立の script の出力が凍結 anchor tests/fixtures/ceiling/bundle-anchor.txt と byte 一致し、python3 が無い環境では まだ分からない の 1 行を出して落ちない／anchor file の 4 観点の file の数と byte 数と要約値が crates/folio/tests/bundle.rs の凍結の 4 対と一致する／凍結の土台から folio ceiling --write で組んだ 4 観点の束の file の数と連結の byte 数と digest.txt の要約値が anchor file の値と一致し sha256sum で測り直しても同じ）が全部緑、crates/folio/tests/bundle.rs の歯が全部緑、clippy が 0 警告で CI が通る"
 
-[[contract]]
-id = "cu"
-title = "天井の材料の束の正本の写しを、観点が天井の正本で宣言した読む欄まで絞る。切る単位は最上位の節（欄）で、行の中の欄には降りない。残す行は正本の byte のまま順のまま写す。残すのは その観点の reads が挙げた節と、骨格の閉じた一覧 6 語（meta・id・title・status・date・schema）の節と、file の頭および各節の直前の連続した注釈。落とした節は reads.yaml の末尾の注釈の行に doc ごとに並べ、常に残す 6 語も書き、その doc のどの file にも無い節は 宣言に在るが正本に無い節 として別立てで出す（束は組めるので終了コードは 0）。標準出力の 1 行に落とした節の数と正本に無い節の数を足す。束の中身の閉じた一覧（sources・faces・question・finding・reads）も反証の束も所見の欄の決まりも 1 つも動かさない。凍結 anchor は行 ct の独立の script に絞る規則を写して組み直し、凍結の所見 fixture 10 本の束の要約値もその値に合わせる。design-intent の下は 1 file も書き換えない"
-req = ["FR17"]
-section = "1"
-write-set = ["crates/folio/src/bundle.rs", "crates/folio/tests/bundle.rs", "crates/folio/tests/findings.rs", "tests/fixtures/ceiling/bundle-anchor.py", "tests/fixtures/ceiling/bundle-anchor.txt", "tests/fixtures/ceiling/findings/fabricated-evidence.yaml", "tests/fixtures/ceiling/findings/fail-no-findings.yaml", "tests/fixtures/ceiling/findings/missing-field.yaml", "tests/fixtures/ceiling/findings/pass-coherence.yaml", "tests/fixtures/ceiling/findings/pass-fidelity.yaml", "tests/fixtures/ceiling/findings/pass-readability.yaml", "tests/fixtures/ceiling/findings/pass-reality.yaml", "tests/fixtures/ceiling/findings/stop-refuted.yaml", "tests/fixtures/ceiling/findings/stop-unrefuted.yaml", "tests/fixtures/ceiling/findings/stop-upheld.yaml"]
-verify = ["cargo nextest run -p folio --test bundle --test findings f98_", "cargo nextest run -p folio --test bundle --test findings", "cargo clippy --workspace --all-targets -- -D warnings"]
-size = "M"
-done = "f98_ の歯 6 本（絞る規則を写した独立の script の出力が組み直した凍結 anchor と byte 一致し folio ceiling --write の 4 観点の束も同じ値で file の一覧は 1 本も増減しない／凍結の土台の 忠実さ の reads.yaml に constitution.yaml の落とした 6 節と srs.yaml の落とした 12 節と常に残す 6 語が注釈の行に出る／凍結の土台の 読みやすさ の index.yaml の sections と 整合 の rules.yaml の rows が 宣言に在るが正本に無い節 として出て終了コードは 0／凍結の土台と実の正本の両方で骨格の 6 つの節と file の頭の行が 1 行も落ちていない〔数は固定しない〕／凍結の土台と実の正本の両方で絞った写しの各行が正本の同じ file に同じ byte の行として在り順序も正本の順である〔数は固定しない〕／絞った束に凍結の所見 fixture 11 本を当てて 3 値が今と同じ）が全部緑、crates/folio/tests/bundle.rs と crates/folio/tests/findings.rs の歯が全部緑、clippy が 0 警告で CI が通る"
 <!-- contracts:end -->
