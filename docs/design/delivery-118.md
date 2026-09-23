@@ -2,16 +2,17 @@
 
 - 要件: FR4（入口・憲法・要件書の面を 1 つの生成器と 1 組の design token で出す・第 1.32 版）。本便は要件書の面の生成器が正本の最上位の節のうち描く節を 1 つ広げる。規範文は変えない。
 - 条: P-6.1（各文書の正本は YAML 1 file で、人が読むページはそこから逐語で生成する）/ P-4.2（判定できないものは「まだ分からない」として表に出す＝正本に在る節を面が黙って落とさない向き）/ P-2.1（人が読むページはすべて 1 つの生成器から出力する）/ P-2.4（部品は閉じた一覧＝本便は新しい部品を足さない）/ P-10.1（検査は独立した凍結 anchor を 1 本以上持つ）/ P-10.2（生成物どうしの突き合わせを唯一の合格判定にしない）
-- 出所: 便 117 の契約（`docs/design/delivery-117.md`・行 `dp`）の §1 (h) の 2「まだ分からない — 要件書の面が scope_m3 を描かない」。便 117 の起草役と検証役が、便 117 の後の木で要件書に scope_m3 の節を足して組み立てを撃ち、床は合格・組み立ても成功するのに、**scope_m3 の節の字は配信先のどの面にも 1 字も出なかった**ことを実測した。便 117 の契約はこの穴を「版 B の発効の前に、面が scope_m3 を描く便を起こすか、描かないことを持ち主が裁定するかが要る」と書いた。本便は前者で、席が起こした（判断の記録 ADR-16 決定 (7) の便の列〔① 〜 ⑦・合計 7〜9 便〕には名が無い追加の 1 便で、設計文書は変えない）。
+- 出所: 便 117 の契約（`docs/design/delivery-117.md`・行 `dp`・着地済み main a34c6b2）の §1 (h) の 2「まだ分からない — 要件書の面が scope_m3 を描かない」。便 117 の起草役と検証役が、便 117 の後の木で要件書に scope_m3 の節を足して組み立てを撃ち、床は合格・組み立ても成功するのに、**scope_m3 の節の字は配信先のどの面にも 1 字も出なかった**ことを実測した。便 117 の契約はこの穴を「版 B の発効の前に、面が scope_m3 を描く便を起こすか、描かないことを持ち主が裁定するかが要る」と書いた。本便は前者で、席が起こした（判断の記録 ADR-16 決定 (7) の便の列〔① 〜 ⑦・合計 7〜9 便〕には名が無い追加の 1 便で、設計文書は変えない）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `dq` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 2 本、**新しい file は 1 本も無く、縮む file も無く、消す file も無く、新しい dir も作らない**（接頭辞 `+` / `-` / `~` は 1 つも使わない。§1 (g) の 1）。
-- 門: write-set の 2 本はどちらも設計文書の置き場の外（`crates/` の下）で、起草役の実測（2026-09-24・便 117 の後の木の binary）は **0（通す・設計文書の正本を書き換えない便）**。規則の表の開発規律行 D-12 の対象ではない。
-- 前の便: 便 117（行 `dp`・契約は main e509f89 に着地・実装は受付待ち）。**base = 便 117 の着地の sha（着地後に改訂 b で取り直す）**。この契約の数はすべて、main 2c3a631 に便 117 の起草役の実測 patch（`~/.local/share/folio2/handoff-2026-09-24/d117-measured.patch`）を当てた木の実測（参考値）である（規則の表の行 D-13）。main e509f89 は 2c3a631 に便 117 の契約の文書を足しただけで、`crates/` と `tests/` と `design-intent/` の木は 2c3a631 と同じ。
+- 門: write-set の 2 本はどちらも設計文書の置き場の外（`crates/` の下）で、起草役の実測（2026-09-24・base a34c6b2 に本便の patch を当てた木の binary）は **0（通す・設計文書の正本を書き換えない便）**。規則の表の開発規律行 D-12 の対象ではない。
+- 前の便: 便 117（行 `dp`・**着地済み main a34c6b2**・床の定数 SRS_TOP_LEVEL に scope_m3・要件書の生成区間 +1 行）。**base = main a34c6b2**。この契約の数はすべて base a34c6b2 の実測（参考値）である（規則の表の行 D-13）。
+- 改訂: 改訂 b（2026-09-24 01:0x JST・起草役）= 便 117 の着地（main a34c6b2）を受け、base を「便 117 の着地の sha（未定）」から a34c6b2 に置き換え、実測を a34c6b2 の写しで全部取り直した（RED 2 本・変異の表・workspace の nextest 782 → 786・clippy 0 警告・組み立ての差 0・門 0・余地・parts の合格はどれも初版と同じ値）。区間・write-set・verify・size・done は変えていない。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・2c3a631 + 便 117 の実測 patch の木）
+### (a) いま起きていること（実測・base main a34c6b2）
 
-1. 要件書の面の生成器は `crates/folio/src/face_srs.rs` の 1 本で、章 02「範囲」は同じ file の scope_chapter が書く。その末尾の「作るもの / 作らないもの」の小見出しの下で、**段の範囲の節を名指しの表 2 行（鍵 scope に名札 M0・鍵 scope_m1 に名札 M1）で回し、節ごとに部品 section-lead-callout の塊を 1 つ置く**（base 2c3a631 の 779〜806 行目・参考値）。塊の中は card が 2 枚＝「<名札> で作る」（build の値を「 ／ 」で繋ぐ）と「<名札> では作らない」＋札「対象外」（not_build の値を同じく繋ぐ）。
+1. 要件書の面の生成器は `crates/folio/src/face_srs.rs` の 1 本で、章 02「範囲」は同じ file の scope_chapter が書く。その末尾の「作るもの / 作らないもの」の小見出しの下で、**段の範囲の節を名指しの表 2 行（鍵 scope に名札 M0・鍵 scope_m1 に名札 M1）で回し、節ごとに部品 section-lead-callout の塊を 1 つ置く**（base a34c6b2 の 779〜806 行目・参考値）。塊の中は card が 2 枚＝「<名札> で作る」（build の値を「 ／ 」で繋ぐ）と「<名札> では作らない」＋札「対象外」（not_build の値を同じく繋ぐ）。
 2. 名札の字（M0・M1）の正本は **その表の字の literal**（面の名札の表・生成器の file の中の β）で、要件書の欄ではない。要件書は名札を持たない。語 M1 の字は憲法の面の名札の文（`crates/folio/src/face.rs` と `crates/folio/src/face_labels.rs` の段の説明）にも在るが、それは要件書の面の表の写しではなく段の説明の文なので、本便は触らない。
 3. **節の読み方。** 表の 2 行とも必須の欄の口（cursor の f・無ければ Err「欄 <鍵> が無い」）で読む。要件書に scope か scope_m1 が無いと面は導出されず、命令は 2（まだ分からない）で終わり面を書かない。注（note の欄）は **鍵が scope_m1 のときだけ** 任意の欄の口（cursor の g・無い・null は無し）で読み、「では作らない」の card の本文の後ろに小窓「注」（`crates/folio/src/face.rs` の hint）で置く。scope の note は読まない。
 4. **scope_m3 は読まれない。** 表に行が無いので、要件書が最上位に scope_m3 の節を持っても面の字は 1 byte も変わらない。起草役が面の fixture（`tests/fixtures/face/` の正本 5 file）の写しの要件書の actors の直前に scope_m3 の節（build 1 行・not_build 1 行・note）を足して `folio face --face srs --write` を撃つと、終了コード 0 で、出力は凍結 fixture `tests/fixtures/face/expected-srs.html` と **byte 一致**した（＝節が黙って落ちる）。面の検査（`folio parts --check`）も数えない。
@@ -22,11 +23,11 @@
    git grep -n expected-srs.html -- crates/folio/tests
    ```
 
-6. base の workspace の nextest は全部緑（参考値 782 本・2c3a631 + 便 117 の実測 patch・`cargo nextest run --workspace --no-tests=fail --no-fail-fast`）。
+6. base の workspace の nextest は全部緑（参考値 782 本・base a34c6b2・`cargo nextest run --workspace --no-tests=fail --no-fail-fast`）。
 
 ### (b) 直す先 — 名札の表に 3 行目（任意の節）を足し、注を段の節に広げる
 
-**変更の逐語（`crates/folio/src/face_srs.rs` の scope_chapter・base 2c3a631 の 780〜783 行目・参考値）。** この節は二重引用符を置けないので、Rust の字の literal の二重引用符を「」で書いた。実物は base の字の literal と同じ二重引用符である。前:
+**変更の逐語（`crates/folio/src/face_srs.rs` の scope_chapter・base a34c6b2 の 780〜783 行目・参考値）。** この節は二重引用符を置けないので、Rust の字の literal の二重引用符を「」で書いた。実物は base の字の literal と同じ二重引用符である。前:
 
 ```
     for (key, label) in [(「scope」, 「M0」), (「scope_m1」, 「M1」)] {
@@ -79,7 +80,7 @@
 3. **scope_m3 が null なら面は凍結 fixture と byte 一致し、scope と scope_m1 は必須のまま。** 写しの要件書に値の無い scope_m3 の鍵だけを足す → 終了コード 0・面が凍結 fixture と一致。続けて scope の節と scope_m1 の節を 1 つずつ別の写しから落とす → 終了コード 2・標準エラーに「欄 <鍵> が無い」・面の file を書かない。**base でも緑**（本便の後も「無い・null は描かない」と「必須の節は緩めない」が残ることを見る土台の歯）。
 4. **実の要件書の面は、実の要件書が最上位に scope_m3 の節を持つときに限り M3 の塊をちょうど 1 つ持つ。** 実の `design-intent/srs.yaml` の行頭に scope_m3 の鍵が在るかを見て、実の置き場の写しで書いた面の「M3 で作る」の card の数が 1（在る）か 0（無い）であることを見る。**版 B の前の base でも緑**（0 = 0）。版 B が節を書いた後は、本便の直しが外れると落ちる（版 B の後の回帰の歯）。
 
-歯の効き（起草役が変異を当てて測った・2c3a631 + 便 117 の実測 patch の木）:
+歯の効き（起草役が変異を当てて測った・base a34c6b2 の写し）:
 
 | 当てた形 | 歯 1 | 歯 2 | 歯 3 | 歯 4 |
 | --- | --- | --- | --- | --- |
@@ -135,9 +136,9 @@
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
 
-起草役の実測 patch は `~/.local/share/folio2/handoff-2026-09-24/d118-measured.patch`（2c3a631 に便 117 の実測 patch を当てた木に当たる・2c3a631 そのものにも `git apply --check` が通る・repo には入れない）。起草の記録は同じ dir の `d118-draft.md`。
+起草役の実測 patch は `~/.local/share/folio2/handoff-2026-09-24/d118-measured.patch`（base a34c6b2 に `git apply --check` が通る・repo には入れない）。起草の記録は同じ dir の `d118-draft.md`。
 
-1. base の写し: `git clone --shared <folio2> <写し>` → `git -C <写し> checkout 2c3a631` → 便 117 の実測 patch を当てる（便 117 の着地の後は、その sha を checkout するだけ）。
+1. base の写し: `git clone --shared <folio2> <写し>` → `git -C <写し> checkout a34c6b2`。
 2. RED: 歯の file（`crates/folio/tests/face_srs.rs`）だけを当てて `cargo nextest run -p folio --test face_srs f118_ --no-fail-fast` → 歯 1 と歯 2 が落ち、歯 3 と歯 4 は通る。
 3. 全部: patch の全部を当てて `cargo nextest run --workspace --no-tests=fail --no-fail-fast`（全部緑）・`cargo clippy --workspace --all-targets -- -D warnings`（0 警告）。
 4. 変異: (d) の表の各行を `crates/folio/src/face_srs.rs` に 1 つずつ当て、`cargo nextest run -p folio --test face_srs f118_ --no-fail-fast`。
@@ -166,7 +167,7 @@
 ## 5. 依存
 
 - 外部 crate は増やさない。新しい file も dir も無い。
-- 前提の着地: 便 117（行 `dp`・床の定数に scope_m3）。本便の歯は面だけを撃つので、便 117 の前の木（2c3a631 そのもの）に当てても 4 本とも緑になる（起草役の実測）が、要件書が scope_m3 を持てる順序（床が先・面が後）に合わせて、base は便 117 の着地の後に置く。
+- 前提の着地: 便 117（行 `dp`・床の定数に scope_m3・main a34c6b2 で着地済み）。本便の歯は面だけを撃つので床の定数には依らないが、要件書が scope_m3 を持てる順序（床が先・面が後）はこの着地で満ちた。
 - 並行の便: 一括 15（枝 docs/batch15・承認待ち）は設計文書の正本と `docs/design/` だけを書き換え、本便の write-set 2 本とは重ならない。便 117 の write-set（床の定数・要件書の生成区間・凍結 anchor・床の歯の 2 file）とも重ならない。
 - 本便の着地の後に、席が要件書の版 B（scope_m3 の節の中身）を起草し、持ち主の承認を得る（ADR-16 決定 (7)）。
 
