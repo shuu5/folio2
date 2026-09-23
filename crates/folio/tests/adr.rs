@@ -437,11 +437,13 @@ fn f101_the_real_record_carries_the_revises_row() {
     }
     let first = |file: &str| rows.iter().find(|(f, _)| f == file).unwrap().1[0].clone();
     assert!(
-        first("ADR-13.yaml").starts_with("  - {target: ADR-8, decision: (4), kind: narrow, summary: "),
+        first("ADR-13.yaml")
+            .starts_with("  - {target: ADR-8, decision: (4), kind: narrow, summary: "),
         "{rows:?}"
     );
     assert!(
-        first("ADR-14.yaml").starts_with("  - {target: ADR-13, decision: (1), kind: narrow, summary: "),
+        first("ADR-14.yaml")
+            .starts_with("  - {target: ADR-13, decision: (1), kind: narrow, summary: "),
         "{rows:?}"
     );
 }

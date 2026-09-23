@@ -347,7 +347,11 @@ fn f77_top_level_is_closed_on_the_three_files() {
     assert!(unknown.is_empty(), "{unknown:?}");
 
     for (file, from, to) in [
-        ("srs.yaml", "\n    - figures\n    - schema\n", "\n    - figures\n    - schema\n    - extras\n"),
+        (
+            "srs.yaml",
+            "\n    - figures\n    - schema\n",
+            "\n    - figures\n    - schema\n    - extras\n",
+        ),
         (
             "vocabulary.yaml",
             "\n  top_level: [terms, field_terms, identifiers, schema]\n",
@@ -377,8 +381,15 @@ fn f77_top_level_is_closed_on_the_three_files() {
             .into_iter()
             .filter(|v| v.starts_with("[未知の節]"))
             .collect();
-        assert_eq!(unknown.len(), 1, "{file}: 未知の節はちょうど 1 件: {unknown:?}");
-        assert!(unknown[0].starts_with(&format!("[未知の節] {file}")), "{unknown:?}");
+        assert_eq!(
+            unknown.len(),
+            1,
+            "{file}: 未知の節はちょうど 1 件: {unknown:?}"
+        );
+        assert!(
+            unknown[0].starts_with(&format!("[未知の節] {file}")),
+            "{unknown:?}"
+        );
         assert!(unknown[0].contains("extras"), "{unknown:?}");
         assert!(stdout(&out).contains("不合格"), "{}", stdout(&out));
     }
@@ -738,25 +749,38 @@ fn retired_render_help_does_not_list_render() {
 #[test]
 fn p1_commands_closed_list() {
     const CLOSED: [&str; 12] = [
-        "check", "inject", "parts", "face", "figure", "build", "intake", "hello", "ceiling", "schema",
-        "graph", "serve",
+        "check", "inject", "parts", "face", "figure", "build", "intake", "hello", "ceiling",
+        "schema", "graph", "serve",
     ];
     let out = Command::new(env!("CARGO_BIN_EXE_folio"))
         .arg("--help")
         .output()
         .expect("folio を起動できない");
-    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let help = stdout(&out);
-    let body = help.split("Commands:").nth(1).expect("Commands: の節が無い");
+    let body = help
+        .split("Commands:")
+        .nth(1)
+        .expect("Commands: の節が無い");
     let body = body.split("\n\n").next().unwrap_or(body);
     let listed: Vec<&str> = body
         .lines()
-        .filter_map(|l| l.strip_prefix("  ").and_then(|l| l.split_whitespace().next()))
+        .filter_map(|l| {
+            l.strip_prefix("  ")
+                .and_then(|l| l.split_whitespace().next())
+        })
         .filter(|name| *name != "help")
         .collect();
     assert_eq!(listed, CLOSED, "{help}");
     for forbidden in ["approve", "decide", "accept", "reject", "judge"] {
-        assert!(!CLOSED.contains(&forbidden), "採否を決める口「{forbidden}」が一覧に在る");
+        assert!(
+            !CLOSED.contains(&forbidden),
+            "採否を決める口「{forbidden}」が一覧に在る"
+        );
     }
 }
 
@@ -840,7 +864,10 @@ fn f86_unknown_field_cannot_be_loosened_from_the_file() {
         String::from_utf8_lossy(&out.stderr)
     );
     assert!(violations(&out).is_empty(), "{:?}", violations(&out));
-    w.mutate(FR1_FIGURES, "\n    figures: [図2-1, 図2-2, 図1]\n    extras: 1\n");
+    w.mutate(
+        FR1_FIGURES,
+        "\n    figures: [図2-1, 図2-2, 図1]\n    extras: 1\n",
+    );
     assert_srs_item_violation(&w, &["未知の欄", "extras"]);
     // 生成区間の optional に extras を足しても閉じた一覧は緩まない（N-3.1）
     w.mutate(
@@ -886,15 +913,22 @@ fn f90_the_real_srs_carries_the_adrs_field() {
         .collect();
     assert_eq!(rows.len(), 14, "adrs の行の数: {rows:?}");
     for row in rows {
-        let body = row.strip_suffix(']').unwrap_or_else(|| panic!("一覧の形でない: {row}"));
+        let body = row
+            .strip_suffix(']')
+            .unwrap_or_else(|| panic!("一覧の形でない: {row}"));
         for id in body.split(", ") {
-            let num = id.strip_prefix("ADR-").unwrap_or_else(|| panic!("ADR- で始まらない: {id}"));
+            let num = id
+                .strip_prefix("ADR-")
+                .unwrap_or_else(|| panic!("ADR- で始まらない: {id}"));
             assert!(
                 num.starts_with(|c: char| matches!(c, '1'..='9'))
                     && num.chars().all(|c| c.is_ascii_digit()),
                 "判断の記録の id の形でない: {id}"
             );
-            assert!(w.dir().join(format!("adr/{id}.yaml")).is_file(), "{id} の正本が無い");
+            assert!(
+                w.dir().join(format!("adr/{id}.yaml")).is_file(),
+                "{id} の正本が無い"
+            );
         }
     }
 }
@@ -1009,7 +1043,10 @@ fn f91_a_value_that_is_not_an_id_is_a_violation() {
 fn f91_the_article_of_the_row_is_a_violation() {
     let w = Work::new("f91-article");
     w.mutate_rules(F91_R4_REFS, ", refs: [AC6, P-5]}");
-    assert_rules_violation(&w, &["R-4", "refs", "P-5", "自分の id か article の条である"]);
+    assert_rules_violation(
+        &w,
+        &["R-4", "refs", "P-5", "自分の id か article の条である"],
+    );
 }
 
 #[test]
@@ -1064,14 +1101,20 @@ fn f93_the_real_sources_leave_no_prose_edge() {
     );
     let basis = f93_basis(&w, "ADR-13");
     for id in ["P-11", "P-12", "P-14", "P-17", "A-2"] {
-        assert!(basis.iter().any(|b| b == id), "ADR-13 の basis に {id} が無い: {basis:?}");
+        assert!(
+            basis.iter().any(|b| b == id),
+            "ADR-13 の basis に {id} が無い: {basis:?}"
+        );
     }
     let rules = fs::read_to_string(w.rules()).unwrap();
     let row = rules
         .lines()
         .find(|l| l.starts_with("  - {id: R-16,"))
         .expect("R-16 の行が無い");
-    assert!(row.ends_with(&format!(", {F93_R16_REFS}}}")), "R-16 の refs: {row}");
+    assert!(
+        row.ends_with(&format!(", {F93_R16_REFS}}}")),
+        "R-16 の refs: {row}"
+    );
 }
 
 #[test]
@@ -1128,7 +1171,10 @@ fn f93_a_kind_without_a_receptacle_is_not_counted() {
                 .lines()
                 .find(|l| l.starts_with(&format!("    {key}: ")))
                 .unwrap_or_else(|| panic!("{owner} の {key} が無い"));
-            assert!(!typed.contains(id), "{owner} の {key} に {id} が在る: {typed}");
+            assert!(
+                !typed.contains(id),
+                "{owner} の {key} に {id} が在る: {typed}"
+            );
         }
     }
 }
@@ -1142,7 +1188,11 @@ fn f93_deleting_the_rule_row_is_not_a_silent_escape() {
         .lines()
         .filter(|l| !l.starts_with("  - {id: R-17,"))
         .collect();
-    assert_eq!(before.lines().count(), kept.len() + 1, "R-17 の行が 1 行でない");
+    assert_eq!(
+        before.lines().count(),
+        kept.len() + 1,
+        "R-17 の行が 1 行でない"
+    );
     fs::write(w.rules(), format!("{}\n", kept.join("\n"))).unwrap();
     let out = w.check();
     assert_eq!(out.status.code(), Some(1), "{}", stdout(&out));
@@ -1166,10 +1216,20 @@ fn f93_deleting_the_rule_row_is_not_a_silent_escape() {
         3,
         "参照 id の違反はちょうど 3 件のはず: {v:?}"
     );
-    let relation = |l: &&String| l.starts_with("[参照 id] constitution.yaml: ") && l.contains(".relations.rules");
-    assert_eq!(v.iter().filter(relation).count(), 1, "条 N-2 の関係の欄の違反: {v:?}");
+    let relation = |l: &&String| {
+        l.starts_with("[参照 id] constitution.yaml: ") && l.contains(".relations.rules")
+    };
+    assert_eq!(
+        v.iter().filter(relation).count(),
+        1,
+        "条 N-2 の関係の欄の違反: {v:?}"
+    );
     let meta = |l: &&String| l.starts_with("[参照 id] srs.yaml: meta.");
-    assert_eq!(v.iter().filter(meta).count(), 1, "要件書の承認の来歴の違反: {v:?}");
+    assert_eq!(
+        v.iter().filter(meta).count(),
+        1,
+        "要件書の承認の来歴の違反: {v:?}"
+    );
     let term = |l: &&String| l.starts_with("[参照 id] vocabulary.yaml: terms");
     assert_eq!(v.iter().filter(term).count(), 1, "語彙の定義の違反: {v:?}");
     assert!(!v.iter().any(|l| l.starts_with("[R-17]")), "{v:?}");
