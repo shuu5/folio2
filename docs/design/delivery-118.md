@@ -6,6 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `dq` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 2 本、**新しい file は 1 本も無く、縮む file も無く、消す file も無く、新しい dir も作らない**（接頭辞 `+` / `-` / `~` は 1 つも使わない。§1 (g) の 1）。
 - 門: write-set の 2 本はどちらも設計文書の置き場の外（`crates/` の下）で、起草役の実測（2026-09-24・base a34c6b2 に本便の patch を当てた木の binary）は **0（通す・設計文書の正本を書き換えない便）**。規則の表の開発規律行 D-12 の対象ではない。
 - 前の便: 便 117（行 `dp`・**着地済み main a34c6b2**・床の定数 SRS_TOP_LEVEL に scope_m3・要件書の生成区間 +1 行）。**base = main a34c6b2**。この契約の数はすべて base a34c6b2 の実測（参考値）である（規則の表の行 D-13）。
+- 改訂: 改訂 c（2026-09-24・席）= 検証役（d118-verifier・a34c6b2 の写しで patch を当て 786/786・変異の表 7 行一致・build 差 0・門 0・blocking 0）の文面の所見 3 つを当てた（code と歯の注の出所を便 117 §1 (h) の 2 に・helper 6 と定数 4 の内訳・scope_m3 の余分な欄は黙って落ちることの明記）。区間・write-set・verify・size・done は変えていない。
 - 改訂: 改訂 b（2026-09-24 01:0x JST・起草役）= 便 117 の着地（main a34c6b2）を受け、base を「便 117 の着地の sha（未定）」から a34c6b2 に置き換え、実測を a34c6b2 の写しで全部取り直した（RED 2 本・変異の表・workspace の nextest 782 → 786・clippy 0 警告・組み立ての差 0・門 0・余地・parts の合格はどれも初版と同じ値）。区間・write-set・verify・size・done は変えていない。
 
 ## 1. 設計
@@ -39,7 +40,7 @@
 後（表の各行に「必須か」の真偽を足し、3 行目に scope_m3 を任意で置く・注の条件を「scope でない」に）:
 
 ```
-    // 段の範囲の節（鍵・名札・必須か）。scope_m3 は任意の節で、無ければ描かない（便 118・ADR-16 決定 (1)(7)①）。
+    // 段の範囲の節（鍵・名札・必須か）。scope_m3 は任意の節で、無ければ描かない（便 118・便 117 の §1 (h) の 2・ADR-16 決定 (1)）。
     for (key, label, required) in [
         (「scope」, 「M0」, true),
         (「scope_m1」, 「M1」, true),
@@ -73,7 +74,7 @@
 
 新しい歯は `crates/folio/tests/face_srs.rs` の末尾に、便 118 の見出しの注の下で 4 本足す。関数名は f118_ で始める（verify の絞り込みの語）。同じ file の頭の注の箇条に 2 行を足す。
 
-**歯の土台。** 面の fixture（`tests/fixtures/face/` の constitution・rules・vocabulary・srs・ceiling の 5 file）を一時 dir の下の src へ写し、図の道具（`vendor/archify/`）を親 dir へ写し、**写しの要件書だけを字面の変異 1 か所**で書き換えて `folio face --face srs --write` を撃つ（既存の f84_ の歯と同じ形・一時 dir は消す）。scope_m3 の節は歯の file の中の最小の手書きの字（build 1 行・not_build 1 行・note 1 行。build の値に「&」、note の値に「<」と「>」を含めて escape を見る）で、最上位の節 actors の直前に入れる。**新しい fixture の file も dir も作らない。凍結 fixture は動かさない。** 章 02 の中の段の範囲の塊は、部品 section-lead-callout の開き（style の --band-n:2 付き）から、次の行頭の閉じの div までを 1 つとして切り出す。同じ file に在る helper（chapter・write_face・code・esc・real_srs・temp_dir・copy_dir・vendor・design_intent・repo_root）を使い、足す helper は 5 つ（面を書く口・節を足す口・節を落とす口・塊を切り出す口・終了コード 0 を見る口）と見本の字の定数 4 つである。
+**歯の土台。** 面の fixture（`tests/fixtures/face/` の constitution・rules・vocabulary・srs・ceiling の 5 file）を一時 dir の下の src へ写し、図の道具（`vendor/archify/`）を親 dir へ写し、**写しの要件書だけを字面の変異 1 か所**で書き換えて `folio face --face srs --write` を撃つ（既存の f84_ の歯と同じ形・一時 dir は消す）。scope_m3 の節は歯の file の中の最小の手書きの字（build 1 行・not_build 1 行・note 1 行。build の値に「&」、note の値に「<」と「>」を含めて escape を見る）で、最上位の節 actors の直前に入れる。**新しい fixture の file も dir も作らない。凍結 fixture は動かさない。** 章 02 の中の段の範囲の塊は、部品 section-lead-callout の開き（style の --band-n:2 付き）から、次の行頭の閉じの div までを 1 つとして切り出す。同じ file に在る helper（chapter・write_face・code・esc・real_srs・temp_dir・copy_dir・vendor・design_intent・repo_root）を使い、足す helper は 6 つ（見本の節を組む口・面を書く口・節を足す口・節を落とす口・塊を切り出す口・終了コード 0 を見る口）と定数 4 つ（見本の字 3 = build / not_build / note と、塊の開きの字 1）である。
 
 1. **scope_m3 は scope_m1 の塊の直後に同じ形で出る。** 面の fixture の scope_m1 の節の字をそのまま写し、鍵の名だけ scope_m3 に替えて足す → 終了コード 0・章 02 の段の範囲の塊がちょうど 3 つ・順に名札 M0・M1・M3 の「で作る」を持つ・**3 つ目の塊は、2 つ目の塊の名札の「M1 」を「M3 」に替えた字と byte 一致**（card の class・並び・注の小窓の位置まで同じ形）・3 つ目に注の小窓が在る。**base では塊が 2 つで落ちる＝RED。**
 2. **手書きの scope_m3 は塊 1 つだけを足し、値は escape される。** 手書きの節を足す → 終了コード 0・塊が 3 つ・3 つ目が「M3 で作る」の card に build の値の escape 済みの字・「M3 では作らない」＋札「対象外」の card に not_build の値の escape 済みの字・注の小窓の本文に note の値の escape 済みの字を持つ・面のどこにも note の生の「<」「>」の字面が無い・**面から 3 つ目の塊の字を 1 回だけ除くと、凍結 fixture `tests/fixtures/face/expected-srs.html` と一致する**（塊のほかに面の字が 1 字も変わらない）。escape の期待の字は歯の側の 5 字の escape（同じ file の esc）で作り、生成器の字を写さない。**base では塊が 2 つで落ちる＝RED。**
@@ -112,7 +113,7 @@
 1. **運ばないもの。** 要件書の scope_m3 の節の中身と版上げ（版 B・持ち主の承認）。床の定数（便 117）。天井の正本の観点の読む欄（便 117 の §1 (h) の 3＝天井の束は scope_m3 を「落とした節」に記録する・本便でも変わらない）。部品目録・様式・面の fixture・凍結 fixture。語彙・憲法・規則の表・判断の記録。
 2. **本便の着地の後も、版 B の前は面が変わらない。** 実の要件書に scope_m3 が無いあいだ、配信先の面は 1 byte も変わらない（(e) の 3）。本便の効きが実の面に出るのは版 B の後である。版 B の後に実の面で M3 の塊が出ることは歯 4 が見る。
 3. **言えないこと。** 歯は「scope_m3 が在れば scope_m1 と同じ形の塊が出る」ことだけを見る。節の中身の形（build と not_build の 2 つの一覧と任意の note か、ほかの欄を持つか）は床も面も数えない（便 117 の §1 (h) の 4 と同じ）。版 B が build か not_build を持たない形で scope_m3 を書くと、面は必須の欄の Err で 2（まだ分からない）になり黙っては落ちないが、描く形は版 B の設計で決め直す。scope（M0）の note を読まないことは変えないが、面の fixture の scope が note を持たないので、歯はこの条件を scope まで広げる変異を拾えない（起草役の実測・本便の範囲の外）。
-4. **まだ分からない — 版 B の節の中身。** 版 B が scope_m3 に scope_m1 と違う欄（例えば判定点や出口の条件）を持たせるなら、本便の塊（card 2 枚＋注）はそれを描かない。版 B の起草のときに、面の描き方を足す便が要るかを席が見る。
+4. **まだ分からない — 版 B の節の中身。** 版 B が scope_m3 に scope_m1 と違う欄（例えば判定点や出口の条件）を持たせるなら、本便の塊（card 2 枚＋注）はそれを描かない。**余分な欄は床も面も数えず黙って落ちる**（検証役の実測: scope_m3 に exit と entry を足しても `folio face --face srs --write` は rc 0 で、その字は面に 0 回。床は scope 系の節の中身を数えない〔便 117 §1 (h) 4〕。base の scope / scope_m1 でも同じで、本便が作った穴ではない）。版 B の scope_m3 は build / not_build / note の 3 欄に収めるか、面の描き方を足す便を版 B の前に起こす。
 5. **まだ分からない — ADR-16 の便の数。** 判断の記録 ADR-16 決定 (7) の便の列は面の便を名指さず、合計 7〜9 便の数にも入っていない。本便はその列の外の追加で、判断の記録の字は変えない。列の数え直しを判断の記録に記すかどうかは席が決める（起草役は決めない）。
 6. **撤退条件。** (1) 本便の直しの後に既存の歯が 1 本でも落ちたら、その歯の本文を直さずに止めて席へ返す（本便の前提＝面の fixture と実の要件書が scope_m3 を持たないので面の字は変わらない、が崩れている）。(2) `folio build` の出力が本便の前後で 1 byte でも変わったら止めて席へ返す。(3) 受付の時点の main で `crates/folio/src/face_srs.rs` の scope_chapter の表の周りが書き換わっていたら、変更の逐語を測り直してから運ぶ。
 
@@ -148,7 +149,7 @@
 
 ## 2. 範囲
 
-- 入れる: `crates/folio/src/face_srs.rs` の scope_chapter の段の範囲の表に「必須か」の真偽と scope_m3（名札 M3・任意）の 1 行・任意の節を無ければ飛ばす 3 行・注の条件を「鍵が scope でない」に・注の 1 行。`crates/folio/tests/face_srs.rs` の f118_ の歯 4 本と見本の字の定数 4 つと helper 5 つと頭の注の 2 行。
+- 入れる: `crates/folio/src/face_srs.rs` の scope_chapter の段の範囲の表に「必須か」の真偽と scope_m3（名札 M3・任意）の 1 行・任意の節を無ければ飛ばす 3 行・注の条件を「鍵が scope でない」に・注の 1 行。`crates/folio/tests/face_srs.rs` の f118_ の歯 4 本と定数 4 つ（見本の字 3 と塊の開きの字 1）と helper 6 つと頭の注の 2 行。
 - 入れない: 要件書の正本（scope_m3 の節そのものを含む）・面の fixture・凍結 fixture・部品目録・様式・ほかの面の生成器（憲法の面の M1 の名札の文を含む）・床の定数と床の判定・天井の正本の読む欄・判断の記録・語彙・規則の表・新しい命令と旗・新しい file・新しい dir・外部 crate・台帳への記帳。
 
 ## 3. 部品
