@@ -4,7 +4,7 @@
 
 起草 2026-09-24・orchestrator 席（起草は opus 5.5 の起草役に委ねた。正本の作成の行は席を責任者として「orchestrator 席（AI・fable 5.1）」と書く）・作業場所 `.worktrees/planner-batch15`（branch `docs/batch15`・`origin/main` 2c3a631 から切った）。
 
-材料は天井の 27 周目の所見である（周 = `~/.local/share/folio2/ceiling/2026-09-23-round27/`・観点 4・審査役 opus・束は main 2c3a631 で組んだ・正は各観点の `findings.yaml`）。判定は 忠実さ **不合格**（止める 1）・整合 合格・読みやすさ 合格・実態 合格。整合は補いの審査（判断の記録 ADR-1〜7・9・10・12 を読む）で直す 4 件（F-6〜F-9）が同じ `findings.yaml` に足された（判定は合格のまま・止める 0）。`findings-all.txt` は補いの前の一覧なので使わない。所見は 27 件で、内訳は次のとおり（`findings.yaml` から数え直した）。
+材料は天井の 27 周目の所見である（周 = `~/.local/share/folio2/ceiling/2026-09-23-round27/`・観点 4・審査役 opus・束は main 2c3a631 で組んだ・正は各観点の `findings.yaml`）。判定は 忠実さ **不合格**（止める 1）・整合 合格・読みやすさ 合格・実態 合格。整合は補いの審査（判断の記録 ADR-1〜7・9・10・12 を読む）で直す 4 件（F-6〜F-9）が同じ `findings.yaml` に足された（判定は合格のまま・止める 0）。`findings-all.txt` は補いの後に作り直した一覧で、27 行とも各観点の `findings.yaml` と id・重さ・場所が一致する（正は `findings.yaml`）。所見は 27 件で、内訳は次のとおり（`findings.yaml` から数え直した）。
 
 | 観点 | 止める | 直す | 参考 |
 |---|---|---|---|
