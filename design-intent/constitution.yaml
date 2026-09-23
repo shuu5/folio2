@@ -294,7 +294,7 @@ articles:
       - {kind: scribe2-article, ref: "C8 / C8.3（前の版を物差しにしない・design-intent の変更は ADR か版付き文書）。C8.2 は P-18 へ"}
       - {kind: v1-incident, ref: "self-host の層解釈と oracle 死角に ADR 6 本（0044 / 0045 / 0050 / 0051 / 0053 / 0056）"}
       - {kind: folio2-ruling, ref: "G7=A（C8 を移行条項つきで写す）・G6=A（順序は別条）・要件書 CON4（v1 は読むだけ）"}
-    mechanism: {kind: build-check, live: M1, stage: post, polarity: fail-closed, note: folio2 の生成器・検査器が v1 の path に書き込み口を持たない（CON4）。書き込み先は呼び手が渡す出力先の指定だけだが、そのことを歯で固定してはいない（2026-09-20 時点）＝回帰を検出する口が無く、その部分の充足は「まだ分からない」として扱う（P-4.2）。v1 側の guard 設定の目視は開発規律 D-9。}
+    mechanism: {kind: build-check, live: M1, stage: post, polarity: fail-closed, note: folio2 の生成器・検査器が v1 の path に書き込み口を持たない（CON4）。書き込み先は、呼び手が渡す指定（出力先・置き場・印の置き場・CLAUDE.md の path）と、そこから決まる固定の path（例 = 置き場の下の天井の印 preview/ceiling-stamp.yaml・凍結 anchor の置き場）と、指定が無いときの既定（folio hello の 1 回きりの印は利用者ごとの状態の置き場・folio inject は呼んだ場所の CLAUDE.md・図の道具の作業は一時の置き場）で決まり、v1 の path を既定に持つ口は無い（2026-09-24 に crates/folio/src の書き込みの口を読んで確かめた・天井の 27 周目 実態 F-5）。ただしそのことを歯で固定してはいない＝回帰を検出する口が無く、その部分の充足は「まだ分からない」として扱う（P-4.2）。v1 側の guard 設定の目視は開発規律 D-9。}
     note: scribe2 は ADR-0003 で「成熟宣言 + user go」の解禁 gate を廃止した。folio2 が P-13.4 の順序を残すのは G6=A（順序は別条）の裁定による。それまでは v1 の生成器と手作業を道具として使う（CON4）。
     relations: {reqs: [CON1, CON4], rules: [D-7, D-9], articles: [A-4, P-18]}
 
@@ -385,7 +385,7 @@ articles:
     binds: both
     statements:
       - {id: A-1.1, pattern: event, strength: must, text: 既存の文書やデータを消す、外へ出す、外部の道具や鍵を使う（課金を含む）操作を行うとき、実行前に rules 行 R-8 の対話面で持ち主の確認を得る。}
-    plain: 「消す」「外に出す（公開の場所へ置くことを含む）」「外の道具や鍵を使う（お金がかかるものを含む）」の 3 つは、道具が勝手にやらず、決まった対話の場所であなたに確認してからにします。
+    plain: 「消す」「外に出す（公開の場所へ置くことを含む）」「外の道具や鍵を使う（お金がかかるものを含む）」の 3 つは、道具も、道具を作る側（AI の席や人）も勝手にやらず、決まった対話の場所であなたに確認してからにします。
     rationale:
       - {kind: scribe2-article, ref: "A1（3 クラスの操作・C7 の対話面を通す）"}
       - {kind: folio2-ruling, ref: "G8=A・G14=A（承認済み生成物の PUBLIC repo への commit は「出す」＝人手 commit 1 本を確認の上で）"}
