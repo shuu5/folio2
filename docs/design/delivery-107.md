@@ -71,7 +71,7 @@
 
 - `crates/folio/tests/face.rs`（24 本）: 面の生成の口の歯。正本の重複キーで まだ分からない を返す歯は、load の重複キーの断りを殺す変異で落ちた（起草役の変異の実測）。
 - `crates/folio/tests/bundle.rs`（19 本）・`findings.rs`（39 本）・`gate.rs`（7 本）・`stamp.rs`（11 本）・`sheet.rs`（9 本）: 層をまたいで cursor を名指していた 5 file の口の歯。
-- 単体の歯（bin の中）のうち名に face_ を含む 23 本: 字面の逃がしと id の形の歯 face_escape_and_safe_id を含む。esc の単引用符の逃がしを殺す変異と、safe_id が空白を通す変異は、**この 1 本だけが落とした**（上の 109 本は緑のまま・起草役の変異の実測）。
+- 単体の歯（bin の中・`face.rs` の歯の区画）の face_escape_and_safe_id（1 本）: 字面の逃がしと id の形を測る。esc の単引用符の逃がしを殺す変異と、safe_id が空白を通す変異は、workspace の 779 本のうち**この 1 本だけが落とした**（上の 109 本は緑のまま・起草役の変異の実測）。verify はこの 1 本を名で撃つ。絞り込みの語を名の全体にしたのは、face_ のような短い語だと、器の受付が書き込み範囲の外の歯の file（面の歯の 12 本）まで歯の file に数えて断るためである（起草役が受付の先撃ちで確かめた）。
 - 面・束・支度表・索引の出力: 起草役は base と本便の後の 2 つの binary で同じ正本から出力を作り、byte で突き合わせた（(f) の 1）。
 
 境界の歯（(e)）の土台は、実装の側の file そのもの（`crates/folio/src/*.rs` と入口の宣言）である。**これは条 P-10.1 が求める独立した凍結 anchor ではない**（同じ便・同じ書き手が同じ書き込み範囲の中で書き直す）。ADR-15 はこれを 凍結した実測 と位置づけており、本便もその位置づけのまま運ぶ。
@@ -217,7 +217,7 @@ title = "正本の cursor（取り出しの結果の型 R・正本 1 file を型
 req = ["FR4", "FR1", "FR20"]
 section = "1"
 write-set = ["-crates/folio/src/face.rs", "+crates/folio/src/cursor.rs", "crates/folio/src/main.rs", "crates/folio/src/bundle.rs", "crates/folio/src/findings.rs", "crates/folio/src/gate.rs", "crates/folio/src/stamp.rs", "crates/folio/src/sheet.rs", "crates/folio/src/site.rs", "crates/folio/src/figure.rs", "crates/folio/src/face_labels.rs", "crates/folio/src/face_srs_rtm.rs", "crates/folio/src/face_srs_items.rs", "crates/folio/src/face_adr.rs", "crates/folio/src/face_note.rs", "crates/folio/src/face_srs.rs", "crates/folio/src/face_constitution.rs", "crates/folio/src/face_index.rs", "-crates/folio/tests/modules.rs", "crates/folio/tests/face.rs", "crates/folio/tests/bundle.rs", "crates/folio/tests/findings.rs", "crates/folio/tests/gate.rs", "crates/folio/tests/stamp.rs", "crates/folio/tests/sheet.rs"]
-verify = ["cargo nextest run -p folio --test modules", "cargo nextest run -p folio --test face --test bundle --test findings --test gate --test stamp --test sheet", "cargo nextest run -p folio --bin folio face_", "cargo clippy --workspace --all-targets -- -D warnings"]
+verify = ["cargo nextest run -p folio --test modules", "cargo nextest run -p folio --test face --test bundle --test findings --test gate --test stamp --test sheet", "cargo nextest run -p folio --bin folio face_escape_and_safe_id", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "境界の歯 2 本が緑（層の割り当ての表の区切りの集合が入口の区切りの宣言の集合と src の file 名の集合にちょうど一致し、層が上がる対の集合が凍結した 8 対とちょうど一致する）、cursor を層をまたいで名指していた file と面の生成の口の歯 109 本が緑（面 24・束 19・所見 39・門 7・印 11・支度表 9 で、base と同じ本数で名も 1 つ違わない）、bin の単体の歯のうち名に face_ を含む 23 本が緑（字面の逃がしと id の形の歯を含み、base と同じ本数）、clippy が 0 警告（移した先にも元の file にも使われない定義や使われない取り込みが無い）で、workspace の nextest が 779 本すべて緑（base と同じ本数・本便は歯を足さない）で CI が通る"
+done = "境界の歯 2 本が緑（層の割り当ての表の区切りの集合が入口の区切りの宣言の集合と src の file 名の集合にちょうど一致し、層が上がる対の集合が凍結した 8 対とちょうど一致する）、cursor を層をまたいで名指していた file と面の生成の口の歯 109 本が緑（面 24・束 19・所見 39・門 7・印 11・支度表 9 で、base と同じ本数で名も 1 つ違わない）、bin の単体の歯 face_escape_and_safe_id の 1 本が緑（字面の逃がし esc と id の形 safe_id を測る・名も置き場も base と同じ）、clippy が 0 警告（移した先にも元の file にも使われない定義や使われない取り込みが無い）で、workspace の nextest が 779 本すべて緑（base と同じ本数・本便は歯を足さない）で CI が通る"
 <!-- contracts:end -->
