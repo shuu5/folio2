@@ -1,5 +1,5 @@
 # folio2 判断の記録 ADR-16 — M3 = 契約表を持つ設計ノートを、外部の利用者 1 つ（scribe2）が自分の repo で folio2 の床に掛けられる形
-# 状態: proposed（起草 2026-09-23・起草役 = orchestrator 席の係・承認欄なし）。改訂 b = 反対側からの確認（grill・判定「直してから」）と
+# 状態: accepted（発効 2026-09-23 17:39 JST・持ち主の承認・逐語「裁定は両方承認する」・🔴 1 = 本判断の発効 + 要件書 版 A + 便 7〜9 の列・🔴 2 = ADR-3 決定 (3) は改訂の対象に足さない。起草 2026-09-23・改訂 a〜d = grill 3 周と scribe2 の消費側コメント 2 周への応答・orchestrator 席 fable 5.1）
 # scribe2 の消費側のコメント（blocking 4）への応答と、両者の食い違いへの orchestrator 席の裁定 3 点の反映。
 # 出所 = scribe2 からの移行の依頼への folio2 席の回答 ~/.local/share/folio2/handoff-2026-09-23/scribe2-migration-reply.md の §1「M3 の最小の口」と、
 # 事実の一覧 同 dir の migration-facts.md。grill の記録 = 同 dir の adr16-grill.md。scribe2 のコメント = 同 dir の scribe2-adr16-comments.md。
@@ -9,7 +9,7 @@
 id: ADR-16
 title: M3 は「契約表を持つ設計ノートを外部の利用者 1 つが自分の repo で床に掛けられる」に限り、1 つの組み立てのまま、列の根を憲法の名ごとの表に広げ、値域と部品目録は道具の側に残す
 
-status: proposed
+status: accepted
 date: 2026-09-23
 
 plain: |
@@ -462,10 +462,11 @@ retreat:
     「同じ」とみなすのは（撤退条件の番号・数えられなかった理由・対象の便）の 3 つ組が一致する回である。
     この 2 回は本判断が自分で置く数で、規則の表の行 R-7 の繰り返し上限とは母集団が違う。
 
+approval: {who: 持ち主, date: 2026-09-23, ruling: f2-648 notes 2026-09-23 17:39 JST（発効の承認・🔴 1〔本判断の発効と要件書 版 A と便 7〜9 の列〕と 🔴 2〔ADR-3 決定 (3) を改訂の対象に足さない〕への回答・どちらも推奨どおり）, verbatim: 裁定は両方承認する, surface: R-8}
 note: |
   【出所】scribe2 からの移行の依頼（台帳 s2-07l.214 を畳むため・持ち主の指示）への folio2 席の回答
   ~/.local/share/folio2/handoff-2026-09-23/scribe2-migration-reply.md の §1 と、事実の一覧 migration-facts.md。
-  本判断は起草（提案中）で、発効には持ち主の承認が要る。
+  本判断は 2026-09-23 17:39 JST に持ち主が承認し発効した（承認欄・逐語「裁定は両方承認する」）。要件書の版 A（第 1.31 版）は同じ承認で出した。
 
   【起草の依頼との差】依頼の案は「binary に焼かれている 3 つ（列の根・憲法の値域・部品目録）を repo ごとの設定へ移す」だった。
   src と写しの repo の実測で確かめた結果、移すのは列の根だけに絞り、しかも repo の側の data でなく道具の側の表に置いた。
