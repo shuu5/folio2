@@ -7,6 +7,7 @@
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 7 本を base の binary（main ed966c1）で `folio ceiling --gate` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。
 - 前の便: 前提は ADR-23 の発効の取り込み（憲法 第 1.4 版）で、本流 ed966c1 に着地済み。**base = main ed966c1。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
 - 並行の便との重なり: 便 131（行 `ed`・folio check の 1 行）とは write-set が 1 本も重ならない。起草役は両便を base に同時に当てた写しで workspace の nextest が全部緑（参考値 866 本）・床 4 本 rc 0 を実測した。席は便 131 → 本便の順で逐次に受け付ける（`crates/folio/tests/sheet.rs` の一時 dir は process id を持たず、同じ host で 2 本の共通の検証を同時に撃つと偶発の Failed が出うる・便 129 / 130 の検証役の実測）。ADR-23 決定 (4) により、便 131 と本便の 2 本が着地するまで本流の上で天井の周の束を組まない。
+- 改訂 b（2026-09-25・独立の検証 d131-verify.md〔条件付き支持・blocking 1 は便 131 の側・文面 4〕と席の裁定）: done の塊を verify の 7 行と 1 対 1 に揃えた（凍結 anchor との byte 一致を face・badge・site の 3 つの塊に分けた・文面 1）。(i) の 2 に、種別が human-review か none で now でない条ができた日の問い直しを席が台帳の控えに起こすことを足した（文面 4）。write-set（7 本）・歯・verify（7 行）・size は変えていない。
 
 ## 1. 設計
 
@@ -79,7 +80,7 @@
 
    2 本とも余地は S の見積 100 を超える。
 3. **size は S。** src の増分は数行の見積。
-4. **verify は 7 行**で、done の塊と 1 対 1 に揃える。
+4. **verify は 7 行**で、done の 7 つの塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --test face_constitution f132_` = (c) の 1 の歯 1 本。
    2. `cargo nextest run -p folio --test face_constitution` = 面の憲法の歯の全部（f84 を含む・参考値 15 本）。
    3. `cargo nextest run -p folio --bin folio face_labels_are_frozen_needles` = 名札の表の単体の歯 1 本。
@@ -106,7 +107,7 @@
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
 1. **運ばないもの。** folio check の 1 行（便 131）。憲法の schema 節の段の意味（schema.mechanism_live_meaning の「M1 = M1 で実在する」）と 6 本の条の段の値（ADR-23 決定 (1) ⑤ で変えない）。6 本の条の機構そのもの。機械のための面の字。ほかの面。部品目録と部品の名札（class）。台帳への記帳（席）。外部 crate。
-2. **言えないこと。** 次の天井の周が、新しい名札を第 1.4 版の規則の「面の機構の欄に条ごとに表に出す」の充足と読むかは、確率的な審査なので言えない（ADR-23 の撤退条件 (3)）。種別が human-review か none で live が now でない条が将来できたとき、その名札も「機構がまだ無い」になる（規則が数えるのは reject と build-check だけ）。今は実の正本にも fixture にも 0 本で、できたときに名札の字を問い直す（(d) の 3）。
+2. **言えないこと。** 次の天井の周が、新しい名札を第 1.4 版の規則の「面の機構の欄に条ごとに表に出す」の充足と読むかは、確率的な審査なので言えない（ADR-23 の撤退条件 (3)）。種別が human-review か none で live が now でない条が将来できたとき、その名札も「機構がまだ無い」になる（規則が数えるのは reject と build-check だけ）。今は実の正本にも fixture にも 0 本で、できたときに名札の字を問い直す（(d) の 3）。この問い直しは散文だけに置かず、席が台帳の控えに起こす。便 131 の行の側は、同じ組を便 131 の歯 1 が決定的に数える。
 3. **撤退条件。** (1) 本便の後に (e) の 1 の 4 本の外の既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(2) 本便の後に `folio build` の出力が憲法の面の機構の小窓の外で 1 byte でも変わったら、止めて席へ返す。(3) 受付の時点の main で、face_labels.rs の 2 関数・face_constitution.rs の小窓の組み方・面の凍結 anchor・憲法の条の機構の欄が base と違っていたら、base を取り直して (a)(b) の字と凍結 anchor を作り直してから運ぶ。(4) 本便が着地できない（契約の審査で落ちる・行 R-7 の回数を超えて失敗する）ときは、席が ADR-23 決定 (4) の順（2 本の着地の後に周を組む）を持ち主に問い直す。
 
 ## 2. 範囲
@@ -145,5 +146,5 @@ section = "1"
 write-set = ["crates/folio/src/face_labels.rs", "crates/folio/src/face.rs", "crates/folio/tests/face_constitution.rs", "tests/fixtures/face/expected.html", "crates/folio/tests/face.rs", "crates/folio/tests/badge.rs", "crates/folio/tests/site.rs"]
 verify = ["cargo nextest run -p folio --test face_constitution f132_", "cargo nextest run -p folio --test face_constitution", "cargo nextest run -p folio --bin folio face_labels_are_frozen_needles", "cargo nextest run -p folio --test face face_write_matches_the_frozen_fixture", "cargo nextest run -p folio --test badge badge_faces_without_the_mark", "cargo nextest run -p folio --test site site_write_matches_the_frozen_fixture", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "face_constitution の f132_ の歯 1 本（実の design-intent の憲法の面で、live が now でない値ごとに 機構がまだ無い（床は判定しない・憲法の段の値は <値>）の名札を持つ小窓の数が正本のその値の条の数と等しく、どの小窓の名札の部分にも まだ分からない と古い名札 4 つが無い）が緑、face_constitution の歯の全部（名札の数え上げを機構の注の前に限った f84 を含む）が緑、名札の表の単体の歯が §1 (b) の 1・2 の字で緑、面の凍結 anchor との byte 一致の歯 3 本（face・badge・site）が §1 (b) の 5 の 2 か所を直した凍結 anchor で緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）を返し、folio build の出力は憲法の面の 6 本の条の機構の小窓の外で変わらない"
+done = "face_constitution の f132_ の歯 1 本（実の design-intent の憲法の面で、live が now でない値ごとに 機構がまだ無い（床は判定しない・憲法の段の値は <値>）の名札を持つ小窓の数が正本のその値の条の数と等しく、どの小窓の名札の部分にも まだ分からない と古い名札 4 つが無い）が緑、face_constitution の歯の全部（名札の数え上げを機構の注の前に限った f84 を含む）が緑、名札の表の単体の歯が §1 (b) の 1・2 の字で緑、§1 (b) の 5 の 2 か所を直した面の凍結 anchor との byte 一致の歯（face）が緑、名札の無い面の凍結 anchor との byte 一致の歯（badge）が緑、組み立ての出力の凍結 anchor との byte 一致の歯（site）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）を返し、folio build の出力は憲法の面の 6 本の条の機構の小窓の外で変わらない"
 <!-- contracts:end -->
