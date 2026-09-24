@@ -5,8 +5,8 @@
 - 出所: 判断の記録 **ADR-16**（発効 2026-09-23 17:39 JST・持ち主の承認・対話面 R-8・逐語「裁定は両方承認する」・裁定 id = 台帳 f2-648 notes 2026-09-23 17:39 JST）の決定 (2)(ウ)「憲法の値域は、組み立て時の導出のまま道具の側に残す（判断の記録 ADR-11 決定 (4)② を変えない）」「床に置き場の憲法の値域の節の各鍵が、組み立てた版の同じ鍵の部分集合かを数える口を足す」「部分集合でない鍵が 1 つでも在れば組み立て時の値域に無い値があるの「まだ分からない」にする（条 P-4.2）」と、決定 (7) の便の列の **③「値域の部分集合を床で数える（小・1 便）」**。文脈 (3)(ウ) の実測（床は条の値を組み立てた型で引くので、利用者の憲法が別の値を宣言して使うと「憲法の値域に無い」の違反になる・照合先は利用者の憲法ではなく道具を組み立てた folio2 の憲法）が、この便の直す先である。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `du` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 4 本。**新しい file は 2 本で、先頭に `+` を付けて宣言する**（歯の file 1・手書きの凍結 anchor 1）。どちらも既に在る dir（`crates/folio/tests/` と `tests/fixtures/check/`）に置き、**新しい dir は作らない**。**縮む file も消す file も無い**（床の凍結の場合の file は行数が変わらない）。`~` は使わない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 4 本をそのまま `folio ceiling --gate --write-set …` に渡した実測は **0（通す・断りの字 = 設計文書の正本を書き換えない便）**（2026-09-24・本便の後の binary）。規則の表の開発規律行 D-12 は当たらない。
-- 前の便: ADR-16 決定 (7) の順は ① → 版 B → ② → ③ → ④。① は便 117（行 `dp`・着地）、⑤ は便 119（行 `dr`・着地 main c33ee44）。② は便 121（起草中・別の起草役）。**base = main c33ee44。この契約の数はすべて base c33ee44 の実測（参考値）である**（規則の表の行 D-13）。
-- 並行の便との重なり: `crates/folio/src/check.rs` は便 ④（delivery-123〜・起草中）の実測 patch も触る。④ が書き換えるのは要件書と語彙の最上位の節の床の定数の注 2 か所（生成区間の注から条 N-3 の id を外す）だけで、本便の書き換える箇所（頭の注・use の 1 行・check_dir の憲法の段・check_constitution・check_article_enums）とは 1 hunk も重ならない。便 ②（delivery-121）の write-set は起草中で、check.rs を含むかは起草役が確かめている。**write-set が check.rs で重なる便とは並べて運ばず、ADR-16 決定 (7) の順（② → ③ → ④）で 1 本ずつ運ぶ。受付の時点で ② が先に着地していたら、base を着地の sha に取り直す改訂を先に入れる**（§1 (i) の撤退条件 (3)）。本便は ②（列の根の表・始まりの凍結・`crates/folio/src/freeze.rs`・`crates/folio/src/lineage.rs`・判断の記録の欄の決まりの写し）と ④（骨格の命令・案内の 1 行・`crates/folio/src/note.rs`・`crates/folio/src/face_note.rs`）の file には踏み込まない。
+- 前の便: ADR-16 決定 (7) の順は ① → 版 B → ② → ③ → ④。① は便 117（行 `dp`・着地）、⑤ は便 119（行 `dr`・着地 main c33ee44）。② は便 121（行 `dt`・起草中・別の起草役）。**base = main c33ee44。この契約の数はすべて base c33ee44 の実測（参考値）である**（規則の表の行 D-13）。
+- 並行の便との重なり: `crates/folio/src/check.rs` は便 ④（delivery-123〜・起草中）の実測 patch も触る。④ が書き換えるのは要件書と語彙の最上位の節の床の定数の注 2 か所（生成区間の注から条 N-3 の id を外す）だけで、本便の書き換える箇所（頭の注・use の 1 行・check_dir の憲法の段・check_constitution・check_article_enums）とは 1 hunk も重ならない。便 ②（delivery-121・行 `dt`）は check.rs も `tests/floor_cases.yaml` も触らず（置き場の憲法の名は `crates/folio/src/adr.rs` の側で読む・便 ② の起草役の確認 2026-09-24）、本便の write-set 4 本とは 1 本も重ならない。**write-set が check.rs で重なる便 ④ とは並べて運ばず、ADR-16 決定 (7) の順（② → ③ → ④）で 1 本ずつ運ぶ。受付の時点で main が base から進んでいたら、base を取り直す改訂を先に入れる**（§1 (i) の撤退条件 (3)）。本便は ②（列の根の表・始まりの凍結・`crates/folio/src/freeze.rs`・`crates/folio/src/lineage.rs`・判断の記録の欄の決まりの写し）と ④（骨格の命令・案内の 1 行・`crates/folio/src/note.rs`・`crates/folio/src/face_note.rs`）の file には踏み込まない。
 
 ## 1. 設計
 
@@ -150,7 +150,7 @@
 
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
 - 前提の着地: 要件書の版 B（第 1.34 版・FR25 / AC22）。ADR-16 決定 (7) の順で便 ②（delivery-121）の後。
-- 並行の便: 便 ②（delivery-121・起草中）と便 ④（delivery-123〜・起草中）は `crates/folio/src/check.rs` を触りうる・触る。hunk は重ならないが write-set が重なるので、ADR-16 決定 (7) の順に 1 本ずつ運ぶ（§0 の 並行の便との重なり）。
+- 並行の便: 便 ②（delivery-121・行 `dt`）とは file が 1 本も重ならない。便 ④（delivery-123 の行 `dv`・delivery-125 の行 `dx`）は `crates/folio/src/check.rs` の要件書と語彙の床の木の注 2 か所を触る。hunk は重ならないが write-set が重なるので、ADR-16 決定 (7) の順に 1 本ずつ運ぶ（§0 の 並行の便との重なり）。
 - 本便の着地の後に席が見ること: 版 B の次の要件書の版で AC22 の固定の材料の字を本便の歯の file と凍結 anchor の名に（(i) の 1）。retreat_kind の並びの一致を部分集合に揃えるかどうか（(i) の 2）。
 - 後の便への申し送り: folio2 の憲法の値域から値を外すか名を変える改訂（判断の記録と持ち主の承認が要る）は、凍結 anchor `tests/fixtures/check/enum-range-anchor.yaml` と、`crates/folio/tests/constitution_range.rs` の変異の当て先の行（値域の 3 行・条 P-1 の機構・条 P-1.2 と P-2.1 の規範文の頭）を同じ便で直す。値を足す改訂は anchor の 1 つ目の比較を落とす（anchor が実の値域と一致しなくなる）ので、同じく anchor に値を足す。
 
