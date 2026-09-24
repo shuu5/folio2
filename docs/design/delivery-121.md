@@ -227,6 +227,7 @@
 - 前提の着地: ADR-15 の列・一括 14・要件書の版 A（第 1.31 版）・便 ①・便 119・便 120。**受付は版 B（要件書 第 1.34 版）の着地の後**（FR23・FR24 の id）。
 - 並行の便: 便 ③（delivery-122）とは write-set が重ならない。便 ④（delivery-123）とは `crates/folio/src/main.rs`、④-2（delivery-125）とは `crates/folio/src/main.rs` と `crates/folio/src/schema.rs` が重なる＝ADR-16 決定 (7) の順で本便が先に着地し、④ の側が base を取り直す。
 - 便 ④-2 の起草への申し送り: 骨格の命令が判断の記録の欄の決まりの生成区間を書くときは、本便の名つきの導出を利用者の憲法の名で呼ぶ（書いた直後の写しの列の根の欄は空の表の 1 行）。骨格を書いた直後の置き場は 2 つの基準がどちらも無いので始まりの凍結（--freeze-start）の対象になるが、表に利用者の行が無いので、凍結は digest の全桁を出して断る（その値で便 ⑦ を起こす・要件 FR24 の注のとおり）。
+- 便 ④-2 が呼ぶ関数の形（本便が足す・名は散文で書く）: `crates/folio/src/floor.rs` に足す名つきの導出の関数 derive_for は、床の木（Floor の参照）と置き場の憲法の名（字の参照か無し）を受けて生成区間の本文（「schema:」の行から末尾の改行まで・今の導出の関数 derive と同じ体裁）を返す pub の関数で、名が無しなら derive と同じ字を返す。`crates/folio/src/adr.rs` に足す place_name は置き場の dir を受けて constitution.yaml の meta.id を字で返し、読めなければ理由の字を返す pub(crate) の関数。`crates/folio/src/schema.rs` は判断の記録の欄の決まり（adr/schema.yaml）だけを名つきで導き、ほかの 8 本は名を使わない。骨格の命令は、書いた骨格の憲法の名で derive_for を呼べば、`folio schema --write` と同じ写し（表に行の無い名なら root_digests の空の表）を書ける。
 - 便 ⑦（列の根の表に利用者の行を足す）の起草への申し送り: 足すのは `crates/folio/src/floor_adr.rs` の表の 1 行と、利用者の置き場の写し（利用者の repo の側で `folio schema --write`）。folio2 の側の写し（`design-intent/adr/schema.yaml` の生成区間と凍結 anchor と歯の置き場の写し 17 本）は、置き場の名の行だけなので 1 byte も動かない（歯 1 と歯 7 が当てる）。
 - 本便の着地の後に席が見ること: 要件 FR23・FR24 の注の「この要件の口は未実装である」と旗の名・AC20・AC21 の固定の材料の注（着地の後の要件書の版）・行 D-12 の門の裁定の記帳。
 
