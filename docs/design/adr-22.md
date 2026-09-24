@@ -1,7 +1,7 @@
 # 判断の記録 ADR-22 の承認要求 — 契約表を「M1 で移す」とした古い順序を閉じる（ADR-3 の決定 (8) を狭める）
 
-- 状態: **承認待ち**。起草 2026-09-24・改訂 b・c 2026-09-24・orchestrator 席 fable 5.1 の起草役。
-- 正本: `design-intent/adr/ADR-22.yaml`（status: proposed）。反証の試み: 独立の検証役の検証 `~/.local/share/folio2/handoff-2026-09-24/adr22-verify.md`（別の文脈・opus 5.5・**総合 条件付き支持**・blocking 1・文面 6・低い重さ 5）と、起草役の自己反証 `docs/design/adr-22-grill.md`。改訂 c で blocking と文面を全部当てた（当て方の一覧は grill の §7）。起草の記録: `~/.local/share/folio2/handoff-2026-09-24/adr22-draft.md`。
+- 状態: **承認済み・発効（2026-09-25 07:03 JST「すべて承認する」・裁定 id = 台帳 f2-648 notes 2026-09-25 07:03 JST・対話面 R-8・問 1 = 案 a・一括 19 と同じ承認）**。起草 2026-09-24・改訂 b〜e 2026-09-24・orchestrator 席 fable 5.1 の起草役。§3 の欄は枝 `docs/batch19` の発効の記帳の commit で書いた（要件書の版上げ #8 は一括 19 の記帳・台帳の行 #11・#12 は席が書く）。
+- 正本: `design-intent/adr/ADR-22.yaml`（status: accepted）。反証の試み: 独立の検証役の検証 `~/.local/share/folio2/handoff-2026-09-24/adr22-verify.md`（別の文脈・opus 5.5・**総合 条件付き支持**・blocking 1・文面 6・低い重さ 5）と、起草役の自己反証 `docs/design/adr-22-grill.md`。改訂 c で blocking と文面を全部当てた（当て方の一覧は grill の §7）。起草の記録: `~/.local/share/folio2/handoff-2026-09-24/adr22-draft.md`。
 - 起点: 天井の 32 周目（本流 `68196cf`）の文書どうしの整合 F-1（止める・反証で支持）。同じ根の F-2（要件書 CON8 の頭の文）と F-3（要件書 M3 の範囲の節の問う句）も、承認の後の字の直し（§3）で一緒に解く。
 - 枝: `docs/adr22` は本流 `68196cf`（ADR-21 の発効・PR #309）の上に在る。
 - 規則の表の行 D-14 の止める場合のうち「判断の記録の発効が要る」に当たる。**一括 19（枝 `docs/batch19`）と同じ回で承認を求める。**
