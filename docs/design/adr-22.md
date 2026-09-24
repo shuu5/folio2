@@ -145,6 +145,9 @@ ADR-3 の平易文は 1 行の文字列なので、末尾に続けて足す。
 | 本枝の床 4 本 | `check` 合格（違反 0・まだ分からない 0）・`schema --check`・`derive --check`・`inject --check` rc 0 |
 | 本枝の歯 | `cargo nextest run --workspace` 861 / 861 |
 | 承認の後の模擬（#1〜#7・#9） | 床 4 本 rc 0（合格・違反 0・まだ分からない 0）・`cargo nextest run --workspace` 861 / 861 |
+| 改訂 c の後の本枝（`8ef06c9`） | 床 4 本 rc 0（合格）・`cargo nextest run --workspace` 861 / 861 |
+| 改訂 c の後の模擬（本枝 + #1〜#7・#9） | 床 4 本 rc 0（合格）・861 / 861 |
+| 一括 19（`5b913f0`）に本枝の 6 commit を載せて模擬を当てた写し | 床 4 本 rc 0（合格）・861 / 861。ADR-16 の注は 一括 18 → ADR-21 → 一括 19 → ADR-22 の段の順になった |
 
 ## 6. まだ分からないこと
 
