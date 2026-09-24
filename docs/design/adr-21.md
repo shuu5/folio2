@@ -79,6 +79,8 @@
 | 14 | `docs/design/state.md` | 判断の記録の行・次の一手 | ADR-21 の発効と、M3 の出口の相手が v3 の置き場になったこと |
 | 15 | scribe2 席への返し | `~/.local/share/folio2/handoff-2026-09-24/` の file | お願い 2 の 3 論点を閉じたこと（版管理の外・口座名を書かない） |
 
+- #1〜#3・#5〜#9・#12 を写しの上で当てて床を撃つと、合格（違反 0・まだ分からない 0）で、`schema --check`・`derive --check`・`inject --check` は rc 0 だった（模擬の script `~/.local/share/folio2/handoff-2026-09-24/adr21-scripts/post_approval_sim.py`・土台 `339770d`・要件書の版上げ #10 と行 R-16 の裁定の欄は当てていない・#2 と #5 は段を短くした字で当てた）。
+
 ## 4. 文案（承認の後に正本へ入れる字）
 
 ### 1. ADR-16 の注の末尾の段（#2）
