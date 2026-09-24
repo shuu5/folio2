@@ -4,13 +4,15 @@
 - 条: P-5.1・P-5.6（規則・型の一覧は実装の型付きの定数に置き、その写しを設計文書の置き場へ決定的に導出する＝規範の欄の一覧の正本は天井の床の定数・写しは天井の正本の生成区間）/ P-15.2（止める仕掛けの判定の式は同じ関数で確かめる＝印と門が同じ 1 つの関数で引き金の要約値を測る）/ P-4.1・P-4.2（測れない・数えられないを「異常なし」にしない・読まれていない字を「まだ読まれていない」として表に出す）/ P-3.3（床の合格を天井の合格として扱わない）/ P-10.1・P-10.2（独立した凍結 anchor・生成物どうしの突き合わせを唯一の合格判定にしない）/ P-6.2（生成物を手で直さない＝印は周の後に席が --stamp で書き直す）
 - 出所: 判断の記録 **ADR-18**（案 a・発効 2026-09-24 11:51 JST・持ち主の承認・対話面 R-8・逐語「全部推奨で」・裁定 id = 台帳 f2-648 notes 2026-09-24 11:51 JST）の決定 (1)「周の引き金を規範の欄の要約値が変わることに絞る。規範の欄は 5 つの閉じた一覧。一覧の正本は実装の型付きの定数に置き、天井の正本の末尾の生成区間へ写しを導出する」・決定 (4)「印に引き金の要約値の欄を足す。印と門は同じ 1 つの関数で引き金の要約値を測る」・決定 (5)「門の式を改める。通すときに印の正本の要約値が今と違えば、理由の行に印の後に引き金の外の変更が在る（節点 k 個・次の引き金の周が読む）を添える」と、決定 (7) と判断の記録の承認要求 docs/design/adr-18.md §5 の便の見積の **便ア**（規範の欄の型付きの定数と引き金の要約値の関数・印の欄・門の式と理由の行・天井の正本の生成区間への導出・歯と凍結の写し・size M）。台帳 f2-648.145（ADR-13 の便の列の ⑤ の 2 本目・周の引き金の判定の口）は本便が置き換える（台帳の書き換えは席）。規則の表の開発規律行 D-11 は、この行と契約表の行の title が ADR-18 と裁定 id を名指すことで満たす。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `dy` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 37 本。**新しい file は無い**（`+` は当たらない）。縮む file も消す file も無く（`-` は当たらない）、新しい dir も作らない。`~` は使わない。
-- 門: 本便は天井の正本 `design-intent/ceiling.yaml` の生成区間を書き換えるので天井の門の対象である。起草役が base 694751e の作業ツリーで write-set 37 本（接頭辞なし）を `folio ceiling --gate --dir design-intent --write-set …` に渡すと **2（まだ分からない・断りの字は 印が古い）**（2026-09-24・main の binary〔src は 628c547 と同じ〕）。src の 1 本（`crates/folio/src/gate.rs`）だけを渡すと 0（通す・設計文書の正本を書き換えない便）。印（design-intent/preview/ceiling-stamp.yaml）は天井の 28 周目のもので、その後の判断の記録 ADR-17 の着地と ADR-18 の起草と発効で正本が変わったので古い。受付の時点の main で撃ち直す。**印が古いままなら、規則の表の行 D-12 の持ち主の裁定の前例（2026-09-22 00:0x JST・対話面 R-8・台帳 f2-648 notes・便 101・103・117・119・123 で当てた裁定）を席が当てて受付ける**（判断の記録 ADR-19 決定 (4) はこの前例を本便の着地の時点で置き換えるので、本便の受付の時点ではまだ有効）。当てたときは、受付のときに席がその裁定 id を台帳の notes に記帳する（§1 (h)）。
-- 前の便: **base = docs/adr18 の 694751e（main 628c547 + 判断の記録 ADR-18 の起草）。この契約の数はすべて参考値である**（規則の表の行 D-13）。main はその後に dc16faf（判断の記録 ADR-17 の発効）へ進んだが、`crates/` の差は歯の file 1 本の 1 行だけで、本便の write-set の 37 本はどれも 628c547 から変わらない。**受付は判断の記録 ADR-18 の発効（要件書 第 1.36 版・規則の表の行 D-12・語彙・天井の正本 v0.15 の取り込み）が main に着地した後**に、その main で数え直す。判断の記録 ADR-19 の撤退条件を数える期間の起点は本便の着地の時刻である（ADR-18 の撤退条件の窓は、本便の着地の後に引き金の要約値を持つ印が初めて付いた時刻から 7 日）。便イ（便 127・面の天井の名札の添え書き・`crates/folio/src/face.rs`）は本便の着地の後に受付ける。
+- 門: 本便は天井の正本 `design-intent/ceiling.yaml` の生成区間を書き換えるので天井の門の対象である。起草役が base main ee714d7 の作業ツリー（本便の枝）で write-set 37 本（接頭辞なし）を `folio ceiling --gate --dir design-intent --write-set …` に渡すと **2（まだ分からない・断りの字は 印が古い）**（2026-09-24・main ee714d7 で build した binary）。src の 1 本（`crates/folio/src/gate.rs`）だけを渡すと 0（通す・設計文書の正本を書き換えない便）。印（design-intent/preview/ceiling-stamp.yaml）は天井の 28 周目（合格）のもので、29 周目は合格でなく印を付け直していない。その後の判断の記録 ADR-17・ADR-18・ADR-19 の発効と一括 16 で正本が変わったので古い。受付の時点の main で撃ち直す。**印が古いままなら、規則の表の行 D-12 の持ち主の裁定の前例（2026-09-22 00:0x JST・対話面 R-8・台帳 f2-648 notes・便 101・103・117・119・123 で当てた裁定）を席が当てて受付ける**（判断の記録 ADR-19 決定 (4) はこの前例を本便の着地の時点で置き換えるので、本便の受付の時点ではまだ有効）。当てたときは、受付のときに席がその裁定 id を台帳の notes に記帳する（§1 (h)）。
+- 前の便: **base = main ee714d7（判断の記録 ADR-17 の発効・一括 16・ADR-18 の発効〔16ed6a2〕・ADR-19 の発効〔2df6d80・規則の表の行 D-14 新設・要件書 第 1.37 版〕・便 125 の着地〔骨格の命令 folio init・ee714d7〕の後）。この契約の数はすべて参考値である**（規則の表の行 D-13）。改訂 b で起草の土台 694751e（ADR-18 の起草の枝）から載せ替え、数を全部 ee714d7 で数え直した。628c547 から ee714d7 までに変わった `crates/` のうち write-set に在るのは `crates/folio/src/main.rs`（便 125 の命令 init・門の呼び出しの周りは変わらない）だけで、ほか（src の hello.rs・init.rs と歯の file）は write-set の外である。design-intent のうち write-set に在る design-intent/ceiling.yaml は生成区間の外（頭の注・v0.15・承認欄の 2 行）だけが変わった。生成区間・要件 FR20 の規範文・受入基準 AC18 は第 1.37 版でも第 1.36 版と同じ字で、§1 の設計は動かない。受付の時点の main で数え直す。
+- **ADR-19 との時刻の点:** 判断の記録 ADR-19 の撤退条件を数える期間の起点と、2026-09-22 00:0x JST の持ち主の裁定（印が古くても設計文書の便を門を経ずに出す）の置き換え（ADR-19 決定 (4)・規則の表の行 D-14 の注）は、どちらも本便の着地の時刻である（ADR-18 の撤退条件の窓は、本便の着地の後に引き金の要約値を持つ印が初めて付いた時刻から 7 日）。便イ（便 127・面の天井の名札の添え書き・`crates/folio/src/face.rs`）は本便の着地の後に受付ける。
 - 分割: **1 便で運ぶ。** 決定 (4)(5) は「印と門が同じ 1 つの関数で測る」ことが肝で、関数と印の欄と門の式を別の便に割ると、印に欄が在って門が読まない（または逆の）木が main に着地する。§1 (g) の余地の表のとおり、触る src の 6 本はどれも size M の見積 300 を上回る余地を持つ（最も狭いのは `crates/folio/src/anchor.rs` で参考値 467・本便はそこを 1 行しか触らない）。
+- 改訂 b（2026-09-24・独立の検証 d126-verify.md〔条件付き支持・blocking 1・文面 6・低い重さ 4〕への直し）: 枝を main ee714d7（便 125 の着地の後）へ載せ替え（差分は本 file 1 本）、base と参考値を ee714d7 で数え直した（余地・写しの本数 20・区間の byte・歯の数 835・発効した判断の記録 19 本・生成区間の波及 5 本）。文面 1〜6 と低い重さ 1〜4 を全部当てた（§1 (b)(c)(e)(g)(h) と §0）。write-set（37 本）・歯の本数（9）・verify（10 行）は変えていない。done は歯 8 の見る字を足した。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・base 694751e）
+### (a) いま起きていること（実測・base main ee714d7）
 
 1. **引き金は型付きの欄として無く、門の式の中に在る。** 門（`crates/folio/src/gate.rs` の run）は、印の欄 sources（観点の reads が指す文書の file の全文を `<dir>` からの相対 path の byte 順に連結した sha256・同じ file の sources_digest）が今の正本の同じ値と違えば 2（印が古い）を返す。だから注や平易文が 1 字変わっても、設計文書を書き換える次の便の前に周が要る。印（`crates/folio/src/stamp.rs` の derive）は sources を門と同じ関数で測る（便 104）。印の欄は閉じた一覧 round・at・verdict・sources・faces・viewpoints・refutes・reads・rest・nodes で、引き金の欄は無い。
 2. **天井の正本の生成区間に引き金の一覧は無い。** 天井の床の定数（`crates/folio/src/ceiling.rs` の FLOOR）の最上位は 16 欄（top_level から refute_note まで・注 8 つ）で、`folio schema --write` がそれを design-intent/ceiling.yaml の末尾の生成区間へ写す。凍結 anchor は `tests/fixtures/schema/ceiling-region.txt`（参考値 27 行・3,176 byte）。
@@ -62,12 +64,12 @@
    1. 文書の id を天井の正本の documents の行（同じ file の documents）で file に解く。
    2. 各文書を型付きで読む（`crates/folio/src/cursor.rs` の load と同じ読み＝無い・読めない・UTF-8 でない・重複キー・parse できないは Err）。
    3. 写しの木を組む。最上位は文書の id を鍵にした表で、値は次のとおり。欄や節が無いときは null。行の一覧の節が一覧でない・行が表でないときは Err。
-      - constitution: anchor.rs の project を範囲 articles だけで呼んだ結果（articles を鍵にした表）。**anchor.rs の変更は project を crate の中で見える関数にする 1 行だけ**で、写しの式は 1 字も変えない。
-      - adr: 置き場の adr の file（dir 形）の直下の .yaml を名の byte 順に読み、状態が adr の status の値のどれかで承認欄 approval が表のもの（anchor.rs の is_effective と同じ判定）だけを、fields の欄の表にして並べた一覧。
+      - constitution: anchor.rs の project を範囲 articles だけで呼んだ結果（articles を鍵にした表）。**anchor.rs の変更は project を crate の中で見える関数にする 1 行だけ**で、写しの式は 1 字も変えない。この形では articles と条の statements が無いときは null でなく空の一覧になる（project の今の式・独立の実装もこれに合わせる）。
+      - adr: 置き場の adr の file（dir 形）の直下の .yaml を、名 schema.yaml（判断の記録の欄の決まり・adr.rs と mentions.rs も外す）を除いて名の byte 順に読み、状態が adr の status の値のどれかで承認欄 approval が表のもの（anchor.rs の is_effective と同じ判定）だけを、fields の欄の表にして並べた一覧。**この判定は ADR-18 決定 (1) ② の字（状態が accepted か retired）より承認欄の 1 条件だけ狭いが、床が合格の木では同じ集合になる**（承認欄の無い accepted は床が落とす・凍結の土台 tests/fixtures/adr/effective-no-approval）。
       - srs と ceiling: 行の一覧の節は、節の名を鍵に、各行を欄の表にした一覧（行の順は正本の順）。whole の節は、節の名を鍵に、正本の木を丸ごと。点を含む欄（red_test.sentence）は入れ子を辿った値で、鍵は点を含む字のまま。
       - rules: sections の各節の名を鍵に、各行を fields の欄の表にした一覧。
    4. 写しの木を型付きの木の正規化（`crates/folio/src/yaml.rs` の canonical・キー順固定・空白なし・非 ASCII はそのまま・json の字面）の字にし、その byte の sha256 を「sha256 <16 進 64 字>」の形で返す（sources と同じ形）。
-4. **folio2 自身で測れる。** 起草役が式を PyYAML で写した見積の script（repo に入れない・§1 (j)）で base の design-intent に当てると組め、発効した判断の記録 16 本（ADR-18 は base では proposed）と 4 文書の写しを数えた。凍結の土台 `tests/fixtures/ceiling/bundle/source/` にも当てて組める（判断の記録 2 本はどちらも proposed なので adr は空の一覧）。
+4. **folio2 自身で測れる。** 起草役が式を PyYAML で写した見積の script（repo に入れない・§1 (j)）で、base main ee714d7 の design-intent に (b) の 2 の 18 行を足した写しへ当てると組め、発効した判断の記録 19 本（参考値・ADR-19 までの 19 本）と 4 文書の写しを数えた。凍結の土台 `tests/fixtures/ceiling/bundle/source/` にも当てて組める（判断の記録 2 本はどちらも proposed なので adr は空の一覧）。
 
 ### (c) 直す先 — 印の欄と門の式
 
@@ -82,6 +84,7 @@
    7. 今の正本の要約値（sources_digest）が測れない → 2（今と同じ理由の字）。印の sources と同じ → 0「印が 4 観点とも合格・引き金の要約値が同じ・正本の要約値が同じ」。
    8. 違う → 印の欄 nodes と rest を読み、今の正本の節点ごとの要約値の表と残差の要約値と突き合わせる。印の nodes が読めない → 2「印の節点の表が読めない」。今の表が組めない → 2「印の後に変わった節点が数えられない: <理由>」（P-4.1＝数えられないものを数えずに通さない）。組めたら 0「印が 4 観点とも合格・引き金の要約値が同じ・印の後に引き金の外の変更が在る（節点 k 個・次の引き金の周が読む）」。k は、印の表と今の表の片方にだけ在る id と、両方に在って要約値が違う id の数の和。残差の要約値も違うときは括弧の中を「節点 k 個と節点の外の字・次の引き金の周が読む」にする（節点の外だけが変わると k が 0 になるので、0 個とだけ言って黙らない・P-4.2）。
    - 字「印が古い」と「正本の要約値が同じ」は今の理由の字に在り、残す（既存の歯と席の受付の手順が読む）。
+   - **4・7・8 の 2（引き金の要約値が測れない・正本の要約値が測れない・節点の表が読めない / 組めない）は、要件 FR20 の 3 値の列挙の外で、条 P-4.1（実行できなかった結果を異常なしとして扱わない）による補完である。** FR20 の字だけを読むと合格で引き金が同じ場合は 0 と読めるが、測れないまま 0 を返すと、FR20 が 0 のときに課す節点の数の添え書きも書けない。
 3. **今の節点の表は門の外から渡す。** 節点の表を組む関数（graph.rs の stamp_table・層 3）を gate.rs（層 2）から名指すと上がる辺になる。そこで門の口 run に、置き場と天井の正本から（残差の要約値・節点の表）を返す関数を受け取る引数を 1 つ足し、命令の入口（`crates/folio/src/main.rs`・層 5）が graph.rs の stamp_table を渡す（main.rs の変更は呼び出しの 1 行）。印の側（stamp.rs・層 3）は今どおり stamp_table を直に呼ぶ。層の歯（`crates/folio/tests/modules.rs`）の割り当てと上がる辺の一覧は変えない（新しい辺は gate→ceiling・gate→anchor・gate→cursor の同じ層か下向きだけ）。
 4. **印の読み手の他の口は変えない。** 面の天井の名札が読む口（stamp.rs の marks）は欄 trigger を読まない（名札の添え書きは便イ）。
 
@@ -114,11 +117,11 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
 **印の歯（`crates/folio/tests/stamp.rs`・2 本・土台は今の周 Round）。**
 
 7. **印は sources の直後に trigger を持つ。** 4 観点合格の周で --stamp → 最上位の欄の並びが round・at・verdict・sources・trigger・faces・viewpoints・refutes・reads・rest・nodes で、trigger の値が「sha256 」と 16 進の小文字 64 字。**base では欄 trigger が無い ＝ RED。**
-8. **自分で書いた印を、注の側の編集の後も門が通し、規範の側の編集で古いと言う（印と門が同じ関数）。** 4 観点合格の周で --stamp → 門（write-set = 写しの要件書）は 0 で字「正本の要約値が同じ」→ 写しの要件 FR1 の平易文を変えて門 → 0 で字「節点 1 個」→ 同じ要件の規範文を変えて門 → 2 で字「引き金の要約値が違う」。**base では平易文の編集の後が 2 ＝ RED。**
+8. **自分で書いた印を、注の側の編集の後も門が通し、規範の側の編集で古いと言う（印と門が同じ関数・本物の rest で残差の比較も縛る）。** 4 観点合格の周で --stamp → 門（write-set = 写しの要件書）は 0 で字「正本の要約値が同じ」→ 写しの要件書の meta の版 version だけを変えて門 → 0 で字「節点 0 個と節点の外の字」→ version を元の字に戻し、要件 FR1 の平易文を変えて門 → 0 で字「節点 1 個・次の引き金の周が読む」を持ち、字「節点の外の字」を持たない → 同じ要件の規範文を変えて門 → 2 で字「引き金の要約値が違う」。**base では version の編集の後が 2 ＝ RED。**
 
 **床の定数の単体の歯（`crates/folio/src/ceiling.rs`・1 本）。**
 
-9. **一覧の名がどれも実在の名を指し、範囲の節を取りこぼさない。** trigger の文書の id がどれも DOCUMENT_IDS に在る／要件書の節の名（行の一覧の節と whole）がどれも要件書の最上位の節の閉じた一覧（`crates/folio/src/check.rs` の SRS_TOP_LEVEL）に在り、その一覧のうち goals と、scope か scope_ で始まる名が全部 whole に在る（M の範囲の節が増えたら落ちる）／規則の表の sections が規則の表の最上位の閉じた一覧（`crates/folio/src/rules.rs` の RULES_TOP_LEVEL）に在る／天井の正本の節の名が CEILING_TOP_LEVEL に在る／adr の status の値が判断の記録の床の定数の値域 effective_status と同じ並び／constitution の 2 つの配列が判断の記録の床の定数の anchor.projection_article_fields と statement_fields と同じ並び。**base では定数が無く組めない ＝ RED。**
+9. **一覧の名がどれも実在の名を指し、範囲の節を取りこぼさない。** 関数名は f126_ で始め、字 ceiling_floor を含めない（含めると verify 9 の歯の数が 2 から 3 に変わる）。 trigger の文書の id がどれも DOCUMENT_IDS に在る／要件書の節の名（行の一覧の節と whole）がどれも要件書の最上位の節の閉じた一覧（`crates/folio/src/check.rs` の SRS_TOP_LEVEL）に在り、その一覧のうち goals と、scope か scope_ で始まる名が全部 whole に在る（M の範囲の節が増えたら落ちる）／規則の表の sections が規則の表の最上位の閉じた一覧（`crates/folio/src/rules.rs` の RULES_TOP_LEVEL）に在る／天井の正本の節の名が CEILING_TOP_LEVEL に在る／adr の status の値が判断の記録の床の定数の値域 effective_status と同じ並び／constitution の 2 つの配列が判断の記録の床の定数の anchor.projection_article_fields と statement_fields と同じ並び。各行から取る欄の名（milestone・verify・value ほか）が実在の欄かはこの歯は数えない。その字は凍結 anchor ceiling-region.txt との byte 一致（単体の歯 ceiling_floor_derives_the_frozen_anchor_byte_for_byte）が縛り、今の 18 行の欄の名は起草役と検証役が実の design-intent で全部実在すると数えた。**base では定数が無く組めない ＝ RED。**
 
 **base で RED は 9 本とも。** 起草役は実装を組んでいないので、RED の根拠は上の各歯の base の返り（今の門の式・今の印の欄）から読んだ見込みである。歯の効きの見込み（検証役が実装の後に変異を当てて確かめる）:
 
@@ -132,10 +135,25 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
 | 印の nodes が無いときに k を数えずに通す | 6 |
 | trigger の欄が無い印を通す | 4 |
 | 一覧から scope_m3 を落とす | 9 |
+| 残差の要約値を比べない・節点の外の字をいつも添える・k が 0 のときに 0 個とだけ言う | 8 |
+
+**受入基準 AC18 の 7 場合と歯の対応。**
+
+| AC18 の場合 | 持つ歯 |
+| --- | --- |
+| 設計文書の置き場の file を触らない → 0 | 今の gate_passes_a_delivery_that_touches_no_design_intent・gate_ignores_preview_and_retired_paths |
+| 合格で同じ引き金の要約値 → 0 | 今の gate_passes_when_the_stamp_is_all_pass_and_fresh（補助が trigger を独立の実装の値にする）・歯 8 の 1 段目 |
+| 合格で引き金の要約値は同じで正本の他の字が違う → 0（節点の数を添える） | 歯 1・3・8（新しい場合） |
+| 不合格 → 1 | 今の gate_stops_on_a_failed_viewpoint |
+| 引き金の要約値が違う → 2 | 今の gate_is_unknown_when_the_stamp_is_stale（trigger が仮の値）・歯 2・4・8 の最後の段 |
+| まだ分からない の観点 → 2 | 今の gate_is_unknown_on_an_unknown_viewpoint |
+| 印が無い → 2 | 今の gate_is_unknown_without_a_stamp |
+
+凍結の束と所見から導出した印が凍結の写しと一致することは、今の stamp_writes_the_frozen_shape が持つ（欄 trigger は周ごとに違うので落として比べる・§1 (d) の 6）。
 
 ### (f) 既存の歯のうち落ちるもの・凍結 anchor が動くか・直し方
 
-1. **生成区間の写しの波及（実測・捨てる試作）。** 起草役が base の写しの木に、床の定数に (b) の 2 の欄を足す変更だけを当て、`folio schema --write` と独立の置き換えの script で生成区間 21 か所と凍結 anchor を直して workspace の nextest を撃つと、**生成区間が原因で落ちる既存の歯は 5 本**（参考値・base の 816 本のうち）。ほかに 4 本（`crates/folio/tests/check.rs` の check_canonical_design_intent_passes と f77_top_level_is_closed_on_the_three_files・parts の parts_check_passes_on_the_three_generated_faces・site の site_on_the_real_sources_passes_parts_check_and_face_check）が落ちたが、4 本とも実の design-intent の床の違反「anchors/constitution-v1.3.yaml は版管理の履歴に在ったが作業ツリーに無い」1 件で、base の木（判断の記録 ADR-17 の着地の前）を ADR-17 の着地の後の main と同じ版管理の中で撃ったことによる。本便の変更の有無に関わらず出る（main の binary で base の木を撃っても同じ違反）。受付の器の作業木（ADR-18 の発効の後の main）では出ない。
+1. **生成区間の写しの波及（実測・捨てる試作）。** 起草役が base main ee714d7 の写しの木に、床の定数に (b) の 2 の欄を足す変更だけを当て、`folio schema --write` と独立の置き換えの script で生成区間 21 か所と凍結 anchor を直して workspace の nextest を撃つと、**落ちる既存の歯は 5 本**（参考値・base の 835 本のうち・830 本は緑）。同じ木の `folio check --dir design-intent` は合格（違反 0・まだ分からない 0）。起草の土台 694751e で撃ったときに環境で落ちた 4 本（ADR-17 の着地の前の木を着地の後の版管理の中で撃ったことによる違反 1 件）は、ee714d7 では出ない。
 
    | 歯 | 直し方 |
    | --- | --- |
@@ -149,7 +167,7 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
    - f104_the_gate_passes_the_stamp_it_just_wrote は理由の字「正本の要約値が同じ」を残すので緑のまま。
 3. **凍結 fixture の印 3 本**（`tests/fixtures/ceiling/findings/` の stamp-pass・stamp-fail・stamp-unknown.yaml）に、sources の行の直後の 1 行「trigger: sha256 」と 0 の 64 字を足す（仮の値・歯の補助が置き換える）。ほかの行は変えない。
 4. **動く凍結 anchor は 2 本**（ceiling-region.txt と node-digest-anchor.txt）と、生成区間の写しの 20 本。ほかの凍結 anchor（束の anchor bundle-anchor.txt・stamp-expected.yaml・判断の記録と設計ノートの欄の決まりの写し・面の凍結 fixture・索引の anchor・floor_base の要件書と規則の表）は 1 byte も動かない。試作で束の歯（bundle）・所見の歯（findings）・面の歯・床の組（floor_cases）が緑のままだったことを確かめた（凍結の束の観点は天井の正本を読まないので、生成区間の変化は束に入らない）。判断の記録の欄の決まりの生成区間（adr/schema.yaml）は floor_adr.rs の配列を名前つきの定数に上げても字が変わらない＝その凍結 anchor の単体の歯 adr_floor_derives_the_frozen_anchor_byte_for_byte が共通の検証で確かめる。
-5. 本便の後の木で workspace の nextest は全部緑（参考値 825 本 = base 816 + 新しい歯 9）・clippy 0 警告・`folio check` 合格・`folio schema --check` 9 file 一致・`folio inject --check` 0。
+5. 本便の後の木で workspace の nextest は全部緑（参考値 844 本 = base 835 + 新しい歯 9）・clippy 0 警告・`folio check` 合格・`folio schema --check` 9 file 一致・`folio inject --check` 0。
 
 ### (g) 大きさ・verify と done の対応
 
@@ -158,12 +176,12 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
 
    | file | base の正規化行数（参考値） | 余地 = 1500 − 正規化行数 | 本便の後の見込み |
    | --- | --- | --- | --- |
-   | `crates/folio/src/gate.rs` | 251 | 1,249 | 約 380 |
+   | `crates/folio/src/gate.rs` | 251 | 1,249 | 約 450〜500（引き金の関数・判定の 8 段・節点の数え） |
    | `crates/folio/src/stamp.rs` | 341 | 1,159 | 約 345 |
    | `crates/folio/src/ceiling.rs` | 557 | 943 | 約 620 |
    | `crates/folio/src/anchor.rs` | 1,033 | 467 | 1,033（可視性の 1 行） |
    | `crates/folio/src/floor_adr.rs` | 511 | 989 | 約 515 |
-   | `crates/folio/src/main.rs` | 638 | 862 | 638（呼び出しの 1 行） |
+   | `crates/folio/src/main.rs` | 655 | 845 | 655（呼び出しの 1 行） |
 
 3. **size は M。** 増えるのは gate.rs（引き金の要約値の関数・印の欄の読み・門の判定の 8 段・節点の数え）と ceiling.rs（型付きの定数・床の木の 2 欄・単体の歯 1 本）。歯の file は src の外なので余地を測らない（gate.rs の歯の file は独立の実装と 6 本で約 250 行増える見込み）。
 4. **verify は 10 行**で、done の 10 の塊と 1 対 1 に揃える。
@@ -181,24 +199,24 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
 
 ### (h) 門（規則の表の開発規律行 D-12）
 
-本便は天井の正本の生成区間を書き換えるので門の対象で、実測は base 694751e で **2（まだ分からない・印が古い）**（§0 の 門）。行 D-12 は「止める・まだ分からない のときは出さず、所見の解消か持ち主の裁定を先に取る」と定める。**受付の時点の門が 2（印が古い）なら、行 D-12 の持ち主の裁定の前例（2026-09-22 00:0x JST・対話面 R-8・台帳 f2-648 notes）を席が当てて受付ける**（受付の時点の門が 0 なら当てない）。同じ前例を当てたのは便 101・103・117・119・123 である。席は受付のときに、当てた前例の裁定 id を台帳の notes に記帳する。本便が書き換える正本の中身は天井の正本の生成区間の 18 行（床の定数の写し）だけで、人が書く字は 1 字も変わらない。**判断の記録 ADR-19 決定 (4) は、この前例の裁定を本便の着地の時点で置き換える**（着地の後の設計文書の便は、新しい門の式で判定する）。
+本便は天井の正本の生成区間を書き換えるので門の対象で、実測は base main ee714d7 で **2（まだ分からない・印が古い）**（§0 の 門）。行 D-12 は「止める・まだ分からない のときは出さず、所見の解消か持ち主の裁定を先に取る」と定める。**受付の時点の門が 2（印が古い）なら、行 D-12 の持ち主の裁定の前例（2026-09-22 00:0x JST・対話面 R-8・台帳 f2-648 notes）を席が当てて受付ける**（受付の時点の門が 0 なら当てない）。同じ前例を当てたのは便 101・103・117・119・123 である。席は受付のときに、当てた前例の裁定 id を台帳の notes に記帳する。本便が書き換える正本の中身は天井の正本の生成区間の 18 行（床の定数の写し）だけで、人が書く字は 1 字も変わらない。**判断の記録 ADR-19 決定 (4) は、この前例の裁定を本便の着地の時点で置き換える**（着地の後の設計文書の便は、新しい門の式で判定する）。行 D-12 の注は「便アの着地までは…門が まだ分からない を返せば、引き金の外の変更の後でも周を回す（門を外す口は持たない）」と書くが、**行 D-14 の注（main 2df6d80・前例は ADR-18 の便アの着地まで有効で、着地の時点で D-14 の窓の定めに置き換わる）が、本便の受付についてはその「周を回す」より先に立つ**。
 
 ### (i) 本便が運ばないもの・言えないこと・まだ分からない点・撤退条件
 
 1. **運ばないもの。** 面の天井の名札の添え書き（便イ・便 127・`crates/folio/src/face.rs`）。完成の判定（ADR-18 決定 (6)・機械の口は無く、印の sources の比較の意味は変えない）。手順の引き金 2 つ（決定 (3)・規則の表の行 D-12 と席の作法）。実の印 design-intent/preview/ceiling-stamp.yaml の付け直し（生成物・次の周で席が --stamp で書く）。要件 FR20 の注と天井の正本の頭の注の「口は後続の便で入る」の字（人が書く字・着地の後に席が直す）。門の単位を便の file の単位へ狭める口（台帳 f2-648.146・決定 (7) のとおり本便の着地の後に要否を問い直す）。外部 crate。
 2. **言えないこと。** 歯の独立の実装は yaml-rust2（YAML 1.2 の読み）で読み、folio の型付きの読みは PyYAML と同じ読み（YAML 1.1）に揃えてある。yes・no・on・off のような字が規範の欄の値そのものに現れると 2 つの読みが割れるが、凍結の土台 bundle/source の規範の欄には無い（歯の土台の中でだけ比べる）。実の design-intent の値の割れは歯では言えない（folio2 自身の引き金の要約値は印と門が同じ関数で測るので、割れても判定は揺れない）。
 3. **まだ分からない — 節約の実測。** 周がいくつ減るかは ADR-18 の撤退条件の窓（本便の着地の後に引き金の要約値を持つ印が初めて付いた時刻から 7 日）で席が数える。本便の歯では言えない。
-4. **撤退条件。** (1) 本便の後に (f) の 1 と 2 に挙げた歯のほかに既存の歯が 1 本でも落ちたら、その歯の本文を直さずに止めて席へ返す（(f) の 1 の環境の 4 本が器の作業木で落ちたら、それも止めて席へ返す）。(2) 実の design-intent で引き金の要約値が組めない（関数が Err を返す）なら止めて席へ返す（着地の後の門が全部 まだ分からない になる）。(3) 受付の時点の main で、天井の正本の生成区間の写しの数（§1 (a) の 3 の find）が 20 本でない・gate.rs の run か stamp.rs の derive か ceiling.rs の FLOOR の末尾か graph.rs の stamp_table の返りの形が書き換わっている・要件 FR20 の規範文か受入基準 AC18 が第 1.36 版の字と違う、のどれかなら、写しを数え直し、式を測り直してから運ぶ。(4) 判断の記録 ADR-18 の発効の字（決定 (1) の 5 つの一覧）が base の字と違って取り込まれたら、(b) の 1 と 2 の一覧と 18 行を改訂してから運ぶ。
+4. **撤退条件。** (1) 本便の後に (f) の 1 と 2 に挙げた歯のほかに既存の歯が 1 本でも落ちたら、その歯の本文を直さずに止めて席へ返す。(2) 実の design-intent で引き金の要約値が組めない（関数が Err を返す）なら止めて席へ返す（着地の後の門が全部 まだ分からない になる）。(3) 受付の時点の main で、天井の正本の生成区間の写しの数（§1 (a) の 3 の find）が 20 本でない・gate.rs の run か stamp.rs の derive か ceiling.rs の FLOOR の末尾か graph.rs の stamp_table の返りの形が書き換わっている・要件 FR20 の規範文か受入基準 AC18 が第 1.36 版の字と違う、のどれかなら、写しを数え直し、式を測り直してから運ぶ。(4) 判断の記録 ADR-18 の発効の字（決定 (1) の 5 つの一覧）が base の字と違って取り込まれたら、(b) の 1 と 2 の一覧と 18 行を改訂してから運ぶ。
 
 ### (j) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
 
 起草の記録は持ち主の home の `.local/share/folio2/handoff-2026-09-24/d126-draft.md`、生成区間の置き換えの script は同じ dir の d126-draft-anchor.py（足す 18 行は d126-draft-region.txt）、引き金の要約値の見積の script は d126-draft-trigger.py（PyYAML・repo には入れない）、行数の script は d119-draft-lines.py（便 119 と同じ式）。
 
-1. base の写し: `git worktree add --detach <写し> 694751e`。
+1. base の写し: `git worktree add --detach <写し> ee714d7`（改訂 b の土台・起草の土台は 694751e）。
 2. 写しの数: §1 (a) の 3 の find（20 本）。
 3. 生成区間の独立の置き換え: `python3 d126-draft-anchor.py d126-draft-region.txt <写し 20 本> tests/fixtures/schema/ceiling-region.txt`。床の定数を直した binary の `folio schema --dir design-intent --write` の区間と byte 一致を見る。
 4. 節点の anchor: `python3 tests/fixtures/schema/node-digest.py tests/fixtures/floor_base/design-intent`（直した写しの土台で・末尾の 2 行だけが動く）。
-5. 引き金の要約値の見積: `python3 d126-draft-trigger.py <置き場>`（生成区間を直した置き場で・design-intent と bundle/source）。
+5. 引き金の要約値の見積: `python3 d126-draft-trigger.py <置き場>`（3 の後の、生成区間を直した置き場で・design-intent と bundle/source。直す前の置き場には欄 trigger が無いので読めない）。
 6. RED: 歯の file 3 本（gate・stamp の f126_ と ceiling.rs の単体の歯）だけを当てて verify の 1〜3 を撃つ（9 本とも落ちるか組めない）。
 7. 門: `folio ceiling --gate --dir design-intent --write-set <write-set の 37 本>`。
 8. 余地: `python3 d119-draft-lines.py <src 6 本>`。
@@ -226,8 +244,8 @@ verify の絞り込みの語は f126_（base で `git grep -n 'f126_' -- crates`
 ## 5. 依存
 
 - 外部 crate は増やさない（歯の独立の実装は folio が既に依存する yaml-rust2 と外の命令 sha256sum を使う）。新しい dir は無い。
-- 前提の着地: 判断の記録 ADR-18 の発効（要件書 第 1.36 版・規則の表の行 D-12・語彙の周の引き金・天井の正本 v0.15・枝 docs/adr18）。§0 の 前の便。
-- 並行の便: 便 125（④-2・`docs/design/delivery-125.md`）と `crates/folio/src/main.rs` が重なる（本便は門の呼び出しの 1 行だけ・hunk は重ならない見込み）。重なる file は受付の時点の main で字面を測り直す（§1 (i) の撤退条件 (3)）。便イ（便 127）は本便の後。
+- 前提の着地: 判断の記録 ADR-18 の発効（main 16ed6a2・要件書 第 1.36 版・規則の表の行 D-12・語彙の周の引き金・天井の正本 v0.15）と ADR-19 の発効（main 2df6d80・行 D-14・要件書 第 1.37 版）。どちらも着地済み。§0 の 前の便。
+- 並行の便: 便 125（④-2）は ee714d7 で着地済みで、本便の base に入っている（`crates/folio/src/main.rs` の重なりは解けた）。重なる file は受付の時点の main で字面を測り直す（§1 (i) の撤退条件 (3)）。便イ（便 127）は本便の後。
 - 本便の着地の後に席が見ること: 実の印は引き金の欄を持たないので、設計文書の便の門は 2（印が古い〔引き金の要約値の欄が無い〕）を返す＝**次の周で --stamp を撃ち直して印を付け直す**（ADR-18 決定 (7) の順）。ADR-19 決定 (4) で 2026-09-22 の裁定は着地の時点で置き換わるので、付け直すまで設計文書の便は止まる。要件 FR20 の注と天井の正本の頭の注の「口は後続の便で入る」の字（次の版）。台帳 f2-648.145 の置き換えと f2-648.146 の問い直し。
 
 <!-- contracts:begin -->
@@ -241,5 +259,5 @@ section = "1"
 write-set = ["crates/folio/src/gate.rs", "crates/folio/src/stamp.rs", "crates/folio/src/ceiling.rs", "crates/folio/src/anchor.rs", "crates/folio/src/floor_adr.rs", "crates/folio/src/main.rs", "crates/folio/tests/gate.rs", "crates/folio/tests/stamp.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/ceiling.rs", "crates/folio/tests/graph.rs", "tests/fixtures/ceiling/findings/stamp-pass.yaml", "tests/fixtures/ceiling/findings/stamp-fail.yaml", "tests/fixtures/ceiling/findings/stamp-unknown.yaml", "tests/fixtures/schema/ceiling-region.txt", "tests/fixtures/schema/node-digest-anchor.txt", "design-intent/ceiling.yaml", "tests/fixtures/adr/effective-no-approval/ceiling.yaml", "tests/fixtures/adr/schema-drift/ceiling.yaml", "tests/fixtures/adr/two-adopted/ceiling.yaml", "tests/fixtures/anchor/no-anchor/ceiling.yaml", "tests/fixtures/anchor/root-digest-drift/ceiling.yaml", "tests/fixtures/ceiling/bundle/source/ceiling.yaml", "tests/fixtures/check/dup-key/ceiling.yaml", "tests/fixtures/check/empty-field/ceiling.yaml", "tests/fixtures/check/missing-file/ceiling.yaml", "tests/fixtures/check/unknown-section/ceiling.yaml", "tests/fixtures/face/ceiling.yaml", "tests/fixtures/floor_base/design-intent/ceiling.yaml", "tests/fixtures/link/adr-id-missing/ceiling.yaml", "tests/fixtures/link/amended-by-orphan/ceiling.yaml", "tests/fixtures/link/retreat-kind-drift/ceiling.yaml", "tests/fixtures/refs/bad-counts/ceiling.yaml", "tests/fixtures/refs/dangling-id/ceiling.yaml", "tests/fixtures/refs/orphan-rule/ceiling.yaml", "tests/fixtures/vocab/exemptions/ceiling.yaml", "tests/fixtures/vocab/unknown-word/ceiling.yaml"]
 verify = ["cargo nextest run -p folio --test gate f126_", "cargo nextest run -p folio --test stamp f126_", "cargo nextest run -p folio --bin folio f126_", "cargo nextest run -p folio --test gate", "cargo nextest run -p folio --test stamp", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --test ceiling", "cargo nextest run -p folio --test graph f99_", "cargo nextest run -p folio --bin folio ceiling_floor", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "f126_ の門の歯 6 本（注の側だけの編集は通し節点 1 個を添える／規範の欄の 5 種の編集は引き金の要約値が違うで まだ分からない／引き金の外の 9 か所の編集は通す／trigger の無い印は印が古い／引き金の要約値が測れなければ まだ分からない／印に節点の表が無ければ通さない）が緑、f126_ の印の歯 2 本（印は sources の直後に trigger を持つ／自分で書いた印を注の側の編集の後も門が節点 1 個で通し規範文の編集で引き金の要約値が違うと言う）が緑、f126_ の床の定数の単体の歯 1 本（一覧の名がどれも実在の文書と節を指し範囲の節と凍結 anchor の写しの配列と発効の値域を取りこぼさない）が緑、門の歯の全部（今の 7 本を含む）が緑、印の歯の全部（凍結 anchor stamp-expected.yaml の一致を含む）が緑、生成区間の歯の全部（schema_docs・天井の正本の定数を直した 3 本と行数の上限を含む）が緑、天井の正本の床の歯の全部（写しが全部凍結 anchor と byte 一致する歯を含む）が緑、節点の要約値の歯 f99_ の全部（直した node-digest-anchor.txt と独立の script の一致を含む）が緑、ceiling.rs の床の木の単体の歯 2 本（凍結 anchor と byte 一致・注の数）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、folio check と folio schema --check と folio inject --check が着地の後の main で 0 を返す"
+done = "f126_ の門の歯 6 本（注の側だけの編集は通し節点 1 個を添える／規範の欄の 5 種の編集は引き金の要約値が違うで まだ分からない／引き金の外の 9 か所の編集は通す／trigger の無い印は印が古い／引き金の要約値が測れなければ まだ分からない／印に節点の表が無ければ通さない）が緑、f126_ の印の歯 2 本（印は sources の直後に trigger を持つ／自分で書いた印を、meta の版だけの編集の後は節点 0 個と節点の外の字で通し、平易文の編集の後は節点 1 個で節点の外の字を添えずに通し、規範文の編集で引き金の要約値が違うと言う）が緑、f126_ の床の定数の単体の歯 1 本（一覧の名がどれも実在の文書と節を指し範囲の節と凍結 anchor の写しの配列と発効の値域を取りこぼさない）が緑、門の歯の全部（今の 7 本を含む）が緑、印の歯の全部（凍結 anchor stamp-expected.yaml の一致を含む）が緑、生成区間の歯の全部（schema_docs・天井の正本の定数を直した 3 本と行数の上限を含む）が緑、天井の正本の床の歯の全部（写しが全部凍結 anchor と byte 一致する歯を含む）が緑、節点の要約値の歯 f99_ の全部（直した node-digest-anchor.txt と独立の script の一致を含む）が緑、ceiling.rs の床の木の単体の歯 2 本（凍結 anchor と byte 一致・注の数）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、folio check と folio schema --check と folio inject --check が着地の後の main で 0 を返す"
 <!-- contracts:end -->
