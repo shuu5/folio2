@@ -516,7 +516,7 @@ articles:
       - {id: N-6.2, pattern: ubiquitous, strength: must-not, text: 配信の出力と、支度表・台帳の中身を、認証なしの公開ネットに晒さない。}
     plain: 見せる先は自分の端末どうしの私設ネット（tailnet）か、同じ端末の中（loopback）だけで、そのどちらでもない先へ向けた配信は機械が起動を止めます。配信で見せるページや、支度表・台帳の中身を、認証なしの公開の場所に出しません。承認済みの文書を版管理（公開 repo）へ置くのは別の話で、A-1 の「出す」として確認します。
     rationale:
-      - {kind: folio2-ruling, ref: "要件書 CON3（tailnet のみ）・FR7・G8=A（出す（公開）の Never）・G14=A（承認済み HTML は design-intent/preview/ へ・生 IP は除去）"}
+      - {kind: folio2-ruling, ref: "要件書 CON3（出所の時点の字は tailnet のみ。同じ端末の中を通す向きへは判断の記録 ADR-12 が改め、今の CON3 は見せる先の制限をこの条へ委ねる＝根拠の向きは CON3 からこの条へ）・FR7・G8=A（出す（公開）の Never）・G14=A（承認済み HTML は design-intent/preview/ へ・生 IP は除去）"}
       - {kind: v1-incident, ref: "tailnet-serve の下限（tailnet の住所が無いと起動を拒む）"}
     mechanism: {kind: reject, live: now, stage: post, polarity: fail-closed, note: 接続先が同じ端末の中（loopback）でも tailnet の範囲でもないとき serve が起動を拒み、住所を明示しない起動は tailnet の住所を解けなければ拒む（FR7 の確かめ方・day-1 は tailnet-serve script）。}
     note: CON3 の強さは Never 相当なのに見本では A-1（Ask-first）に対応していたねじれを解いた。v0.1 の「生成物」は G14=A（PUBLIC repo への commit）と矛盾したため配信面に絞った。
