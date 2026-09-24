@@ -2,7 +2,7 @@
 
 **状態: 起草・持ち主の承認待ち（2026-09-24 起草・承認の前に規則の表の開発規律行 D-14 の窓の下でこの枝の上の周を回す）。** 下の 問 1〜7 が持ち主への承認要求である。問の案はどれも席の推奨の案で書いた（判断の記録 ADR-19 決定 (1) ①）。承認の記帳（要件書の承認欄と `effective_version` と `status_note`・規則の表の行 D-12 の `ruling` と `ruled_at`・判断の記録 4 本の注の見出し・入口の承認欄と頭の注釈・状態の 1 枚と台帳）は、持ち主が答えた後に席が同じ枝の別の commit で正本の側へ書く（書く欄の全部は §「承認の後に席が書く欄」）。持ち主の逐語はこの文書にも正本にも書いていない（条 P-12.3）。
 
-起草 2026-09-24・orchestrator 席（起草は opus 5.5 の起草役に委ねた。正本の作成の行は席を責任者として「orchestrator 席（AI・fable 5.1）」と書く＝要件書 第 1.35 版〜第 1.37 版の作成の行と同じ）・作業場所 `.worktrees/planner-batch17`（branch `docs/batch17`・`origin/main` 3b770a1 から切り、起草の前に ee714d7 へ早送りした＝便 125〔台帳 f2-648.173・骨格の命令 folio init〕の着地で、`crates/` と `tests/` だけを書き換え、設計文書の置き場は 1 byte も動かしていない）。
+起草 2026-09-24・orchestrator 席（起草は opus 5.5 の起草役に委ねた。正本の作成の行は席を責任者として「orchestrator 席（AI・fable 5.1）」と書く＝要件書 第 1.35 版〜第 1.37 版の作成の行と同じ）・作業場所 `.worktrees/planner-batch17`（branch `docs/batch17`・`origin/main` 3b770a1 から切り、起草の前に ee714d7 へ早送りした＝便 125〔台帳 f2-648.173・骨格の命令 folio init〕の着地で、`crates/` と `tests/` だけを書き換え、設計文書の置き場は 1 byte も動かしていない。push の前に main 4eb2d2d〔便ア＝便 126 の契約 `docs/design/delivery-126.md` の 1 file だけ〕の上へ載せ替えた）。参考値の base は ee714d7 である（4eb2d2d は `crates/`・`tests/`・`design-intent/` を動かしていない）。
 
 材料は天井の 29 周目の所見である（周 = `~/.local/share/folio2/ceiling/2026-09-24-round29/`・観点 4・束は main 3b770a1 で組んだ・正は各観点の `2026-09-24-round29/<観点>/findings.yaml`・止める 3 件の反証の理由は `refute-notes/`）。判定は 読みやすさ だけが **合格**、整合・忠実さ・実態 の 3 観点が **不合格**（止める 各 1・反証で 3 件とも 支持）。`findings-all.txt` の 22 行は各観点の `findings.yaml` と id・重さ・場所が一致する。所見の数は `findings.yaml` から数え直した。
 
@@ -266,7 +266,7 @@
 
 ## 床の結果（この枝の HEAD で実測・2026-09-24・参考値）
 
-main ee714d7 の上の枝で撃った。binary は枝で `cargo build --all-targets` した `target/debug/folio`（`crates/` は main と同じ）。
+main 4eb2d2d の上へ載せ替えた枝で撃った（参考値の base は ee714d7・4eb2d2d は `docs/design/delivery-126.md` を足しただけ）。binary は枝で `cargo build --all-targets` した `target/debug/folio`（`crates/` は main と同じ）。
 
 | 検査 | 結果 |
 |---|---|
