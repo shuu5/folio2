@@ -1,5 +1,5 @@
 # folio2 判断の記録 ADR-23 — 正本（1 判断 = YAML 1 file）。欄の決まりは adr/schema.yaml。人が読む面は判断の記録の面（adr-23.html・生成物・手で直さない）。
-# 状態: proposed（起草 2026-09-24・作成 = orchestrator 席〔AI・fable 5.1〕の起草役〔opus 5.5〕）。憲法の条文の周り（schema 節と前文）の改訂（第 1.4 版）を伴うので、A-2 / N-4 の手順（反対側からの検証・持ち主の承認の逐語・凍結 anchor v1.4・再注入の確かめ）を通す。
+# 状態: accepted（起草 2026-09-24・作成 = orchestrator 席〔AI・fable 5.1〕の起草役〔opus 5.5〕・発効 2026-09-25・持ち主の承認 2026-09-25 07:03 JST「すべて承認する」・台帳 f2-648 notes・対話面 R-8・承認要求の問 1 の 2 つ〔機構の段の規則と前文の平易文〕とも承認）。憲法の条文の周り（schema 節と前文）の改訂（第 1.4 版）を伴い、A-2 / N-4 の手順（反対側からの検証・持ち主の承認の逐語・凍結 anchor v1.4・再注入の確かめ）を通した。
 # 出所: 天井の 32 周目（本流 68196cf）の実態 F-1（止める・反証 支持）と読みやすさ F-1（直す）。一括 19 の仕分け（docs/design/batch19-triage.md・枝 docs/batch19）の 🔴 問 4 の推奨（schema 節の字を実態に合わせる改訂を起こし、前文の平易文の言い換えを同じ改訂に載せる）を、席の裁定で本判断の起草に回した。問 4 は本判断の承認要求の問 1 を指す。
 # 反対側からの検証（grill）= docs/design/adr-23-grill.md（A-2.3 により改訂の前に実施・起草役の自己反証。独立の検証役は席が立てる）。承認要求の要旨と、承認の後に席が書く欄の表 = docs/design/adr-23.md。起草の記録 = ~/.local/share/folio2/handoff-2026-09-24/adr23-draft.md。
 # 起草の時点では憲法の正本を 1 字も変えない。版上げと凍結 anchor（anchors/constitution-v1.4.yaml）と承認欄は、持ち主の承認の後に席が 1 本の取り込みの要求で置く。
@@ -10,7 +10,7 @@
 id: ADR-23
 title: 憲法の schema 節の機構の段の規則を「機構がまだ無い条は床の判定に数えず、条ごとに表に出す」に改め、前文の平易文の順位の言い換えを直す（憲法 第 1.4 版）
 
-status: proposed
+status: accepted
 date: 2026-09-24
 
 plain: |
@@ -147,6 +147,9 @@ options:
 
 basis: [A-2, N-3, N-4, P-3, P-4, P-7, P-8, P-11, P-12, P-13, P-14, P-15, P-17, P-18, A-3, R-7, R-8, R-10, D-14, FR5, FR20, AC3, ADR-2, ADR-12, ADR-17, ADR-20]
 
+grill: {when: 2026-09-24, who: 起草役（AI・opus 5.5・自己反証）と独立の検証役（AI・opus 5.5・別の文脈・読み取りと git clone の写しの上の実測だけ）, where: docs/design/adr-23-grill.md, summary: 起草役は 13 問を攻めと守りで検証し、改訂を支持した（条件付き）。独立の検証役（~/.local/share/folio2/handoff-2026-09-24/adr23-verify.md）は案 a を支持し、6 本の一覧・実在の段が検査を止めないこと・値だけの変更は改訂に当たらないこと・改訂の欄の 2 行を独立に確かめ、blocking 3（規則の字の床の出力が folio build の行も含むと読める・面の名札の便が周の前提に無い・一括 19 の欄の指し違い）と文面 9 を挙げた。改訂 c で全部を当て、再検証（2026-09-25）は支持・blocking 0 だった。}
+approval: {who: 持ち主, date: 2026-09-25, ruling: f2-648 notes 2026-09-25 07:03 JST（発効の承認・一括 19 と判断の記録 ADR-22・ADR-23 の承認要求への同じ回の回答・本判断の問 1 は 2 つとも承認）, verbatim: すべて承認する, surface: R-8}
+
 amends:
   - {"target": "precedence", "field": "plain", "version": "v1.4", "previous_text": "迷ったら「全部そろえる」より「そろっている」、「早い」より「黙って飛ばさない」、「賢い」より「元に戻せる」を選びます。段が食い違ったら、「絶対にやらない」＞「確認してから」＞「いつも守る」の順で強い方が勝ちます。", "new_text": "迷ったら「何でも漏れなく入れる」より「同じ形にそろっている」、「早い」より「黙って飛ばさない」、「賢い」より「元に戻せる」を選びます。段が食い違ったら、「絶対にやらない」＞「確認してから」＞「いつも守る」の順で強い方が勝ちます。"}
   - {"target": "schema", "field": "mechanism_live_rule", "version": "v1.4", "previous_text": "kind が reject / build-check でも live が now でない条は、その検査結果を「まだ分からない」として出す（P-4.2）。", "new_text": "kind が reject / build-check でも live が now でない条は、機構がまだ無い条として床の判定（違反・まだ分からない）に数えず、folio check の出力と面の機構の欄に条ごとに表に出す（P-3.3・P-4.1）。live は実在する検査を止める旗ではなく、機構が実在した版で now に改める。"}
@@ -176,7 +179,7 @@ retreat:
     (6) 数えられない回。周の束が読めない・所見の欄が壊れているなどで (1)〜(4) を数えられなかった回が行 R-7 の回数を超えたら、本判断の撤退条件の判定を「まだ分からない」に落として持ち主へ渡す（P-4.2・P-11.1）。
 
 note: |
-  【出所】天井の 32 周目の束 ~/.local/share/folio2/ceiling/2026-09-24-round32/（実態 F-1 = 2026-09-24-round32/reality/findings.yaml・反証 = reality/refute/F-1/result.yaml と refute-notes/reality-F-1.md・読みやすさ F-1 = readability/findings.yaml）。一括 19 の仕分け docs/design/batch19-triage.md（枝 docs/batch19・HEAD 411c17a）の 🔴 問 4。
+  【出所】天井の 32 周目の束 ~/.local/share/folio2/ceiling/2026-09-24-round32/（実態 F-1 = 2026-09-24-round32/reality/findings.yaml・反証 = reality/refute/F-1/result.yaml と refute-notes/reality-F-1.md・読みやすさ F-1 = readability/findings.yaml）。一括 19 の仕分け docs/design/batch19-triage.md（枝 docs/batch19・起草の時点の HEAD 411c17a・発効の時点の HEAD caca683）の 🔴 問 4。
   【起草の写しでの実測】改訂の欄の 2 行は、本流 68196cf の写しで憲法の 2 か所を変え、版の欄を v1.4 にして folio check --emit-amends を撃った印字そのものである（1 字も違わない）。版上げと凍結と承認までを別の写しで模して、床と生成区間と歯の数を測った。結果と承認の後の書き込みの一覧は docs/design/adr-23.md に置く。
   【発効のときに置くもの】承認欄（approval）・状態（accepted）・検証の欄（grill）は、発効のときに席が置く。schema 節と前文には改訂来歴の欄が無いので、条の改訂来歴（amended_by）は置かない。
   【取り込みの順】本判断の番号は、枝 docs/adr22 の判断の記録（提案中）の次である。判断の記録の面をそろえる歯（crates/folio/tests/site.rs の site_on_the_real_sources_passes_parts_check_and_face_check）は番号が 1 から切れ目なく並ぶことを前提に面の数を数えるので、その記録が本流に無いまま本判断を取り込むと、その 1 本が落ちる。改訂 b の後、本枝はその枝の上へ載せ替えたので、本枝そのもので歯は 861 本とも合格する（載せ替えの前の起草の版だけが 860 本だった）。本枝を取り込むとその枝の commit も一緒に入る。取り込みの前に、その枝の最新の先端へ載せ替え直す。
