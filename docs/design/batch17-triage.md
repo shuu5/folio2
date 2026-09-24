@@ -122,7 +122,7 @@
 | `design-intent/index.yaml` | **第 0.5 版の起草。** 棚の説明（読みやすさ F-4）・相談窓口の節の注（28 周目 整合 F-5 の拾い）・頭の注釈 2 行・作成の行 |
 | `docs/design/batch17-triage.md` | **新設**（この file） |
 
-判断の記録 4 本（ADR-18・ADR-19・ADR-6・ADR-1）の**見出し・文脈・決定・案・帰結・撤退条件・承認欄・状態は 1 字も触っていない。** **実装（`crates/folio/src`）・凍結 anchor（`tests/fixtures/`）・歯（`crates/folio/tests`）・生成区間・印（`preview/ceiling-stamp.yaml`）は 1 byte も触っていない。** 相談窓口の正本・索引の欄の決まりの正本・支度表の正本も触っていない。天井の正本は頭の注釈の状態の行だけ（meta・人が書く節・生成区間は不変）。
+判断の記録 4 本（ADR-18・ADR-19・ADR-6・ADR-1）の**見出し・文脈・決定・案・帰結・撤退条件・承認欄・状態は 1 字も触っていない。** **実装（`crates/folio/src`）・凍結 anchor（`tests/fixtures/`）・生成区間・印（`preview/ceiling-stamp.yaml`）は 1 byte も触っていない。歯は改訂 d で `crates/folio/tests/unknown_fields.rs` の探し方だけを直した（席の裁定・変異と期待は不変）。** 相談窓口の正本・索引の欄の決まりの正本・支度表の正本も触っていない。天井の正本は頭の注釈の状態の行だけ（meta・人が書く節・生成区間は不変）。
 
 ## 持ち主へ問う項
 
@@ -288,7 +288,7 @@
 | `folio inject --check --dir design-intent` | rc 0（68 行 / 7,912 byte 一致） |
 | `folio schema --dir design-intent --check` | rc 0（9 file 一致） |
 | `folio derive --dir design-intent --out ../contracts --check` | rc 0（一致 1・差分 0） |
-| `cargo nextest run --workspace --no-tests=fail --no-fail-fast` | **850 / 851**（改訂 c・便 128 の着地の後）。落ちるのは便 128 の歯 `f128_mechanism_shape_is_a_violation` の 1 本で、条 N-3 の機構の注の前の全字を定数に持つため（§まだ分からない点）。改訂 b の時点（main b14ddba）は 844 / 844 |
+| `cargo nextest run --workspace --no-tests=fail --no-fail-fast` | **851 / 851 PASS**（改訂 d・便 128 の着地の後・歯の定数を注の字に依らない形にした後）。改訂 c の時点は 850 / 851（`f128_mechanism_shape_is_a_violation`）、改訂 b の時点（main b14ddba）は 844 / 844 |
 | `folio build --dir design-intent --out <scratch> --write` | 床 合格・26 file 書けた。要件書の面（FR20 の平易文）・入口の面（棚の説明）・憲法の面の用語集（枝の項）・ADR-19 の面（止める場合）に直した字が出ることを字で確かめた。1440 の幅で開いて目で見る確認はしていない |
 | `folio ceiling --dir design-intent --gate --write-set design-intent/srs.yaml` | まだ分からない（印が古い（引き金の要約値の欄が無い））＝印は 28 周目（main a70477e）で、便アの前に書いたので引き金の要約値の欄を持たない。main b14ddba でも同じ |
 
@@ -296,6 +296,6 @@
 
 ## まだ分からない点
 
-- **便 128 は main affdb7d で着地した（改訂 c の実測）。** 改訂 c でその上へ載せ替えた。便 128 の歯 `crates/folio/tests/unknown_fields.rs` の `f128_mechanism_shape_is_a_violation` は、条 N-3 の機構の行を定数 `N3_MECHANISM`（71 行目・前の注の全字）で探して置き換えるので、注を狭めた本一括の上では落ちる（nextest 851 本のうち 1 本）。起草役は歯を直していない。歯の定数を新しい注の字に揃えるか（席の裁定・歯の file は `crates/folio/tests/`）、注の字の直しを別の形にするかは席が決める。同じ file の `N3_MECHANISM_MAP`（73 行目・「…note: 正本と rules」までの頭）は、注の頭の字を保ったので当たる。
+- **便 128 は main affdb7d で着地し、改訂 d で歯を注の字に依らない形にした。** 便 128 の歯 `crates/folio/tests/unknown_fields.rs` は、条 N-3 と前文の mechanism の行を定数（前の注の全字）で探していたので、注を狭めた本一括の上では `f128_mechanism_shape_is_a_violation` が落ちた。改訂 d（席の裁定・席の権能 edit-tests）で、定数 `N3_MECHANISM`・`N3_MECHANISM_MAP`・`PRECEDENCE_MECHANISM` を外し、行の頭（`    mechanism: {kind: build-check`・`  mechanism: {kind: none`）だけを持って、行の全字は実の憲法の正本の該当の区画（条 N-3・前文）から読んで組む関数に改めた。変異の当て先と期待する違反の行は変えていない。
 - **面を 1440 の幅で目で見る確認はしていない。** FR20 と ADR-18・ADR-19 の平易文が長くなった箇所の折り返しは、持ち主の walk の範囲の外として席が PR の前に開いて見る。
 - **枝の上の周で、本一括の新しい字（特に FR20 の平易文の「など」と語彙の 2 項）が新しい所見を生むかは分からない。** 規範の欄の細かい一覧は決定 (1) を指す形にしたが、要件と受入基準の欄を「など」で括った。
