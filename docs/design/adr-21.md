@@ -1,6 +1,6 @@
 # 判断の記録 ADR-21 の承認要求 — M3 の出口の相手を scribe2 から v3 の設計の置き場へ読み替え、scribe2 の移行のためだけの論点を閉じる
 
-- 状態: 起草・承認待ち（2026-09-24・改訂 b・c 2026-09-24・orchestrator 席 fable 5.1 の起草役）。
+- 状態: **承認済み・発効（2026-09-24 22:38 JST「承認する」・裁定 id = 台帳 f2-648 notes 2026-09-24 22:38 JST・🔴 2 問とも推奨 = 問 2 は scribe3〔新しい repo・folio の実装は後から取り込む〕・問 1 は発効〔案 a〕）**。起草 2026-09-24・改訂 b〜d 2026-09-24・orchestrator 席 fable 5.1 の起草役。§3 の欄は同じ枝の発効の記帳の commit で書いた（台帳の行 #13・#18 は席が書く）。
 - 正本: `design-intent/adr/ADR-21.yaml`（status: proposed）。反証の試み: 独立の検証役の検証 `~/.local/share/folio2/handoff-2026-09-24/adr21-verify.md`（別の文脈・opus 5.5・**総合 条件付き支持**・blocking 4・文面 7・低い重さ 5）と、起草役の自己反証 `docs/design/adr-21-grill.md`。改訂 b は歯の赤（blocking 1）を閉じ、改訂 c は残りの blocking 2〜4 と文面と低い重さを席の裁定で全部当てた（当て方の一覧は grill の §6）。起草の記録: `~/.local/share/folio2/handoff-2026-09-24/adr21-draft.md`。
 - 出所: scribe2 の orchestrator 席からの連絡（`~/.local/share/folio2/handoff-2026-09-24/scribe2-v3-direction.md`・scribe2 の持ち主の裁定 2026-09-24T08:40Z）と控え 台帳 f2-648.188。あなたは 2026-09-24 21:33 JST の 🔴 問 6（逐語「すべて承認する」）で、**この改訂を起こすこと**を承認した。発効はこの承認要求で別に問う。
 - 枝: `docs/adr21` は本流 `249a7a2`（ADR-20 の発効と一括 18・要件書 第 1.39 版・PR #308）の上に在る（起草は枝 `docs/batch18` の `1498aee` の上で行い、取り込みの後に載せ替えた）。
