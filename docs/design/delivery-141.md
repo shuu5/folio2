@@ -5,12 +5,12 @@
 - 出所: 天井の 33 周目（2026-09-25・本流 94e6d3e）の読みやすさの所見 **F-1**（重さ 直す・場所 adr の ADR-23.title・面の側）。一括 20 の仕分け（`docs/design/batch20-triage.md`）の便の候補 **B-2**。台帳の控え **f2-648.206**。正本の側（判断の記録 ADR-23 の見出しと決定の字）は一括 20 で語彙の「段」と「機構」の項の断りで閉じ、面の名札の字だけが面の生成器の便として残った（仕分けの判定 2）。依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `en` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 7 本（書き換える 4 本 + 本文が変わらない verify の scope 3 本・便 132 と同じ 7 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 7 本を base の binary で `folio ceiling --gate --dir design-intent --write-set …` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。便の全差分を当てた写しの binary で撃っても同じ字で 0 だった。
-- 前の便: 前提の着地は無い。**base = main 580efa7。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
-- 並行の便との重なり: 起草の間に本流は 902bb8f へ進んだ（便 140 の着地 1f3d6cd と便 139 の契約 PR #322）。本便の write-set 7 本は 580efa7 と 902bb8f の間で 1 byte も動いていない（`git diff --stat 580efa7 902bb8f -- <write-set>` が空）。便 140（行 em・台帳 f2-648.208・着地済み）の write-set 10 本とは 1 本も重ならない。便 139（行 el・台帳 f2-648.205・契約は着地・実装は未着地）の write-set 8 本とは `crates/folio/tests/badge.rs` と `crates/folio/tests/site.rs` の 2 本が重なるが、どちらの便でも本文を変えない verify の scope で、中身も独立である（便 139 は入口の面と `expected-index*.html`、本便は憲法の面と `expected.html`）。起草役は 902bb8f に本便の全差分を当てた写しでも verify の 8 行と workspace の nextest が緑であることを確かめた（§1 (e) の 6）。**受付は便 139 の後の逐次を勧める。共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 580efa7 で 897・本便の後 900。902bb8f では 899・本便の後 902。便 139 の着地で更に +4 の見込み）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
+- 前の便: 前提の着地は無い。**base = main e5b8930（便 139 と便 140 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
+- 並行の便との重なり: 便 139（行 el・台帳 f2-648.205）と便 140（行 em・台帳 f2-648.208）はどちらも着地済み（main e5b8930＝本便の base）で、並行の便は無い。便 139 の write-set と本便の write-set は本文を変えない verify の scope の 2 本（`crates/folio/tests/badge.rs`・`crates/folio/tests/site.rs`）を共に持っていたが、便 139 は 2 本の本文を変えずに着地した。本便の write-set 7 本は、起草を始めた main 580efa7 と e5b8930 の間で 1 byte も動いていない（`git diff --stat 580efa7 e5b8930 -- <write-set>` が空）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base e5b8930 で 903・本便の後 906）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・base main 580efa7・数は参考値）
+### (a) いま起きていること（実測・base main e5b8930・数は参考値）
 
 1. **名札の今の字。** 憲法の面の各条の機構の小窓は、名札を「<守らせ方>・<いつから動くかの名札>（<その意味>）・<編集時か事後か>・<開くか閉じるか>」の形で出す（`crates/folio/src/face_constitution.rs` の条の行の組み立て）。いつから動くかの名札と意味は `crates/folio/src/face_labels.rs` の 2 関数 mechanism_live_label と mechanism_live_meaning が、憲法の値域 schema.enums.mechanism_live の 5 値（now・M0・delivery-0・M1・adr）の上の網羅の場合分けで持つ（便 84 と便 132）。now でない 4 値の意味の字は次のとおり。
 
@@ -44,7 +44,7 @@
 | `docs/design/` の設計ノート（batch20-triage.md・adr-23.md・adr-23-grill.md・delivery-132.md） | 記録 | 直さない |
 
    床の fixture の憲法の写し（`tests/fixtures/floor_base/design-intent/`）と実の憲法の正本と凍結の版（`design-intent/anchors/constitution-v1.*.yaml`）は、意味の表 mechanism_live_meaning（M1 で実在する など）を持つが、「段の値」の字は持たない。本便は正本の意味の表を変えない。
-7. **base の歯（参考値）。** workspace の nextest 897 / 897・clippy 0 警告・床 4 本（check・inject --check・schema --check・derive --check）rc 0・`folio build` の出力 30 file（1,918,372 byte）・部品目録の検査 `folio parts --check` 合格（違反 0・まだ分からない 0）。`git grep -n 'f141_' -- crates` は 0 件。歯の file の本数は face_constitution 17・face 24・badge 16・site 13・binary の単体 134。
+7. **base の歯（参考値）。** workspace の nextest 903 / 903・clippy 0 警告・床 4 本（check・inject --check・schema --check・derive --check）rc 0・`folio build` の出力 30 file（1,924,927 byte）・部品目録の検査 `folio parts --check` 合格（違反 0・まだ分からない 0）。`git grep -n 'f141_' -- crates` は 0 件。歯の file の本数は face_constitution 17・face 24・badge 16・site 13・binary の単体 135。
 
 ### (b) 直す先 — 意味の表の 4 つの字と、同じ字を逐語で持つ針・期待の字・凍結 anchor
 
@@ -89,7 +89,7 @@ fixture は新しい file を足さない。変異は歯の中で実の置き場
 
 ### (e) 既存の歯のうち落ちるもの・凍結 anchor が動くか・面の変化
 
-1. **実装だけを当てた写しでは、既存の歯が 5 本落ちる（起草役の実測・897 本中）。** どれも本便の write-set の中の直しで緑に戻る。
+1. **実装だけを当てた写しでは、既存の歯が 5 本落ちる（起草役の実測・903 本中）。** どれも本便の write-set の中の直しで緑に戻る。
 
 | 歯（file） | 落ちる理由 | 直し方 |
 | --- | --- | --- |
@@ -99,7 +99,7 @@ fixture は新しい file を足さない。変異は歯の中で実の置き場
 | badge の badge_faces_without_the_mark_match_the_seven_frozen_fixtures | 同上 | (b) の 5 |
 | site の site_write_matches_the_frozen_fixture | 同上 | (b) の 5 |
 
-   (b) の 3〜5 まで当てた写し（歯を除く）で 897 / 897。本便の差分の全部を base に当てた写しで、workspace の nextest は **900 / 900**（base 897 + 単体 1 + face_constitution 2）・clippy 0 警告・床 4 本 rc 0・face_constitution 19 / 19。
+   (b) の 3〜5 まで当てた写し（歯を除く）で 903 / 903。本便の差分の全部を base に当てた写しで、workspace の nextest は **906 / 906**（base 903 + 単体 1 + face_constitution 2）・clippy 0 警告・床 4 本 rc 0・face_constitution 19 / 19。
 2. **動く凍結 anchor は 1 本で、2 か所だけ**（(b) の 5）。
 3. **RED（起草役の実測）。** 歯だけを base に当てた写しで、f141_ の 3 本とも落ちる。
 4. **突然変異（起草役の実測・本便を当てた写しの file を 1 通りずつ変える・src の変異は match の腕の字だけを替え、歯の中の凍結の針は替えない）。** 6 通りとも f141_ の 1 本以上が落ちる。
@@ -114,8 +114,8 @@ fixture は新しい file を足さない。変異は歯の中で実の置き場
 | M6 凍結 anchor を直さない | 緑 | 緑 | 落ちる | 緑 | 緑 | 落ちる |
 
    M2 と M5 は folio2 自身の憲法にも面の fixture にも無い値 adr の字だけを崩す変異で、凍結 anchor を読む歯では拾えない。f141_ の単体の歯と値ごとの歯が 4 つの値を全部並べるのはこのためである。
-5. **面の変化（起草役の実測）。** base の設計文書で `folio build --dir design-intent --out <置き場> --write` を撃つと、出力は 30 file のまま、違うのは constitution.html の 1 file だけで、中身の差は機構がまだ無い 6 本の条の小窓の名札の字の 6 か所（各 12 byte・計 +72 byte・1,918,372 → 1,918,444 byte）だけである。部品目録の検査 `folio parts --check` は便の後の憲法・入口・要件書の面で合格（違反 0・まだ分からない 0）。判断の記録 ADR-23 の面の本文の「憲法の段の値は M1」の 1 か所は正本の字（来歴）なので残る。
-6. **本流 902bb8f での確かめ（起草役の実測）。** 902bb8f（便 140 の着地と便 139 の契約の後）の写しで workspace の nextest は 899 / 899、本便の全差分を当てて 902 / 902、verify の 8 行は全部 0、床 check は合格だった。
+5. **面の変化（起草役の実測）。** base の設計文書で `folio build --dir design-intent --out <置き場> --write` を撃つと、出力は 30 file のまま、違うのは constitution.html の 1 file だけで、中身の差は機構がまだ無い 6 本の条の小窓の名札の字の 6 か所（各 12 byte・計 +72 byte・1,924,927 → 1,924,999 byte・名札の字を置き換えた base の constitution.html が便の後の出力と一致）だけである。部品目録の検査 `folio parts --check` は便の後の憲法・入口・要件書の面で合格（違反 0・まだ分からない 0）。判断の記録 ADR-23 の面の本文の「憲法の段の値は M1」の 1 か所は正本の字（来歴）なので残る。
+6. **base の取り直し（起草役の実測）。** 起草は main 580efa7 で始め、便 140 と便 139 の着地を受けて枝を e5b8930 へ載せ替え、数を全部 e5b8930 の写しで撃ち直した。580efa7 の値と違ったのは nextest の本数（897 → 903・便の後 900 → 906）と `folio build` の出力の byte の合計だけで、落ちる既存の歯 5 本・RED・突然変異の 6 通りの結果・余地・凍結 anchor の数と sha256・門・床・部品目録の検査・verify の 8 行の結果は同じだった。
 
 ### (f) 大きさ・verify と done の対応
 
@@ -138,7 +138,7 @@ fixture は新しい file を足さない。変異は歯の中で実の置き場
    6. `cargo nextest run -p folio --test badge badge_faces_without_the_mark` = 名札の無い面の凍結 anchor 7 本との byte 一致。
    7. `cargo nextest run -p folio --test site site_write_matches_the_frozen_fixture` = 組み立ての出力の凍結 anchor との byte 一致。
    8. `cargo clippy --workspace --all-targets -- -D warnings` = 0 警告。
-   base 580efa7 では 1 と 2 が 0 件で終了コード 4（歯が無い）、3〜8 は緑（3 は 17 本）である。
+   base e5b8930 では 1 と 2 が 0 件で終了コード 4（歯が無い）、3〜8 は緑（3 は 17 本）である。
 5. **verify の歯の file と write-set。** `--test` で名指す歯の file は face_constitution・face・badge・site の 4 本で、どれも write-set に在る。`--bin folio` の絞り込みの語 f141_ を関数名に持つ src は `face_labels.rs`、face_labels_are_frozen_needles_for_the_string_tables を持つ src は `face.rs` で、どちらも write-set に在る。
 
 ### (g) 門と受付・判断の記録 ADR-5 の撤退条件 ②
@@ -186,8 +186,8 @@ fixture は新しい file を足さない。変異は歯の中で実の置き場
 ## 5. 依存
 
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
-- 前提の着地: 無し（base = main 580efa7・write-set 7 本は 902bb8f まで不変・§0）。
-- 並行の便: 便 140 は着地済みで重なり 0。便 139 とは本文不変の 2 本（badge.rs・site.rs）が名目で重なるので、受付は便 139 の後の逐次（§0）。
+- 前提の着地: 無し（base = main e5b8930・便 139 と便 140 は着地済み・§0）。
+- 並行の便: 無し（§0）。
 - 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.206）を閉じる。語彙の項 段 の断りの「面の名札が言う…「段の値」」の句が面に当たる字を失うので、次の一括で断りから面の名札を外すか（ADR-23 と憲法の機構の注の字はそのまま残る）を台帳の控えに残すかを決める。次の周の読みやすさの観点で F-1 と同じ所見が面の側に立たないかを見る。
 
 <!-- contracts:begin -->
