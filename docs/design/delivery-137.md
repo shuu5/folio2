@@ -30,7 +30,7 @@
 
 ### (b) 直す先 — face_adr.rs の 4 か所（部品は足さない）
 
-1. **名札の表（β）。** 改訂の向きの表 REVISE（narrow → 狭める・widen → 広げる・床の定数 `floor_adr::REVISE_KIND` の値域と同じ順）と、2 つの欄の名札の定数（AMENDS_LABEL = 条文の改訂・REVISES_LABEL = 判断の記録の改訂）を足す。表に無い向きは既存の表引き（案の判定と同じ口）が Err を返し、面を導出しない（まだ分からない・終了コード 2）。任意の一覧の欄を読む小さな関数 entries を足し、amends と revises の両方をそれで読む。
+1. **名札の表（β）。** 改訂の向きの表 REVISE（narrow → 狭める・widen → 広げる・床の定数 REVISE_KIND〔`crates/folio/src/floor_adr.rs`〕の値域と同じ順）と、2 つの欄の名札の定数（AMENDS_LABEL = 条文の改訂・REVISES_LABEL = 判断の記録の改訂）を足す。表に無い向きは既存の表引き（案の判定と同じ口）が Err を返し、面を導出しない（まだ分からない・終了コード 2）。任意の一覧の欄を読む小さな関数 entries を足し、amends と revises の両方をそれで読む。
 2. **表紙の札を 2 つに分ける。** 名札「改訂」の札 1 つを、名札「条文の改訂」（amends の件数）と名札「判断の記録の改訂」（revises の件数）の 2 つの札にする。札の部品と並びの位置（根拠の札の後・撤退条件の札の前）は変えない。0 件でも 2 つとも出す（23 本の面で札の並びを揃える）。
 3. **章 05 の頭。** 空の欄の断りは 1 段落にまとめて章の頭に置く＝両方が空なら「条文の改訂なし・判断の記録の改訂なし」、片方だけが空ならその片方の断り（例「判断の記録の改訂なし」）。中身の在る欄は、名札と同じ字の h3 見出し（条文の改訂・判断の記録の改訂）の下に一覧で並べる。amends の一覧の行の字は 1 字も変えない（見出しが 1 つ付くだけ）。revises の一覧は amends の一覧の後・帰結の見出しの前に置く。
 4. **revises の 1 行。** 相手の id の面へのリンク（根拠の章と同じ id_link の口・リンクの class は既存の xref・行き先の file が無い相手は「ADR-n（まだ分からない）」の印）・字「の決定」・decision の逐語・字「を」・向きの名札・コロン・summary の逐語（escape する）。ADR-22 の 1 行目は「ADR-3 の決定 (8) を狭める: 「folio2 の M1 で…」」と読める。行の順は正本の順。
@@ -39,7 +39,7 @@
 
 ### (c) 歯（関数名 f137_・base で 0 件）
 
-1. **f137_revise_kind_labels_follow_the_floor_enum（単体の歯・`crates/folio/src/face_adr.rs` の既存の tests の区間）。** 表 REVISE の鍵の並びが床の定数 `floor_adr::REVISE_KIND` と等しいこと、表の 2 行と 2 つの名札の字が (b) の 1 の字と等しいこと（凍結の針・歯の中の手で写した字）、表に無い向き shrink の表引きの Err の字を数える。**base では表と定数が無く、組み立てが通らない＝RED。**
+1. **f137_revise_kind_labels_follow_the_floor_enum（単体の歯・`crates/folio/src/face_adr.rs` の既存の tests の区間）。** 表 REVISE の鍵の並びが床の定数 REVISE_KIND（`crates/folio/src/floor_adr.rs`）と等しいこと、表の 2 行と 2 つの名札の字が (b) の 1 の字と等しいこと（凍結の針・歯の中の手で写した字）、表に無い向き shrink の表引きの Err の字を数える。**base では表と定数が無く、組み立てが通らない＝RED。**
 2. **f137_revises_rows_show_the_link_decision_kind_and_summary（`crates/folio/tests/face_adr.rs`・binary 経由）。** fixture の写しの ADR-2 に、歯の中で手書きした改訂の欄 2 行（相手 ADR-1・決定 (2)・狭める・summary に山括弧を含む字／相手 ADR-9〔写しに無い〕・決定 (1)・広げる）を足して面を書く。終了コード 0・表紙の札が条文の改訂 0 件と判断の記録の改訂 2 件で名札「改訂」だけの札が無い・章 05 の頭の断りは「条文の改訂なし」がちょうど 1 つで判断の記録の改訂の断りが無い・h3「判断の記録の改訂」がちょうど 1 つ・1 行目は ADR-1 の面へのリンクと決定と向きと escape した summary の逐語・2 行目は「ADR-9（まだ分からない）」の印・2 行は正本の順で章 05 の中（承認欄の前）・機械のための面が amends 0 と revises 2 を数える。**base では行も札も無い＝RED。**
 3. **f137_a_record_without_revisions_says_both_are_none（同）。** 変異なしの写し（amends は空・revises は無い）の面で、2 つの札が 0 件・章 05 の断りが「条文の改訂なし・判断の記録の改訂なし」のちょうど 1 段落・h3 が無い・機械のための面が 0 と 0。**base では断りが「条文の改訂なし」だけ＝RED。**
 4. **f137_amends_go_under_their_own_heading（同）。** 写しの amends を 1 行にした面で、札が条文の改訂 1 件・判断の記録の改訂 0 件・断りが「判断の記録の改訂なし」・h3「条文の改訂」の後に amends の行が逐語で在る。**base では h3 と札が無い＝RED。**
