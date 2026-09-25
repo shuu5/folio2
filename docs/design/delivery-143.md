@@ -13,7 +13,7 @@
 ### (a) いま起きていること（実測・base main 2fbc1af・数は参考値）
 
 1. **生成器の字。** 入口の面の棚のカード（部品 shelf-card・`crates/folio/src/face_index.rs` の 348 行と 371 行）は、行 sc-row の最後に、開く → と同じ行き先の中身の無いリンク a.sc-hit（aria-hidden・tabindex -1）を置く。main の design-intent から組んだ面では、憲法・要件書・設計ノートの 3 枚が sc-hit を持つ。判断の記録のカードは便 139 で外した（一覧を覆わないための先回り）。
-2. **様式の定義の字（`design-intent/preview/folio.css`）。** 164 行でカード自身が position:relative を持つ。176 行の .sc-hit は position:absolute・inset:0・z-index:0（カードいっぱいに広がり、中身の下に敷く意図）。177 行はカードの中の 開く →・sc-row の中の a・付録の chip の a に position:relative・z-index:1 を与える（当たり判定の上に出す意図）。印刷の @media（664 行）は sc-hit を消す。
+2. **様式の定義の字（`design-intent/preview/folio.css`）。** 164 行でカード自身が position:relative を持つ。176 行の .sc-hit は position:absolute・inset:0・z-index:0（カードいっぱいに広がり、中身の下に敷く意図）。177 行はカードの中の 開く →・sc-row の中の a・付録の chip の a に position:relative・z-index:1 を与える（付録の chip〔annex-chips〕は今の入口の面ではカードの中に 0 個で、3 つ目の selector は今の面では何にも当たらない）（当たり判定の上に出す意図）。印刷の @media（664 行）は sc-hit を消す。
 3. **ブラウザの実測（playwright・loopback で配った base の面・幅 1400 / 1000 / 680 / 390）。** 3 枚とも sc-hit の箱は **0×0**、計算された position は relative、z-index は 1。カードの名札・説明・右下の余白を押すと、当たるのは段落かカードそのもので、行き先は無い。開く → と設計ノートの xref と付録の chip は、それぞれの行き先に当たる。
 4. **原因の切り分け。** 親のカードは 164 行で既に position:relative を持つので、親の position は原因でない。sc-hit は p.sc-row の中の a なので、177 行の規則（カードの属性 × sc-row × a ＝ 詳細度 0,2,1）が 176 行の .sc-hit（詳細度 0,1,0）に勝ち、position:relative・z-index:1 の中身の無いインラインの箱になる。台帳の見出しの「折りたたみ規則」は、正しくはこのカードの中のリンクを上に出す規則である。
 5. **面の見た目と押した先は利用者に見える不具合ではない。** 当たり判定が 0×0 でも、見える字と色と並びは意図どおりで、開く → は押せる。欠けているのは「カードのどこを押しても行き先へ」という部品目録の意図だけである。
@@ -22,7 +22,7 @@
 
 ### (b) 直す先 — カードの中のリンクを上に出す規則から sc-hit を外す（案 A）
 
-1. **`design-intent/preview/folio.css` の 177 行だけを変える。** 3 つの selector のうち真ん中（カードの中の sc-row の a）を、sc-row の a のうち sc-hit でないもの（`.sc-row a:not(.sc-hit)`）に替える。宣言（position:relative・z-index:1）と他の 2 つの selector（開く → と付録の chip の a）は変えない。差分は 1 行・13 byte（`:not(.sc-hit)` を足すだけ・組み立てた出力の総 byte も 13 増える）。
+1. **`design-intent/preview/folio.css` の 177 行だけを変える。** 3 つの selector のうち真ん中（カードの中の sc-row の a）を、sc-row の a のうち sc-hit でないもの（`.sc-row a:not(.sc-hit)`）に替える。宣言（position:relative・z-index:1）と他の 2 つの selector（開く → と付録の chip の a・chip は今の面ではカードの中に 0 個）は変えない。差分は 1 行・13 byte（`:not(.sc-hit)` を足すだけ・組み立てた出力の総 byte も 13 増える）。
 2. **効き方。** sc-hit には 177 行が当たらなくなり、176 行の position:absolute・inset:0・z-index:0 が効く。広がる先は位置を持つ一番近い祖先＝164 行のカードである。カードの中の他のリンク（開く →・xref）は今までどおり 177 行で z-index:1 を持ち、当たり判定の上に在る。
 3. **描画は変わらない（起草役の実測）。** 便を当てた写しの `folio build` の出力は、base と比べて 30 file のうち folio.css だけが違い、HTML の 29 file は byte で同じ。playwright で 4 幅の全面の画像と、要件書のカードの説明に指を置いた画像を撮ると、base と便の後で 8 枚とも画像の byte が一致した。sc-hit は背景も枠も字も持たないので、フレックスの行から外れても見える並びは動かない（base の 0×0 の箱は行の最後の 開く → の後ろに在り、その前の行の隙間は何も描かない＝画像の byte 一致がそれを示す）。
 4. **押した先だけが変わる（起草役の実測）。** 便の後の sc-hit の箱は、カードの枠の内側いっぱい（幅 1400 で 318×269・幅 390 の憲法のカードで 318×274）。名札・説明・右下の余白を押すと sc-hit に当たり、行き先はそのカードの 開く → と同じ（constitution.html・srs.html・note-figures.html）。開く →・xref・付録の chip の押した先は base と同じ。判断の記録のカードは sc-hit を持たないので、押した先は base と同じ。
@@ -96,7 +96,7 @@ fixture は新しい file を足さない（凍結の面と正本の様式を読
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-25/d143-draft.md`、模擬の差分と script は同じ dir の d143-scripts（repo には入れない）。
 
-1. 再現: main の binary で `folio build --dir design-intent --out <scratch>/base-out --write`、scratch を loopback で配り、browser-143.js（playwright の run_code）で 4 幅の当たり判定・押した先・画像を測る（browser-143.log）。
+1. 再現: main の binary で `folio build --dir design-intent --out <scratch>/base-out --write`、scratch を loopback で配り、browser-143.js（playwright の run_code）で 4 幅の当たり判定・押した先・画像を測る（browser-143.log）。画像を撮る前に指（mouse）を (0,0) へ動かす（画像の byte 一致は指の位置に依る・前の click の指が xref の上に残ると hover の描画だけで base と後が違って見える）。
 2. 模擬: base の写しの根で apply-143.py（実装）と apply-143-teeth.py（歯・face_style.rs を置く）を撃つ。その差分が c143.patch。verify-143.sh で verify の 4 行・workspace の nextest・床 4 本・`folio build` と `folio parts --check`。
 3. RED: apply-143-teeth.py だけを base の写しに当てる（r143-teeth.patch・red.log）。
 4. 突然変異: mut-143.sh（(e) の 4・folio.css の変異は組み直し不要・歯の側の変異は組み直す）。
@@ -106,7 +106,7 @@ fixture は新しい file を足さない（凍結の面と正本の様式を読
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
 1. **運ばないもの。** 生成器と面の HTML・部品目録・sc-hit の退役（(d) の 1）・判断の記録のカードに sc-hit を戻すこと（便 139 の決定のまま）・写しの folio.css 2 本・設計文書の正本・台帳への記帳（席）・外部 crate。
-2. **言えないこと。** 歯が測るのは CSS の決まりの写しの上の効き方で、ブラウザの描画そのものではない（ブラウザの実測は起草の記録の参考値）。写しは position・inset・z-index・display の勝ち負けだけを決め、top や width などの個別の辺と、カードの角丸の継ぎ（border-radius:inherit）は見ない。便の後はカードの名札と説明の字を指でなぞって選べなくなる（当たり判定が上に在る・全面リンクの部品の常の性質）。支援技術には sc-hit は aria-hidden で tabindex -1 のまま見えない。
+2. **言えないこと。** 歯が測るのは CSS の決まりの写しの上の効き方で、ブラウザの描画そのものではない（ブラウザの実測は起草の記録の参考値）。写しは position・inset・z-index・display の勝ち負けだけを決め、top や width などの個別の辺と、カードの角丸の継ぎ（border-radius:inherit）は見ない。写しは要素の style 属性（inline）を読まず、字に print を含む @media の塊（not print を含む）を丸ごと飛ばす（今の面と正本ではどちらも効かない）。inset は字だけを見るので、後の規則が sc-hit に top だけを書く変異は拾わない。便の後はカードの名札と説明の字を指でなぞって選べなくなる（当たり判定が上に在る・全面リンクの部品の常の性質）。支援技術には sc-hit は aria-hidden で tabindex -1 のまま見えない。
 3. **撤退条件。** (1) 本便の後に、置き換えも足しもしない既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(2) 本便の後に `folio build` の出力の HTML が 1 byte でも変わるか、folio2 自身の床 4 本の結果が変わったら、止めて席へ返す（本便は描画を変えない前提）。(3) 受付の時点の main で folio.css の 164・176・177 行か、生成器の sc-hit の置き場（sc-row の最後）が base と違えば、(a)(b)(e) を (h) の手順で数え直してから運ぶ（当たり判定が既に効いていたら止めて席へ返す）。
 
 ## 2. 範囲
