@@ -267,7 +267,7 @@
 
 ## 床の結果（この枝の HEAD で実測・2026-09-25・参考値）
 
-binary はこの枝で組んだ `target/debug/folio`（この枝の `crates/` と `tests/` は本流 33a7dd4 と byte 一致・便 134 の着地の後に組み直して全部を撃ち直した）。改訂 b の字の上でも下の全部を撃ち直した。
+binary はこの枝で組んだ `target/debug/folio`（この枝の `crates/` と `tests/` は本流 33a7dd4 と byte 一致・便 134 の着地の後に組み直して全部を撃ち直した）。改訂 b の字の上でも、改訂 c の字（89be3a3・この節の字だけが後の commit）の上でも、下の全部を撃ち直した。
 
 | 検査 | 結果 |
 |---|---|
@@ -275,9 +275,9 @@ binary はこの枝で組んだ `target/debug/folio`（この枝の `crates/` �
 | `folio inject --check --dir design-intent` | rc 0（68 行 / 7,912 byte 一致） |
 | `folio schema --dir design-intent --check` | rc 0（9 file 一致） |
 | `folio derive --dir design-intent --out ../contracts --check` | rc 0（一致 1・差分 0） |
-| `cargo nextest run --workspace --no-fail-fast` | **868 / 868 PASS**（起草の字と改訂 b の字でそれぞれ 1 度）。起草の途中で 4 本落ちた（相談窓口の版を上げた字で支度表の凍結 anchor 3 本・行 R-13 の refs に ADR-23 を足した字で `f91_the_real_rules_carry_the_refs_field`）。どちらも正本の形を直して戻した（判定 4・R-13 の注から ADR-23 の名を外した） |
+| `cargo nextest run --workspace --no-fail-fast` | **868 / 868 PASS**（起草の字・改訂 b の字・改訂 c の字でそれぞれ 1 度）。起草の途中で 4 本落ちた（相談窓口の版を上げた字で支度表の凍結 anchor 3 本・行 R-13 の refs に ADR-23 を足した字で `f91_the_real_rules_carry_the_refs_field`）。どちらも正本の形を直して戻した（判定 4・R-13 の注から ADR-23 の名を外した） |
 | `folio build --dir design-intent --out <scratch> --write` | 床 合格・30 file 書けた。ADR-22 の短い見出し・要件書の面の CON8 の新しい並び・憲法の面の用語集の段の項の断り・規則の表の D-14 の要旨が面に出ることを字で確かめた。1440 の幅で開いて目で見る確認はしていない |
-| `folio ceiling --dir design-intent --gate --write-set design-intent/srs.yaml` | まだ分からない（印が古い（引き金の要約値が違う））・rc 2。写しの上で制約 CON8 の本文と行 D-14 の what だけを本流の字に戻すと「通す」・rc 0、片方だけ戻すと「まだ分からない」・rc 2＝引き金を動かすのはこの 2 か所だけ（改訂 b の字で、独立の検証の `gate_revert.py` を使って撃ち直した） |
+| `folio ceiling --dir design-intent --gate --write-set design-intent/srs.yaml` | まだ分からない（印が古い（引き金の要約値が違う））・rc 2。写しの上で制約 CON8 の本文と行 D-14 の what だけを本流の字に戻すと「通す」・rc 0、片方だけ戻すと「まだ分からない」・rc 2＝引き金を動かすのはこの 2 か所だけ（改訂 b と改訂 c の字で、独立の検証の `gate_revert.py` を使って撃ち直した。改訂 c の字でも 2 か所を戻すと「通す」なので、改訂 c は引き金の欄を動かしていない） |
 
 **歯は 1 本も直していない。**
 
