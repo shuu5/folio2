@@ -4,6 +4,7 @@
 - 条: P-6.1（人が読むページは正本から逐語で生成する＝正本に在る欄 effective_version を面が黙って読み落とさない）/ P-4.2（判定できないものは まだ分からない として表に出す＝状態が発効なのに効いている版の欄が無い正本は、面の頭に「効く版はまだ分からない」と出す）/ P-5.1（名札は型付きの定数で持つ）/ P-2.4（部品の閉じた一覧＝部品も class も足さない）/ P-6.2（生成物を手で直さない＝面の凍結 anchor は生成器の出力と byte 一致させる）/ P-10.1（凍結 anchor と期待の字は歯の側の手書きで持つ）。
 - 出所: 天井の 34 周目（2026-09-25・一括 20 の枝の上）の読みやすさの所見 **F-2**（重さ 直す・場所 要件書の meta.status_note）。一括 20 の仕分け（`docs/design/batch20-triage.md`）の便の候補 **B-6**。台帳の控え **f2-648.210**。同じ形は 29 周目の読みやすさ F-4（一括 17 の仕分けは「承認で消える・便を起こす利益が無い」として便にしなかった）と、一括 15 の起草中（`docs/design/srs-vB.md` のまだ分からない点 1）にも出ており、版を上げる枝の上で周を回すたびに立つ。依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `ek` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 11 本（書き換える 7 本 + 本文が変わらない verify の scope 4 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
+- 改訂 b（2026-09-25・独立の検証 d138-verify.md〔条件付き支持・blocking 0・数値は全部一致〕の文面 3 点と任意の提案 3 点）: (b) の 1 の表の外の Err が入口の面では新しい振る舞いであることの字・(b) の 1 に `face_srs.rs` に足してよい行数（base から 41 行まで）の 1 文・done の末尾と (i) の 3 の撤退条件 (2) の比べる相手を着地の直前の main に。任意の提案から、(b) の 2 に status_note が無いときのリードの字、(b) の 3 に draft のカードの字、(i) の 2 に札とカードの版の並びが逆なことの予告、§5 に外部の利用者が発効になったときの Unknown の控えを、どれも字だけで足した。歯・verify・write-set・size・数値は変えない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 11 本を base の binary で `folio ceiling --gate` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。
 - 前の便: 前提の着地は無い。**base = main f82dba1。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
 - 並行の便との重なり: base の時点で、便 135（行 eh）・136（行 ei）・137（行 ej）は main に着地済みで、契約の枝のうち main に着地していない便は無い（起草役の実測）。一括 20 の便の候補 B-5（台帳 f2-648.208・直す先は `crates/folio/src/floor_note.rs` の見込み）は本便の write-set と重ならない。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
@@ -36,8 +37,8 @@
 
 1. **口（`crates/folio/src/face_labels.rs` に足す・`face.rs` が丸ごと再輸出する）。**
    - 名札の定数 2 つ: PENDING = 起草・承認待ち／UNKNOWN_EFFECTIVE = 効く版はまだ分からない。
-   - 版の立場の型 Standing（4 値）と関数 standing（欄 meta を受ける）: status を文書の状態の表（既存の DOC_STATUS）で引き、表の外は Err（導出できない・今の面と同じ）。status が draft なら Draft（effective_version は読まない）。effective なら、effective_version が無ければ Unknown、version と字が同じなら Effective、違えば Pending（効いている版の escape した字を持つ）。新しいか古いかは比べない（版の字の順序の規則を面に持たない）。effective_version が文字列でない（一覧など）なら Err。
-   - 置き場を `face_srs.rs` にしない理由: `face_srs.rs` は歯 f100（`crates/folio/tests/face_srs.rs` の f100_face_srs_is_split_and_under_the_cap）が幅 120 正規化で 1,100 行の上限を持ち、base で 1,059 行（余地 41）である。起草役が口を `face_srs.rs` に置いた模擬は 1,112 行で f100 が落ちた。入口の面も同じ口を読むので、面に共有の名札の置き場（`face_labels.rs`）に置く。
+   - 版の立場の型 Standing（4 値）と関数 standing（欄 meta を受ける）: status を文書の状態の表（既存の DOC_STATUS）で引き、表の外は Err（導出できない）。要件書の面は今も同じ理由で導出しない。入口の面は base では要件書の status も effective_version も読まず、表の外の status（例 retired）や一覧の effective_version でも終了コード 0 で書くが（検証役の実測）、本便の後は同じ理由で終了コード 2 になる。`folio build` は今も要件書の面で同じ理由で止まるので、組み立ての結果は変わらない。status が draft なら Draft（effective_version は読まない）。effective なら、effective_version が無ければ Unknown、version と字が同じなら Effective、違えば Pending（効いている版の escape した字を持つ）。新しいか古いかは比べない（版の字の順序の規則を面に持たない）。effective_version が文字列でない（一覧など）なら Err。
+   - 置き場を `face_srs.rs` にしない理由: `face_srs.rs` は歯 f100（`crates/folio/tests/face_srs.rs` の f100_face_srs_is_split_and_under_the_cap）が幅 120 正規化で 1,100 行の上限を持ち、base で 1,059 行（余地 41）である。起草役が口を `face_srs.rs` に置いた模擬は 1,112 行で f100 が落ちた。入口の面も同じ口を読むので、面に共有の名札の置き場（`face_labels.rs`）に置く。**`face_srs.rs` に足してよいのは base から 41 行まで（歯 f100 の上限 1,100 − base 1,059）である。** 起草役と検証役の別々の実装の増分は +16 と +14 だった。札の字の組み立てが長くなるなら `face_labels.rs` に関数を置き、`face_srs.rs` は 3 か所で呼ぶだけにする。
 2. **要件書の面（`face_srs.rs`）の 3 か所。** 字は版の立場ごとに次のとおり。Effective と Draft は base と 1 byte も変えない。
 
 | 所 | Effective・Draft | Pending（version v1.42・効いている版 v1.41） | Unknown（version v0.3・効いている版の欄なし） |
@@ -46,8 +47,8 @@
 | 表紙の状態 | base のまま | v1.41 が発効・拘束力あり（承認 2026-09-25）・v1.42 は起草・承認待ち | 発効・拘束力あり（承認 <日付>）・効く版はまだ分からない |
 | 承認欄のリード | base のまま | 発効・拘束力あり（v1.42 は起草・承認待ち） — <要旨> | 発効・拘束力あり（効く版はまだ分からない） — <要旨> |
 
-   鮮度の札は共有の口 Frame::head に渡す版と名札の 2 つの引数だけを変える（`face.rs` は変えない）。表紙の状態の承認の日付は今の式（最後の承認の行の日付）のまま。枝の上では承認の行はまだ前の版の分しか無いので、効いている版の承認の日付になる。
-3. **入口の棚のカード（`face_index_read.rs` の srs_card）。** 更新の行の後ろに、Pending なら「（起草・承認待ち・発効は <効いている版>）」、Unknown なら「（効く版はまだ分からない）」を足す。Effective と Draft は base のまま。枝の上の実測では「更新 2026-09-12・v1.42（起草・承認待ち・発効は v1.41）」。憲法のカードは変えない（(a) の 5）。
+   status_note が無い正本の承認欄のリードは、今と同じく名札だけで、Pending と Unknown では名札に札が付いた字だけになる（例 発効・拘束力あり（v1.42 は起草・承認待ち））。鮮度の札は共有の口 Frame::head に渡す版と名札の 2 つの引数だけを変える（`face.rs` は変えない）。表紙の状態の承認の日付は今の式（最後の承認の行の日付）のまま。枝の上では承認の行はまだ前の版の分しか無いので、効いている版の承認の日付になる。
+3. **入口の棚のカード（`face_index_read.rs` の srs_card）。** 更新の行の後ろに、Pending なら「（起草・承認待ち・発効は <効いている版>）」、Unknown なら「（効く版はまだ分からない）」を足す。Effective と Draft は base のまま（draft の写し・version v0.4・効いている版 v0.3 でも 更新 <generated>・v0.4 で札なし・口 standing が Draft を返すため）。枝の上の実測では「更新 2026-09-12・v1.42（起草・承認待ち・発効は v1.41）」。憲法のカードは変えない（(a) の 5）。
 4. **変えないもの。** 題（要件書（<version>））・表紙の版の札・図の caption・脚の平文と機械のための面（version と effective_version の字）・部品と class・章と節の並び・承認欄の行・来歴の折りたたみ・共有の口 Frame・憲法の面・入口の面の頭と棚の figcaption と脚・判断の記録と設計ノートの面・床・設計文書。題と表紙の版の札と脚は面の中身がどの版の正本から組まれたかを示す字で、枝の上では起草中の版の中身が載っているので version のままが正しい。
 5. **契約で決めること（起草役の判断）。**
    - **効いている版の欄が無い正本（P-4.2）: 面は書き、頭に「効く版はまだ分からない」と出す。** 面を導出しない（終了コード 2）形は採らない。効いている版の欄は床が要る欄と定めておらず、版の立場は面の中身の 1 点にすぎないので、1 点のために面の全部と `folio build` を止めると持ち主が面を読めなくなる。黙って version を発効と出す今の形（P-4.2 に反する）も採らない。状態 draft の正本（`folio init` の雛形・外部の利用者 tsuzuri の要件書は draft で effective_version を持たない）は Draft で、base と字が変わらない。
@@ -151,8 +152,8 @@ fixture は新しい file を足さない。面の fixture の要件書に effec
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
 1. **運ばないもの。** 憲法の面と入口の面の頭の同じ形（(b) の 5・正本の欄が先に要る）。入口の棚の憲法のカード。status_note の要旨の切り方（(d) の 4）。題・表紙の版の札・脚。設計文書の字。台帳への記帳（席）。外部 crate。
-2. **言えないこと。** 効いている版の字が本当に承認された版かは面も床も確かめない（承認欄の行との突き合わせは持たない・(d) の 2）。効いている版が version より新しい字の食い違いも Pending と出す（(d) の 3）。枝の上の次の周で、読みやすさの観点が F-2 を解けたと読むかは周の結果でしか分からない。面の見た目が持ち主に受け入れられるかは walk でしか分からない。
-3. **撤退条件。** (1) 本便の後に (e) の 1 の 8 本のほかに既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(2) 本便の後に base の本流の設計文書で `folio build` の出力が 1 byte でも変わるか、folio2 自身の床 4 本の結果が変わったら、止めて席へ返す。(3) 受付の時点の main で、要件書の正本の effective_version の置き方（version と別の欄で効いている版を持つ）か、歯 f100 の `face_srs.rs` の上限 1,100 が base と違えば、(b) と (f) を数え直してから運ぶ（欄が無くなっていたら止めて席へ返す）。
+2. **言えないこと。** 効いている版の字が本当に承認された版かは面も床も確かめない（承認欄の行との突き合わせは持たない・(d) の 2）。効いている版が version より新しい字の食い違いも Pending と出す（(d) の 3）。鮮度の札は効いている版を先に（v1.41（…・v1.42 は起草・承認待ち））、入口のカードは版の欄を先に（v1.42（起草・承認待ち・発効は v1.41））出し、並びが逆である。カードの更新の行はその file の最新の版を示す行なので版の欄を先に置いたが、次の枝の上の周で読みやすさの観点が拾う見込みがある。枝の上の次の周で、読みやすさの観点が F-2 を解けたと読むかは周の結果でしか分からない。面の見た目が持ち主に受け入れられるかは walk でしか分からない。
+3. **撤退条件。** (1) 本便の後に (e) の 1 の 8 本のほかに既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(2) 本便の後に、着地の直前の main の設計文書で組んだ `folio build` の出力が、着地の直前の main の binary の出力と file 数か byte で 1 つでも違うか、folio2 自身の床 4 本の結果が変わったら、止めて席へ返す。(3) 受付の時点の main で、要件書の正本の effective_version の置き方（version と別の欄で効いている版を持つ）か、歯 f100 の `face_srs.rs` の上限 1,100 が base と違えば、(b) と (f) を数え直してから運ぶ（欄が無くなっていたら止めて席へ返す）。
 
 ## 2. 範囲
 
@@ -178,7 +179,7 @@ fixture は新しい file を足さない。面の fixture の要件書に effec
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
 - 前提の着地: 無し（base = main f82dba1）。
 - 並行の便: 無し（§0）。受付は逐次。
-- 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.210）を閉じる。憲法の面と入口の面の頭の同じ形（効いている版の欄が正本に無い）を台帳の控えとして残すか、次の一括で正本の欄を足すかを決める（§1 (b) の 5）。次に版を上げる枝の上の周で、読みやすさの F-2 と同じ所見が立たないかを見る。
+- 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.210）を閉じる。憲法の面と入口の面の頭の同じ形（効いている版の欄が正本に無い）を台帳の控えとして残すか、次の一括で正本の欄を足すかを決める（§1 (b) の 5）。次に版を上げる枝の上の周で、読みやすさの F-2 と同じ所見が立たないかを見る。外部の利用者の要件書（今は draft で effective_version を持たない）が承認で effective になると面の頭は 効く版はまだ分からない になるが、effective_version はどの欄の決まりにも `folio init` の雛形にも載っていないので、欄の置き場（雛形か欄の決まり）を台帳の控えに残すかを決める。
 
 <!-- contracts:begin -->
 schema = 1
@@ -191,5 +192,5 @@ section = "1"
 write-set = ["crates/folio/src/face_labels.rs", "crates/folio/src/face_srs.rs", "crates/folio/src/face_index_read.rs", "crates/folio/tests/face_srs.rs", "crates/folio/tests/face_index.rs", "tests/fixtures/face/srs.yaml", "tests/fixtures/face/expected-srs.html", "crates/folio/tests/face_srs_body.rs", "crates/folio/tests/face_srs_figure.rs", "crates/folio/tests/badge.rs", "crates/folio/tests/site.rs"]
 verify = ["cargo nextest run -p folio --bin folio f138_", "cargo nextest run -p folio --test face_srs f138_", "cargo nextest run -p folio --test face_index f138_", "cargo nextest run -p folio --test face_srs", "cargo nextest run -p folio --test face_index", "cargo nextest run -p folio --test face_srs_body face_srs_write_matches_the_frozen_fixture", "cargo nextest run -p folio --test face_srs_figure", "cargo nextest run -p folio --test badge badge_faces_without_the_mark", "cargo nextest run -p folio --test site site_write_matches_the_frozen_fixture", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "単体の歯 f138_（2 つの名札の字が §1 (b) の 1 のとおりで、版の立場が 同じ字 = Effective・違う字 = Pending・欄なし = Unknown・draft = Draft の 4 通りに決まり、効いている版を escape し、表の外の状態と一覧の effective_version が Err）が緑、face_srs の f138_ の 5 本（version を先に進めた写しで鮮度の札・表紙の状態・承認欄のリードが効いている版と 起草・承認待ち を名指し題と脚は version のまま・版が揃った写しは今の字で凍結の面と一致・effective_version の無い写しは 3 か所が 効く版はまだ分からない で面を書く・draft は effective_version を読まない・実の要件書の鮮度の札が meta の 2 つの欄に従う）が緑、face_index の f138_ の 2 本（入口の棚の要件書のカードの更新の行が Pending なら 起草・承認待ち・発効は <効いている版>、欄なしなら 効く版はまだ分からない、揃っていれば札なし）が緑、face_srs の歯の全部（歯 f100 の上限 1100 を含む）が緑、face_index の歯の全部（入口の凍結の面 2 本との byte 一致を含む）が緑、face_srs_body の凍結の面 expected-srs.html との byte 一致が緑、face_srs_figure の歯の全部が緑、badge の名札の無い面の凍結 anchor 7 本との byte 一致が緑、site の組み立ての出力の凍結 anchor との byte 一致が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は 30 file で base と 1 byte も変わらない"
+done = "単体の歯 f138_（2 つの名札の字が §1 (b) の 1 のとおりで、版の立場が 同じ字 = Effective・違う字 = Pending・欄なし = Unknown・draft = Draft の 4 通りに決まり、効いている版を escape し、表の外の状態と一覧の effective_version が Err）が緑、face_srs の f138_ の 5 本（version を先に進めた写しで鮮度の札・表紙の状態・承認欄のリードが効いている版と 起草・承認待ち を名指し題と脚は version のまま・版が揃った写しは今の字で凍結の面と一致・effective_version の無い写しは 3 か所が 効く版はまだ分からない で面を書く・draft は effective_version を読まない・実の要件書の鮮度の札が meta の 2 つの欄に従う）が緑、face_index の f138_ の 2 本（入口の棚の要件書のカードの更新の行が Pending なら 起草・承認待ち・発効は <効いている版>、欄なしなら 効く版はまだ分からない、揃っていれば札なし）が緑、face_srs の歯の全部（歯 f100 の上限 1100 を含む）が緑、face_index の歯の全部（入口の凍結の面 2 本との byte 一致を含む）が緑、face_srs_body の凍結の面 expected-srs.html との byte 一致が緑、face_srs_figure の歯の全部が緑、badge の名札の無い面の凍結 anchor 7 本との byte 一致が緑、site の組み立ての出力の凍結 anchor との byte 一致が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main の出力と file 数も byte も変わらない"
 <!-- contracts:end -->
