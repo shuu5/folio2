@@ -12,7 +12,7 @@
 
 ### (a) いま起きていること（実測・base main f82dba1・数は参考値）
 
-1. **生成区間の今の字。** 設計ノートの欄の決まり `design-intent/design-note/schema.yaml` の schema 節は生成区間で（`# folio:schema:begin` から `# folio:schema:end` まで）、正本は実装の型付きの定数 `crates/folio/src/floor_note.rs` の床の木 FLOOR である。`folio schema --write` がその木を生成区間へ導出する（FR19・判断の記録 ADR-9）。導出物の節 derived の置き場の欄 placement の行は、逐語で次のとおり（生成区間の 97 行目・file の 116 行目）。
+1. **生成区間の今の字。** 設計ノートの欄の決まり `design-intent/design-note/schema.yaml` の schema 節は生成区間で（`# folio:schema:begin` から `# folio:schema:end` まで）、正本は実装の型付きの定数 `crates/folio/src/floor_note.rs` の床の木 FLOOR である。`folio schema --write` がその木を生成区間へ導出する（FR19・判断の記録 ADR-9）。導出物の節 derived の置き場の欄 placement の行は、逐語で次のとおり（生成区間の 96 行目・file の 116 行目）。
 
 ```
     placement: 消費側（器 scribe2）の repo に版管理で置く。path は消費側が宣言する（拡張子 .toml・全文を同じ parser に渡す）
