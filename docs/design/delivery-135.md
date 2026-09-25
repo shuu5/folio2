@@ -22,14 +22,14 @@
 ### (b) 直す先 — 1 つの口で字の上に行き先の印を足す
 
 1. **口（`crates/folio/src/face.rs` に 2 つ足す）。**
-   - `adr_face(dir, id)`: 正本 `<dir>/adr/<id>.yaml` が file として在れば `adr-<数>.html`（id を ASCII 小文字にした字 + `.html`）、無ければ None。`folio build` が面を出す番号の規則（(a) の 5）と同じで、図の根拠のリンクの判定（(a) の 2）とも同じ式である。
-   - `link_ids(html, all, href)`: 組み立て済みの HTML の字の部分（タグの外）だけを走査し、番号を拾って `href` が行き先を返した番号だけを `<a class="xref" href="<行き先>"><番号></a>` で包む（字は 1 字も変えない）。タグの中（属性を含む）・`<a>` の中（入れ子のリンクを作らない）・`<head>`・`<script>`・`<svg>` の中は触らない。番号は床と同じ口で拾う＝判断の記録は `link::adr_end`、`all` が真なら条・rules 行・要件の id も `refs::id_end`。class は既存の xref（部品目録の中・新しい部品も class も足さない）。
-2. **床の走査の口を位置の口として開く（字の規則は変えない）。** `crates/folio/src/refs.rs` の `id_end` を `pub(crate)` にする（本体は 1 字も変えない）。`crates/folio/src/link.rs` の `scan_adr_ids` の 1 か所の判定を `adr_end(chars, i)`（`pub(crate)`）に切り出し、`scan_adr_ids` はそれを呼ぶ形にする（拾う番号は変わらない・既存の単体の歯 link の scan_adr_ids の字の例がそのまま緑）。
+   - adr_face（置き場の dir と番号を受ける）: 正本 `<dir>/adr/<id>.yaml` が file として在れば `adr-<数>.html`（id を ASCII 小文字にした字 + `.html`）、無ければ None。`folio build` が面を出す番号の規則（(a) の 5）と同じで、図の根拠のリンクの判定（(a) の 2）とも同じ式である。
+   - link_ids（組み立てた HTML・旗 all・行き先の関数 href を受ける）: 組み立て済みの HTML の字の部分（タグの外）だけを走査し、番号を拾って `href` が行き先を返した番号だけを `<a class="xref" href="<行き先>"><番号></a>` で包む（字は 1 字も変えない）。タグの中（属性を含む）・`<a>` の中（入れ子のリンクを作らない）・`<head>`・`<script>`・`<svg>` の中は触らない。番号は床と同じ口で拾う＝判断の記録は link.rs の adr_end、`all` が真なら条・rules 行・要件の id も refs.rs の id_end。class は既存の xref（部品目録の中・新しい部品も class も足さない）。
+2. **床の走査の口を位置の口として開く（字の規則は変えない）。** `crates/folio/src/refs.rs` の `id_end` を `pub(crate)` にする（本体は 1 字も変えない）。`crates/folio/src/link.rs` の `scan_adr_ids` の 1 か所の判定を関数 adr_end（`pub(crate)`・文字の並びと位置を受けて番号の終わりの位置を返す）に切り出し、`scan_adr_ids` はそれを呼ぶ形にする（拾う番号は変わらない・既存の単体の歯 link の scan_adr_ids の字の例がそのまま緑）。
 3. **要件書の面（`face_srs.rs`）。**
-   - 面全体: `derive` の最後に、組み立てた HTML を `link_ids(html, false, adr_face)` に通す＝本文の判断の記録の番号のうち、正本が在る番号だけが判断の記録の面へのリンクになる。
-   - 範囲の節: `scope_chapter` の build・not_build・注の字を `link_ids(字, true, 行き先)` に通す。行き先は図の根拠と同じ規則で、`Ctx::ref_link` の中の形ごとの行き先の判定を `Ctx::target(dir, id)` に切り出して共有する（ref_link の出す字は 1 byte も変えない）。行き先の無い番号（要件に無い FR99・正本の無い ADR-99 など）は字のまま。
+   - 面全体: `derive` の最後に、組み立てた HTML を link_ids（旗 all は偽・行き先は adr_face）に通す＝本文の判断の記録の番号のうち、正本が在る番号だけが判断の記録の面へのリンクになる。
+   - 範囲の節: `scope_chapter` の build・not_build・注の字を link_ids（旗 all は真・行き先は下の target）に通す。行き先は図の根拠と同じ規則で、`Ctx::ref_link` の中の形ごとの行き先の判定を Ctx の関数 target（置き場の dir と id を受けて行き先を返す）に切り出して共有する（ref_link の出す字は 1 byte も変えない）。行き先の無い番号（要件に無い FR99・正本の無い ADR-99 など）は字のまま。
    - 範囲の節の外の要件・条・rules 行の番号はリンクにしない（今の所見が指す範囲に留める・(d) の 2）。
-4. **憲法の面（`face_constitution.rs`）。** `derive` の最後に、組み立てた HTML を `link_ids(html, false, adr_face)` に通す（要件書の面の面全体と同じ 1 行）。憲法の面の条・rules 行の番号は今までどおり（型付きの欄の既存のリンクだけ）。
+4. **憲法の面（`face_constitution.rs`）。** `derive` の最後に、組み立てた HTML を link_ids（旗 all は偽・行き先は adr_face）に通す（要件書の面の面全体と同じ 1 行）。憲法の面の条・rules 行の番号は今までどおり（型付きの欄の既存のリンクだけ）。
 5. **決定の段（既に在るか → 1 行で書けるか → 最小の実装）。** 散文の番号をリンクにする口は既に無い（(a) の 2）。番号を拾う口（床の走査）と行き先の規則（図の根拠の ref_link）は既に在るので作り直さずに共有する。1 行では書けないので、足す実装は字の部分を切り出して包む 1 つの口（`link_ids`）だけにする。
 6. **契約で決めること（起草役の判断）。**
    - 面を生成しない番号: 正本 `adr/ADR-n.yaml` が無い番号はリンクにせず字のまま残す。「（まだ分からない）」のような字も足さない（散文の逐語を変えない・P-6.1）。番号が正本に無いこと自体は床（`link.rs` の判断の記録の id の参照の検査）が違反として数える。状態が proposed の判断の記録も面は出るので（(a) の 5）リンクにする。
@@ -40,7 +40,7 @@
 
 ### (c) 歯（関数名 `f135_…`・base では 6 本とも RED）
 
-1. **f135_link_ids_wraps_only_the_text_outside_links（単体の歯・`crates/folio/src/face.rs` の既存の tests の区間 face_tests）。** 手書きの HTML 片（`<head>` の中の title・属性 title・字の ADR-1・床の形に当たらない ADR-12a と xADR-1 と ADR-0・`<a>` の中・`<svg>` の中・行き先を返さない ADR-3）を `link_ids(…, false, …)` に通し、字の ADR-1 だけが `<a class="xref" href="adr-1.html">ADR-1</a>` になり、ほかは 1 字も変わらないことを出力の全字の等しさで数える。`all` が真のとき条（枝番付き P-6.3）・要件 FR1・rules 行 R-4・判断の記録 ADR-2 の 4 つが包まれることも全字で数える。**base では関数 link_ids が無く組み立てが落ちる＝RED。**
+1. **f135_link_ids_wraps_only_the_text_outside_links（単体の歯・`crates/folio/src/face.rs` の既存の tests の区間 face_tests）。** 手書きの HTML 片（`<head>` の中の title・属性 title・字の ADR-1・床の形に当たらない ADR-12a と xADR-1 と ADR-0・`<a>` の中・`<svg>` の中・行き先を返さない ADR-3）を link_ids（旗 all は偽）に通し、字の ADR-1 だけが `<a class="xref" href="adr-1.html">ADR-1</a>` になり、ほかは 1 字も変わらないことを出力の全字の等しさで数える。`all` が真のとき条（枝番付き P-6.3）・要件 FR1・rules 行 R-4・判断の記録 ADR-2 の 4 つが包まれることも全字で数える。**base では関数 link_ids が無く組み立てが落ちる＝RED。**
 2. **f135_scope_m3_numbers_link_to_their_pages（`crates/folio/tests/face_srs.rs`・binary 経由・実の置き場の写し）。** 章 02 の 3 つ目の段の範囲の塊（M3）の「M3 で作る」の枠に、`adr-16.html`・`adr-21.html`・`#ac23`〜`#ac25`・`#fr22`〜`#fr25`・`#fr11`・`constitution.html#p-6`（字 P-6.3）の 11 本のリンクが、手で写した全字で在ることを数える（33 周目 F-3 と 32 周目 F-2 の場所）。**base では 1 本も無い＝RED。**
 3. **f135_every_adr_mention_on_the_real_srs_is_a_link（同・実の置き場の写し）。** 面の本文（`<body>` から後・`<svg>` の中を除く）の判断の記録の番号の出現の全部が、直前が `<a class="xref" href="adr-<数>.html">` で直後が `</a>` の形（歯の側の式）で、行き先の正本 `design-intent/adr/<番号>.yaml` が在り、1 つ以上在り、`<a` の入れ子の深さが 1 であることを数える（31 周目 F-1）。**base ではリンクでない番号が 224 か所＝RED。**
 4. **f135_numbers_without_a_page_and_ids_outside_the_scope_stay_plain（同・面の fixture の写し）。** 面の fixture（`tests/fixtures/face/` の正本 5 file）に判断の記録 1 本（fixture の adr/ADR-2.yaml の写し）を添え、要件書に手書きの scope_m3（build に「判断の記録 ADR-2 と ADR-99・要件 FR1 と FR99・条 P-1」）と not_frozen（「ADR-2 と FR2 を読む。」）を書いて面を書く。M3 の塊に `<a class="xref" href="adr-2.html">ADR-2</a> と ADR-99・`、`要件 <a class="xref" href="#fr1">FR1</a> と FR99・`、`条 <a class="xref" href="constitution.html#p-1">P-1</a>` が在り、面のどこにも `adr-99.html` と `href="#fr99"` が無く、範囲の節の外の凍結しないものの枠が `<p><a class="xref" href="adr-2.html">ADR-2</a> と FR2 を読む。</p>`（FR2 は字のまま）であることを数える。**base ではリンクが 1 本も無い＝RED。**
