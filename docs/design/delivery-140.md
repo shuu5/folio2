@@ -8,6 +8,7 @@
 - 前の便: 前提の着地は無い。**base = main 021b7a4（便 138 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
 - 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は着地済み（main 021b7a4＝本便の base）。便 138 の書き換えた file は面の生成器と面の歯と面の fixture だけで（`face_labels.rs`・`face_srs.rs`・`face_index_read.rs`・`tests/face_srs.rs`・`tests/face_index.rs`・`tests/fixtures/face/` の 2 本）、本便の write-set と 1 本も重ならない（`git diff --stat f82dba1 021b7a4` で本便の write-set の 10 本は 1 byte も動いていない）。重なりは 0。便 139（起草中・`face_index*.rs` と `tests/face_index.rs` の見込み）とも重なりは 0 である（起草役の実測の時点で枝 docs/d139 に commit は無い）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 021b7a4 で 897・本便の後 899）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
 - 改訂 b（2026-09-25・席の依頼）: base を main f82dba1 から 021b7a4（便 138 の着地）へ移し、枝を rebase した。数え直した値は nextest の本数（base 889 → 897・本便の後 891 → 899）だけが動き、write-set の 10 本の行数・生成区間と anchor の数と sha256・既存の歯の落ちる 18 本・RED・突然変異・門・床・`folio build` の差 0 は f82dba1 の値と同じだった（write-set の 10 本は f82dba1 と 021b7a4 の間で 1 byte も動いていない）。write-set・verify・size・done は変えない。 同じ改訂で、§0 の重なりの欄に便 139 との重なり 0 を書き、(f) の 3 に `tests/schema.rs` の残り 4 行の注記を足した（席の裁定 2026-09-25・問い 6 点は推奨どおり）。
+- 改訂 c（2026-09-25・独立の検証 d140-verify.md〔支持・blocking 0・数値は全部一致〕の任意の文面 3 点）: (f) の floor_note.rs の 509 と +20 行に、起草役の歯の書き方による参考値であること（検証役の歯では 503 / +14）を添えた。(c) の 3 の tests/schema.rs の 16 行を、実装が守る基準（700 行以下・歯 f89 が落とす上限）として読める字にした。(e) の 1 に、実装だけの写しでは f99 は落ちず、土台の写しを直したときに動くことの 1 句を足した。数値・write-set・verify・size・done は変えない。
 
 ## 1. 設計
 
@@ -76,7 +77,7 @@
 
 1. **f140_derived_placement_names_no_vessel（単体の歯・`crates/folio/src/floor_note.rs` の末尾に tests の区間を新しく置く）。** 床の木 FLOOR を共有の導出 `crate::floor::derive` に通した字の中で、字下げ 4 の placement の行がちょうど 1 行在り、その字が (b) の 1 の字（歯の中で手で写した凍結の針）と等しく、導出の全体に句 （器 scribe2） が無いこと。**base では字が違う＝RED。** 定数を直接見るので、生成区間を書き直し忘れた便でなく、定数そのものの字の誤りを落とす。
 2. **f140_the_note_region_placement_names_no_vessel（`crates/folio/tests/schema.rs` の末尾）。** 実の `design-intent/design-note/schema.yaml` と凍結 anchor `tests/fixtures/schema/note-region.txt` のそれぞれで、字下げ 4 の placement の行がちょうど 1 行で、(b) の 1 の字の行（改行つき）を含み、句 （器 scribe2） を含まないこと。**base では古い字＝RED。**
-3. **歯の置き場の上限。** `tests/schema.rs` は歯 f89（`crates/folio/tests/schema_docs.rs` の f89_schema_teeth_are_split_and_under_the_cap）が器の式（幅 120 正規化・空行 1）で 700 行の上限を持ち、base で 684 行である。**`tests/schema.rs` に足してよいのは base から 16 行まで。** 起草役の模擬は 12 行（歯 11 行と凍結の定数の doc 注 1 行）で 696 行だった。最初の模擬は歯 2 本を `tests/schema.rs` に置いて 736 行になり f89 が落ちたので、定数を見る歯を単体の歯へ移し、`tests/schema.rs` の歯を 1 本にした。`floor_note.rs` の tests の区間は新設（file の中に tests の区間が今は無い）で、新しい file ではない。
+3. **歯の置き場の上限。** `tests/schema.rs` は歯 f89（`crates/folio/tests/schema_docs.rs` の f89_schema_teeth_are_split_and_under_the_cap）が器の式（幅 120 正規化・空行 1）で 700 行の上限を持ち、base で 684 行である。**実装は `tests/schema.rs` を 700 行以下に保つ（歯 f89 が落とす上限＝実装が守る基準）。base から足せるのは 16 行までで、歯と凍結の定数の doc 注を合わせてこの内に収める（収まらなければ歯を単体の歯か別の歯の file へ移す）。** 起草役の模擬は 12 行（歯 11 行と凍結の定数の doc 注 1 行）で 696 行だった。最初の模擬は歯 2 本を `tests/schema.rs` に置いて 736 行になり f89 が落ちたので、定数を見る歯を単体の歯へ移し、`tests/schema.rs` の歯を 1 本にした。`floor_note.rs` の tests の区間は新設（file の中に tests の区間が今は無い）で、新しい file ではない。
 4. fixture は新しい file を足さない。歯は実の file と凍結 anchor を読むだけで、写しの一時 dir も作らない。
 
 ### (d) 採らなかった形
@@ -89,7 +90,7 @@
 
 ### (e) 既存の歯のうち落ちるもの・凍結 anchor が動くか・面の変化
 
-1. **定数を直して `--write` しただけの写し（凍結 anchor・凍結の定数・土台・便 99 の anchor は base のまま）では、既存の歯が 18 本落ちる（起草役の実測・897 本中）。** どれも本便の write-set の中の直しで緑に戻る。
+1. **定数を直して `--write` しただけの写し（凍結 anchor・凍結の定数・土台・便 99 の anchor は base のまま）では、既存の歯が 18 本落ちる（起草役の実測・897 本中）。** どれも本便の write-set の中の直しで緑に戻る。この写しでは graph の f99 は落ちない（f99 は土台の写しを直したときに動き、便 99 の anchor を組み直すと緑に戻る）。
 
 | 歯（file・本数） | 落ちる理由 | 直し方 |
 | --- | --- | --- |
@@ -119,11 +120,11 @@
 
 | file | base の正規化行数（参考値） | 余地 = 1500 − 正規化行数 | 起草役の模擬の後 | 便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
-| `crates/folio/src/floor_note.rs` | 489 | 1,011 | 509（+20） | 991 |
+| `crates/folio/src/floor_note.rs` | 489 | 1,011 | 509（+20・起草役の歯の書き方による参考値・検証役の歯では 503 / +14） | 991 |
 | `crates/folio/src/note.rs` | 916 | 584 | 916（不変） | 584 |
 
    余地はどちらも S の見積 100 を超える。src の外の参考値は、`tests/schema.rs` 684 → 696（歯 f89 の上限 700）・`tests/graph.rs` 612 → 613・`tests/schema_docs.rs` 1,189・`tests/floor_cases.rs` 761・`design-intent/design-note/schema.yaml` 234 → 234・土台の写し 225 → 225・`note-region.txt` 171 → 171・`node-digest-anchor.txt` 192 → 192。
-3. **size は S。** 触る src は `floor_note.rs` の 1 本（字 1 か所 + 単体の歯 1 本）で、増分は +20 行。ただし `tests/schema.rs` は便の後に 696 行で、歯 f89 の上限 700 まで残り 4 行である。次に `tests/schema.rs` へ歯を足す便は、歯の file の分割が要る（`tests/schema_docs.rs` も上限 1,200 に対し 1,189 行）。
+3. **size は S。** 触る src は `floor_note.rs` の 1 本（字 1 か所 + 単体の歯 1 本）で、増分は +20 行（起草役の歯の書き方による参考値・検証役の歯では +14）。ただし `tests/schema.rs` は便の後に 696 行で、歯 f89 の上限 700 まで残り 4 行である。次に `tests/schema.rs` へ歯を足す便は、歯の file の分割が要る（`tests/schema_docs.rs` も上限 1,200 に対し 1,189 行）。
 4. **verify は 8 行**で、done の 8 の塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --bin folio f140_` = (c) の 1。
    2. `cargo nextest run -p folio --test schema f140_` = (c) の 2。
