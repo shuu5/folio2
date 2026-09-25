@@ -5,12 +5,13 @@
 - 出所: 天井の 34 周目（2026-09-25・一括 20 の枝 docs/batch20 c8cdce8 の上）の文書どうしの整合の所見 **F-2**（重さ 直す・場所 design-note の schema.derived.placement）。一括 20 の仕分け（`docs/design/batch20-triage.md`）の便の候補 **B-5**。台帳の控え **f2-648.208**（規則の表の行 D-14 の、直す先が枝に書けない所見を控えに束ね、窓を閉じた後・次の周の前に便で運ぶ 1 件）。依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `em` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 10 本（書き換える 7 本 + 本文が変わらない verify の scope 3 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
 - 門: 本便は設計文書の正本（`design-intent/design-note/schema.yaml` の生成区間）を書き換えるので、天井の門の対象である（規則の表の行 D-12）。起草役が write-set 10 本を base の binary で `folio ceiling --gate --dir design-intent --write-set …` に渡すと **0（通す・断りの字 = 印が 4 観点とも合格・引き金の要約値が同じ・印の後に引き金の外の変更が在る（節点 6 個と節点の外の字・次の引き金の周が読む））**。便の全差分を当てた写しで撃っても同じ字で 0 だった（§1 (g)）。
-- 前の便: 前提の着地は無い。**base = main f82dba1。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
-- 並行の便との重なり: 起草の間に便 138（行 ek・台帳 f2-648.210）が main に着地した（main 021b7a4）。便 138 の書き換えた file は面の生成器と面の歯と面の fixture だけで（`face_labels.rs`・`face_srs.rs`・`face_index_read.rs`・`tests/face_srs.rs`・`tests/face_index.rs`・`tests/fixtures/face/` の 2 本）、本便の write-set と 1 本も重ならない。起草役は本便の全差分を main 021b7a4 の写しに当て、衝突なく当たり、workspace の nextest が 899 / 899（021b7a4 の 897 + 本便の歯 2）で緑なことを確かめた。便 139（起草中・入口の面の `face_index*.rs` の見込み）とも重ならない見込みである（起草役の実測の時点で枝 docs/d139 に commit は無い）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 889・便 138 の着地の後の main 897）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
+- 前の便: 前提の着地は無い。**base = main 021b7a4（便 138 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
+- 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は着地済み（main 021b7a4＝本便の base）。便 138 の書き換えた file は面の生成器と面の歯と面の fixture だけで（`face_labels.rs`・`face_srs.rs`・`face_index_read.rs`・`tests/face_srs.rs`・`tests/face_index.rs`・`tests/fixtures/face/` の 2 本）、本便の write-set と 1 本も重ならない（`git diff --stat f82dba1 021b7a4` で本便の write-set の 10 本は 1 byte も動いていない）。便 139（起草中・入口の面の `face_index*.rs` の見込み）とも重ならない見込みである（起草役の実測の時点で枝 docs/d139 に commit は無い）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 021b7a4 で 897・本便の後 899）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
+- 改訂 b（2026-09-25・席の依頼）: base を main f82dba1 から 021b7a4（便 138 の着地）へ移し、枝を rebase した。数え直した値は nextest の本数（base 889 → 897・本便の後 891 → 899）だけが動き、write-set の 10 本の行数・生成区間と anchor の数と sha256・既存の歯の落ちる 18 本・RED・突然変異・門・床・`folio build` の差 0 は f82dba1 の値と同じだった（write-set の 10 本は f82dba1 と 021b7a4 の間で 1 byte も動いていない）。write-set・verify・size・done は変えない。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・base main f82dba1・数は参考値）
+### (a) いま起きていること（実測・base main 021b7a4・数は参考値）
 
 1. **生成区間の今の字。** 設計ノートの欄の決まり `design-intent/design-note/schema.yaml` の schema 節は生成区間で（`# folio:schema:begin` から `# folio:schema:end` まで）、正本は実装の型付きの定数 `crates/folio/src/floor_note.rs` の床の木 FLOOR である。`folio schema --write` がその木を生成区間へ導出する（FR19・判断の記録 ADR-9）。導出物の節 derived の置き場の欄 placement の行は、逐語で次のとおり（生成区間の 96 行目・file の 116 行目）。
 
@@ -44,7 +45,7 @@
 
    差は placement の 1 行の句 （器 scribe2） の 17 byte だけで、行数は変わらない。ほかの 8 本の生成区間（判断の記録・天井の正本・規則の表・入口の正本・要件書・語彙・相談窓口・索引の欄の決まり）は 1 byte も動かない（`folio schema --check` が 9 file とも 一致）。
 8. **生成区間の中のほかの scribe2 の字（直さない）。** 生成区間には placement のほかに scribe2 を名指す行が 13 在る（id_note・n_note・section_ref_note・rows_note・contract_table.owner・external_schema_note・reads_note・semantic_check_owner・semantic_check_note・derived_note・landing.source_of_truth・landing.trailer_name_source・guards_note）。どれも folio2 の便を運ぶ器（語彙の項 器 が folio2 では scribe2 を指すと定める）の型・受付・記録か、実測の出所を指す字で、消費側の repo の置き場を名指すのは placement だけである。34 周目の所見も placement だけを挙げた。
-9. **base の歯（参考値）。** workspace の nextest 889 / 889・clippy 0 警告・床 4 本（check・inject --check・schema --check・derive --check）rc 0・`folio build` の出力 30 file。`git grep -n 'f140_' -- crates` は 0 件。歯の file の本数は schema 20・schema_docs 29・floor_cases 12。
+9. **base の歯（参考値）。** workspace の nextest 897 / 897・clippy 0 警告・床 4 本（check・inject --check・schema --check・derive --check）rc 0・`folio build` の出力 30 file。`git grep -n 'f140_' -- crates` は 0 件。歯の file の本数は schema 20・schema_docs 29・floor_cases 12。
 
 ### (b) 直す先 — 定数の字 1 か所と、導出・写し・凍結の値
 
@@ -88,7 +89,7 @@
 
 ### (e) 既存の歯のうち落ちるもの・凍結 anchor が動くか・面の変化
 
-1. **定数を直して `--write` しただけの写し（凍結 anchor・凍結の定数・土台・便 99 の anchor は base のまま）では、既存の歯が 18 本落ちる（起草役の実測・889 本中）。** どれも本便の write-set の中の直しで緑に戻る。
+1. **定数を直して `--write` しただけの写し（凍結 anchor・凍結の定数・土台・便 99 の anchor は base のまま）では、既存の歯が 18 本落ちる（起草役の実測・897 本中）。** どれも本便の write-set の中の直しで緑に戻る。
 
 | 歯（file・本数） | 落ちる理由 | 直し方 |
 | --- | --- | --- |
@@ -96,7 +97,7 @@
 | bin/folio の note::tests::note_floor_derives_the_frozen_anchor_byte_for_byte（1） | 凍結 anchor が古い | (b) の 3 |
 | freeze（3）・freeze_root（4）・ids（3）・mechanism_live（2）・floor_cases の floor_cases_all_pass_with_folio（1） | 土台の placement が床の定数と違い、土台を写した床が合格しない | (b) の 5 |
 
-   (b) の 3〜5 まで当てた写し（便 99 の anchor は base のまま）では、残るのは graph の f99_the_independent_script_matches_the_anchor の 1 本だけで、(b) の 6 で緑になる。本便の差分の全部を base に当てた写しで、workspace の nextest は **891 / 891**（base 889 + 単体 1 + schema 1）・clippy 0 警告・床 4 本 rc 0・schema 21 / 21・schema_docs 29 / 29・floor_cases 12 / 12。`tests/schema.rs` は 696 行（上限 700）。
+   (b) の 3〜5 まで当てた写し（便 99 の anchor は base のまま）では、残るのは graph の f99_the_independent_script_matches_the_anchor の 1 本だけで、(b) の 6 で緑になる。本便の差分の全部を base に当てた写しで、workspace の nextest は **899 / 899**（base 897 + 単体 1 + schema 1）・clippy 0 警告・床 4 本 rc 0・schema 21 / 21・schema_docs 29 / 29・floor_cases 12 / 12。`tests/schema.rs` は 696 行（上限 700）。
 2. **動く凍結 anchor は 2 本。** `tests/fixtures/schema/note-region.txt` の 1 行（placement・17 byte）と、便 99 の `tests/fixtures/schema/node-digest-anchor.txt` の残差の 2 行（行数・byte 数は不変）。ほかの凍結 anchor（ほかの 8 本の生成区間の anchor・`graph-digest-anchor.txt`・面の凍結 anchor・id の一覧の anchor・天井の束の anchor）は 1 byte も変えない。
 3. **RED（起草役の実測）。** 歯だけを base に当てた写しで、f140_ の 2 本とも落ちる（単体の歯は左が （器 scribe2） の字・右が新しい字で不一致）。同じ写しで歯 f89 は緑（歯を足しても `tests/schema.rs` は上限の内）。
 4. **突然変異（起草役の実測・本便を当てた写しの file を 1 通りずつ変える）。** 5 通りとも、f140_ か既存の歯の 1 本以上が落ちる。
@@ -180,7 +181,7 @@
 ## 5. 依存
 
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
-- 前提の着地: 無し（base = main f82dba1）。起草の間に便 138 が main に着地した（021b7a4・write-set の重なり 0・§0）。
+- 前提の着地: 無し（base = main 021b7a4・便 138 は着地済みで write-set の重なり 0・§0）。
 - 並行の便: 便 139（起草中）とは重ならない見込み（§0）。受付は逐次。
 - 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.208）を閉じる。次の周の整合の観点で F-2 と同じ所見が立たないかを見る。生成区間のほかの scribe2 の 13 行は器（今は scribe2）を指す字なので残したが、v3 の器が folio2 の便を運ぶようになるときは、語彙の項 器 の定義を直す一括と合わせてその 13 行を見直すかを、台帳の控えに残すかを決める。
 
