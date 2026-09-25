@@ -1,6 +1,6 @@
 # 設計: 便 142 — 天井の門を作業ツリーの一番上以外から撃ったとき、黙って通さず まだ分からない を返す（--dir と write-set の根の突き合わせ・床の穴 f2-648.214）
 
-- 要件: FR20（天井の門・要件書 第 1.43 版）。本便は FR20 の規範文も受入基準 AC18 の 7 場合も変えない。門が write-set の path を設計文書の置き場の file と照らせないときに 0（通す）を返していた穴を、既存の「判定が実行できなかったら まだ分からない」の形（印が読めない・引き金の要約値が測れない・印の節点の表が読めない と同じ族）に収めて塞ぐ。契約表の行の req は FR20 の 1 つ（main に在る id・便 73・126・129 と同じ）。
+- 要件: FR20（天井の門・要件書 第 1.43 版）。本便は FR20 の規範文も受入基準 AC18 の 7 場合も変えない。門が write-set の path を設計文書の置き場の file と照らせないときに 0（通す）を返していた穴を、既存の「判定が実行できなかったら まだ分からない」の形（印が読めない・引き金の要約値が測れない・印の節点の表が読めない と同じ族）に収めて塞ぐ。契約表の行の req は FR20 の 1 つ（main に在る id・便 73・126・129 と同じ）。受入基準 AC18 は器の要件面に無い id なので req に書かない（req に足した版の受付の先撃ちが requirement-missing で断った・起草役の実測）。
 - 条: P-4.1（検査が実行できなかった結果を異常なしとして扱わない＝照らせない write-set を 通す と言わない）/ P-4.2（判定できないものは まだ分からない として表に出す＝理由の行に撃ち直し方を書く）/ P-15.2 の向き（門の判定の式は 1 つの関数のまま＝設計文書の判定 is_design_source は変えず、その前に根の突き合わせを置く）/ P-10.1（凍結 anchor と期待の字は歯の側の手書きで持つ＝`tests/fixtures/ceiling/` は 1 byte も変えない）/ N-3.1（例外の口を足さない＝旗を足さない）。
 - 出所: 台帳 **f2-648.214**（一括 21 の独立の検証 batch21-verify.md の別件の発見・2026-09-25・検証役の notes 18:37 JST = 相対 path でも当たる）。要件書 第 1.43 版の FR20 の注（天井の 35 周目 実態 F-2）が同じ穴を「未解決・直るまでは作業ツリーの一番上の置き場から撃つ」と書いている。依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `eo` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 3 本（書き換える 2 本 + 本文が変わらない verify の scope 1 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
@@ -172,7 +172,7 @@ schema = 1
 [[contract]]
 id = "eo"
 title = "床の穴（台帳 f2-648.214・P-4.1 / P-4.2）: folio ceiling --gate を作業ツリーの一番上以外から撃つと（本流の一番上から作業ツリーの置き場を相対か絶対の --dir で名指す・今の dir の外の --dir）、write-set の path が --dir の要素の列と照らされず、設計文書を書き換える便でも 通す（rc 0・設計文書の正本を書き換えない便）を黙って返す。crates/folio/src/gate.rs の dir_parts を今の dir からの相対に字面で解く形（外へ出るか今の dir の下に無い絶対 path なら無い）にし、write-set の path が絶対・.. を持つ・--dir の途中から始まるかを見る other_root を足し、run の最初（設計文書の判定より前）で どちらかなら まだ分からない（rc 2・理由 --dir が今の dir の下に無い か --dir と write-set の根が違う＝<path>・作業ツリーの一番上から撃つ）を返す。根が合うときの判定・is_design_source・印と要約値の関数・凍結 anchor・命令の旗・要件書は変えない（FR20 の 7 場合は増やさず、判定が実行できないときの まだ分からない の族に置く）。歯は単体の f142_ 1 本と tests/gate.rs の f142_ 2 本。設計文書の正本を書き換えないので門の対象外で、FR20 の注の既知の穴の字は着地の後の一括で直す"
-req = ["FR20", "AC18"]
+req = ["FR20"]
 section = "1"
 write-set = ["crates/folio/src/gate.rs", "crates/folio/tests/gate.rs", "crates/folio/tests/stamp.rs"]
 verify = ["cargo nextest run -p folio --bin folio f142_", "cargo nextest run -p folio --test gate f142_", "cargo nextest run -p folio --test gate", "cargo nextest run -p folio --test stamp", "cargo clippy --workspace --all-targets -- -D warnings"]
