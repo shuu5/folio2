@@ -5,12 +5,12 @@
 - 出所: 便 133（行 `ef`・台帳 f2-648.202・本流 3269ff4 に着地）が、利用者（器の次の世代の設計の置き場・判断の記録 ADR-21 の読み替え）の憲法の行を、鍵 scribe3-constitution・値 35eb6b369f0504167571a27b50c950e1361609d9b19b71e0f1e9de832f8c5356 で足した。その直後に、利用者の持ち主が project の名を scribe3 から tsuzuri に改めた。利用者の判断の記録 ADR-6（利用者の repo の版 1c93e70・発効）の承認欄は、承認者 = 持ち主・日付 2026-09-25・裁定 id = scribe2 台帳 **s2-07l.214**（裁定 id = user 2026-09-25T00:39Z・notes に逐語）・逐語「プロジェクトの名前はtsuzuriにする。ただしCLIコマンドはもっと短くしたい」・対話面 R-8 である。同じ版で利用者の憲法の meta.id が tsuzuri-constitution に改まった（憲法の凍結の前）。**規則の表の行 D-11 が名指しを求める利用者の持ち主の承認の裁定 id は、行の中身（digest）については便 133 と同じ s2-07l.214（user 2026-09-24T22:39Z・逐語「これでよい」・利用者の憲法 第 1.0 版の承認）、鍵の改名については同じ s2-07l.214（user 2026-09-25T00:39Z・ADR-6 の承認）である。** 依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `eg` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 3 本（便 133 と同じ 3 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 3 本を base の binary で `folio ceiling --gate` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。
-- 前の便: 前提は便 133（列の根の表の 2 行目）の着地。**base = main 3269ff4。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
+- 前の便: 前提は便 133（列の根の表の 2 行目）の着地。**base = main 94e6d3e（起草は 3269ff4 の上・席が 94e6d3e へ載せ替え・独立の検証は 94e6d3e で実測）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
 - 並行の便との重なり: 起草の時点で受付を待つ便のうち、write-set が重なる便は無い。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・base 3269ff4）
+### (a) いま起きていること（実測・base 3269ff4 → 94e6d3e で検証役が撃ち直し）
 
 1. **表の 2 行目の鍵は改名の前の名。** 床の定数の列の根の表（`crates/folio/src/floor_adr.rs` の ROOT_DIGESTS）は、1 行目が鍵 folio2-constitution・値 acb52acd…、2 行目が鍵 scribe3-constitution・値 35eb6b36…（便 133）の閉じた一覧である。引く口は `crates/folio/src/adr.rs` の root_digest で、床の照らしと凍結の命令が共有する。表の写しは、判断の記録の欄の決まりの生成区間（adr/schema.yaml の anchor の節の欄 root_digests）へ、置き場の憲法の名の行だけが導出される（床の木の変種 Pick）。
 2. **利用者の置き場は凍結できない。** 利用者の repo（今の置き場 ~/projects/local-projects/scribe3・近く ~/projects/local-projects/tsuzuri に改名される・folio2 の外・読むだけ）の憲法は、版 1c93e70 から名 tsuzuri-constitution・版 v1.0・status effective・binding true で、承認欄は便 133 の時点と同じである。版 e52d24c から HEAD までの憲法の差は、頭の注の 1 行（YAML の注で木の外）と meta.id の 1 行だけで、anchors の dir はまだ無い（凍結の前）。起草役が利用者の各版の design-intent を `git archive` で一時 dir に取り出し、git の init と 1 commit をした写しに base の binary を撃った結果は次のとおり。
@@ -22,7 +22,7 @@
 | e52d24c（便 133 の出所） | folio check --freeze-start | 1 | 違反 1（写しの列の根の欄が空の表で、床の定数の scribe3-constitution の行と違う） |
 
 3. **digest は改名で変わらない（2 実装）。** 憲法の名は凍結の木の digest の外に在る（ADR-16 の帰結）。起草役は folio の code を呼ばない python の script（持ち主の home の下の `.local/share/folio2/handoff-2026-09-25/d134-scripts/root_digest.py`・便 133 の script の写し）で、利用者の 3 つの版（e52d24c・1c93e70・5b792cc）の憲法から始まりの凍結の木を組み、3 つとも 35eb6b36…（全桁が binary の出力と一致）を得た。同じ script で folio2 の凍結 anchor 5 本（v1.0〜v1.4）の digest の欄を撃ち直し、5 本とも一致した（script の正しさの確かめ）。
-4. **base の歯（参考値）。** workspace の nextest 867 / 867・clippy 0 警告・床 4 本 rc 0。`git grep -n 'f134_' -- crates` は 0 件。便 133 の歯は f133_ の 2 本（`crates/folio/src/adr.rs` の単体の歯 f133_the_root_table_holds_folio2_and_scribe3 と `crates/folio/tests/freeze_root.rs` の f133_scribe3_name_picks_its_row）で、どちらも鍵 scribe3-constitution を字で持つ。
+4. **base の歯（参考値）。** workspace の nextest 867 / 867（3269ff4・94e6d3e では 868 / 868 = 便 132 の歯 1 本が増えた）・clippy 0 警告・床 4 本 rc 0。`git grep -n 'f134_' -- crates` は 0 件。便 133 の歯は f133_ の 2 本（`crates/folio/src/adr.rs` の単体の歯 f133_the_root_table_holds_folio2_and_scribe3 と `crates/folio/tests/freeze_root.rs` の f133_scribe3_name_picks_its_row）で、どちらも鍵 scribe3-constitution を字で持つ。
 
 ### (b) 直す先 — 2 行目の鍵を改める
 
