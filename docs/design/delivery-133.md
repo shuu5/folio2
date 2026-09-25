@@ -20,7 +20,7 @@
 | folio check（旗なし） | 2 | 違反 0・まだ分からない 2（凍結 anchor が 0 本・id の一覧が無い） |
 | folio check --freeze-start | 1 | 列の根の凍結だが憲法の名 scribe3-constitution が列の根の表に無い＝凍結しない・組んだ木の digest 35eb6b369f0504167571a27b50c950e1361609d9b19b71e0f1e9de832f8c5356 |
 
-   scribe3 の HEAD（8c94b22）と e52d24c の間で design-intent は 1 byte も違わない（`git diff` の実測）。scribe3 の設計席の実測（本流 68196cf の binary）と、席の実測（ed966c1 の binary・scribe3 の HEAD の作業ツリーの写し）も同じ digest である。
+   scribe3 の HEAD は e52d24c の後も進む（起草の時点 8c94b22 では design-intent に差 0・検証の時点 e60d58e では design-note/bakeoff-surface.yaml に +9 行）が、constitution.yaml の blob と根の digest は e52d24c と同じである（`git diff` と --freeze-start の実測）。本便が縛るのは憲法の木の digest であって、design-intent の他の file ではない。scribe3 の設計席の実測（本流 68196cf の binary）と、席の実測（ed966c1 の binary・scribe3 の HEAD の作業ツリーの写し）も同じ digest である。
 
 3. **digest の独立の再現（2 実装）。** 起草役は folio の code を呼ばない python の script（持ち主の home の下の `.local/share/folio2/handoff-2026-09-25/d133-scripts/root_digest.py`）で、始まりの凍結の木（種別・digest の方式・版・previous は空・写しの範囲と欄・承認の写しと承認一覧 1 項・憲法の写し）を憲法の正本から組み、正規化（キー順固定・空白なし・非 ASCII はそのまま・日付は文字列の json）の sha256 を撃った。
 
@@ -30,7 +30,7 @@
 | folio2 の憲法 第 1.0 版（anchor v1.0 を足した commit の正本）から組んだ根 | acb52acd…（表の folio2 の行と一致） |
 | scribe3 の版 e52d24c の憲法から組んだ根 | 35eb6b369f0504167571a27b50c950e1361609d9b19b71e0f1e9de832f8c5356（binary の出力と一致） |
 
-4. **台帳の控えとの関係。** 控え f2-648.192（外の置き場の始まりの凍結の手順・行を足す便）は本便の出所の 1 つで、本便の着地で行を足す部分が閉じる（手順を設計ノートに書く部分は (e) の 2 の手順で代える）。控え f2-648.193（承認欄の空いた憲法を --freeze-start が凍結する罠）は、scribe3 の承認欄が埋まっているので本便の手順では起きない（旗なしの check が違反 0＝承認欄の形の違反が無い・起草役の実測）。罠そのものは閉じない。控え f2-648.194（行 R-17 が無い置き場で散文の言及の歯が黙る）と f2-648.195（値域を狭める変更が黙って通る）は本便の外で、scribe3 の写しの床の結果（(e) の 2 の手順の後で合格 0/0）には現れない。
+4. **台帳の控えとの関係。** 控え f2-648.192（外の置き場の始まりの凍結の手順・行を足す便）は本便の出所の 1 つで、本便の着地で行を足す部分が閉じる（手順を設計ノートに書く部分は (e) の 2 の手順で代える）。控え f2-648.193（承認欄の空いた憲法を --freeze-start が凍結する罠）は、scribe3 の承認欄が埋まっているので本便の手順では起きない（表の digest が meta.approval を覆うので、承認欄が未記入の写しは「列の根の表の行と違う」で断る＝検証役の実測。旗なしの check の違反 0 は ruling が未記入でも 0 のままで、罠の有無を分けない）。罠そのものは閉じない。控え f2-648.194（行 R-17 が無い置き場で散文の言及の歯が黙る）と f2-648.195（値域を狭める変更が黙って通る）は本便の外で、scribe3 の写しの床の結果（(e) の 2 の手順の後で合格 0/0）には現れない。
 5. **base の歯（参考値）。** workspace の nextest 861 / 861・床 4 本 rc 0。`git grep -n 'f133_' -- crates` は 0 件。`git grep -n 'scribe3-constitution' -- crates tests` は 0 件。
 
 ### (b) 直す先 — 表に 2 行目を足す
@@ -106,7 +106,7 @@ scribe3 の憲法そのものを fixture に写す歯は置かない（写しは
 
 1. **運ばないもの。** scribe3 の置き場の写しの書き直しと凍結（scribe3 の側の手番・(e) の 2）。控え f2-648.193・.194・.195 の直し。表の 3 行目以降。folio2 の設計文書の字（要件 FR23 の注の「利用者の行を足す便は…起こす」の着地の後の字は、次の一括で席が書く）。台帳への記帳（席）。外部 crate。
 2. **言えないこと。** 表が証するのは列の根の中身で、どの repo の列かは証さない（ADR-16 の帰結）。scribe3 の憲法が e52d24c の後に凍結の前に変わると digest が変わり、凍結の命令は「行と違う」で断る（その時は行を直す便が要る）。scribe3 の設計席は凍結まで design-intent の承認欄と裁定 id を変えないと約束している（席の受領）。
-3. **撤退条件。** (1) 受付の時点で、scribe3 の repo の design-intent が e52d24c と違うか、base の binary の --freeze-start の digest が (b) の 1 の値と違えば、止めて席へ返す（行の値を取り直してから運ぶ）。(2) 本便の後に folio2 自身の床の結果か `folio build` の出力か 18 本の欄の決まりの写しが 1 byte でも変わったら、止めて席へ返す。(3) 本便の後に既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。
+3. **撤退条件。** (1) 受付の時点で、scribe3 の repo の HEAD の constitution.yaml が e52d24c のものと違うか、HEAD の design-intent の写しに base の binary で撃った --freeze-start の digest が (b) の 1 の値と違えば、止めて席へ返す（行の値を取り直してから運ぶ）。design-intent の他の file（design-note 等）の差は止めない。(2) 本便の後に folio2 自身の床の結果か `folio build` の出力か 18 本の欄の決まりの写しが 1 byte でも変わったら、止めて席へ返す。(3) 本便の後に既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。
 
 ## 2. 範囲
 
