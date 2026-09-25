@@ -45,14 +45,14 @@
 5. **folio2 自身の面の字（本便の後）。** 入口の面の判断の記録のカードが 更新 2026-09-24 → **更新 2026-09-25** になる（1 行・1 字）。憲法・要件書・設計ノートのカードの字は変わらない。ほかの 29 file は byte で一致する（(e) の 4）。
 6. **設計ノートのカードについて（依頼との差・起草役の判断）。** 依頼は設計ノートのカードを「生成日の最大（承認欄を持たないので今のまま）」とした。欄の決まりは発効した設計ノートに承認欄を求め、便 146 の後の設計ノートの面は発効なら 承認 <承認欄の日付> を鮮度の札に出す。カードだけ生成日のままにすると、発効した設計ノートが来たときに判断の記録と同じ食い違いが起きる。本便は設計ノートのカードも note_dated の最大にする。今の folio2 の 2 本は見本で、面の fixture の full は draft なので、**出力の字は folio2 自身の面でも凍結 anchor でも 1 byte も変わらない**（変わるのは発効して承認欄を持つ設計ノートが来たときだけ）。席が依頼の字どおりを採るなら、(e) の 3 の歯 f147_note_card_updated_is_the_latest_note_face_date と NOTE_UNREAD の note 側の読みを外し、note_rows を base のまま残す（問い 1）。
 7. **変えないもの。** 部品・class・様式の定義・HTML のタグの並び。span.up に title 属性などの説明の字は足さない（(d) の 2）。憲法と要件書と設計ノートのカードの出力の字。判断の記録のカードの 1 行目・リンク・「開く →」の先・番号と見出しの一覧。判断の記録と設計ノートの面の出力。床。設計文書（index.yaml の凡例と部品目録を含む）。凍結 anchor（`tests/fixtures/face/` の expected 7 本・`design-intent/anchors/`・天井の束）。
-8. **ADR-5 の撤退条件 ②（見た目だけを直す便が、同じ部品について規則の表の行 R-7 の上限〔2 回〕を超えて続いたとき）: 当たらない。** 本便は、入口のカードが面と違う欄を読んで同じ記録について違う日付を出していた中身の正しさの直し（P-6.3）で、部品 shelf-card の class・構造・タグの並び・色・余白を 1 つも変えない。変わるのは 1 行の日付の 1 字で、タグの並びは base の同じ行と一致し、`folio parts --check` も合格する（(e) の 4）。見た目を部品・色・余白・並び・名札の class と読むのは、便 132・135・137〜139・141・144〜146 の契約と同じ読みである。部品ごとに数える読みで、もし中身の正しさの直しも数えるなら、shelf-card は便 144（憲法と要件書のカードの日付）・便 146（カードは変えていないが控えの出どころ）・本便で 3 本目になり上限を超える。よって 当たらない の根拠は、本便が見た目でなく中身の正しさの直しであるという前段の読みだけである。席はこの読みを採る（便 146 の契約 (i) と同じ判定・持ち主への次の報告で明記し、持ち主はこの読みを覆せる）。
+8. **ADR-5 の撤退条件 ②（見た目だけを直す便が、同じ部品について規則の表の行 R-7 の上限〔2 回〕を超えて続いたとき）: 当たらない。** 本便は、入口のカードが面と違う欄を読んで同じ記録について違う日付を出していた中身の正しさの直し（P-6.3）で、部品 shelf-card の class・構造・タグの並び・色・余白を 1 つも変えない。変わるのは 1 行の日付の 1 字で、タグの並びは base の同じ行と一致し、`folio parts --check` も合格する（(e) の 4）。見た目を部品・色・余白・並び・名札の class と読むのは、便 132・135・137〜139・141・144〜146 の契約と同じ読みである。部品ごとに数える読みで、もし中身の正しさの直しも数えるなら、shelf-card の字を変えた便は少なくとも便 138（要件書のカードに効いている版の札）・便 139（判断の記録のカードの番号と見出しの一覧・当たり判定の撤去）・便 144（憲法と要件書のカードの日付）で、本便は少なくとも 4 本目になり上限を超える（便 146 が変えたのは棚の札でカードではない・起草役が `git show` で 3 便の差分を確かめた）。よって 当たらない の根拠は、本便が見た目でなく中身の正しさの直しであるという前段の読みだけである。席はこの読みを採る（便 146 の契約 (i) と同じ判定・持ち主への次の報告で明記し、持ち主はこの読みを覆せる）。
 
 ### (c) 歯（関数名 f147_・base で 0 件）
 
 1. **f147_type_dates_and_shelf_updated（単体の歯・`crates/folio/src/face_labels.rs` の既存の tests の区間 face_labels_tests）。** adr_dated が発効と廃止で（承認・承認欄の日付）、提案中は承認欄が在っても（生成・記録の日付）、承認欄の無い発効は（生成・記録の日付）を返すこと。note_dated が発効で（承認・承認欄の日付）、draft と見本は承認欄が在っても（生成・生成日）、承認欄の無い発効は（生成・生成日）。ADR_UNREAD と NOTE_UNREAD の字（凍結の針）。shelf_updated が最大を返し、1 つだけならそれ、空の列で空の字。**base では口が無く組み立てが通らない＝RED。**
-2. **f147_adr_card_updated_is_the_latest_record_face_date（`crates/folio/tests/face_index.rs`・binary 経由・面の fixture の写し）。** 写しの ADR-2 と、ADR-2 を写した ADR-10 を歯の中で書き換える 4 通り: ADR-10 が発効（記録の日付 09-07・承認 09-10）で 更新 2026-09-10／ADR-10 が提案中で承認欄あり（読まない）で 更新 2026-09-07／ADR-10 が廃止で承認 09-08・ADR-2 が承認欄の無い発効で記録の日付 09-09 で 更新 2026-09-09／両方に承認欄（09-11 と 09-10）で 更新 2026-09-11。どれも 更新 の行がちょうど 1 つ。「開く →」は最も新しい番号の ADR-10 のまま。**base では 1 通り目で 更新 2026-09-07（記録の日付の最大）を出す＝RED。**
+2. **f147_adr_card_updated_is_the_latest_record_face_date（`crates/folio/tests/face_index.rs`・binary 経由・面の fixture の写し）。** 写しの ADR-2 と、ADR-2 を写した ADR-10 を歯の中で書き換える 4 通り: ADR-10 が発効（記録の日付 09-07・承認 09-10）で 更新 2026-09-10／ADR-10 が提案中で承認欄あり（読まない）で 更新 2026-09-07／ADR-10 が廃止で承認 09-08・ADR-2 が承認欄の無い発効で記録の日付 09-09 で 更新 2026-09-09／両方に承認欄（09-11 と 09-10）で 更新 2026-09-11。どれも 更新 <日付> がちょうど 1 つで、カードの span.up の総数も 1 つ。「開く →」は最も新しい番号の ADR-10 のまま。**base では 1 通り目で 更新 2026-09-07（記録の日付の最大）を出す＝RED。**
 3. **f147_real_adr_card_updated_is_the_latest_record_face_date（同・実の正本）。** 歯の側の手書きの読み（yaml-rust2 で各記録を直に読み、提案中か承認欄が表でなければ欄 date・そうでなければ承認欄の date を escape して最大を取る）の日付で、判断の記録のカードに 更新 <日付> がちょうど 1 つ・更新 の行がカードに 1 つ。**base では 更新 2026-09-24（手書きの読みは 2026-09-25）＝RED。**
-4. **f147_note_card_updated_is_the_latest_note_face_date（同・面の fixture の写し）。** 写しの full を写した 2 本目 second（draft・生成 09-20）を足し、full を 3 通りに書き換える: draft のまま承認欄 09-21 を足した写し（読まない＝更新 2026-09-20・開く → note-second.html）／発効にして承認欄 09-21 を足した写し（更新 2026-09-21・開く → note-full.html）／発効で承認欄の無い写し（生成日＝更新 2026-09-20・開く → note-second.html）。**base では発効の写しが 更新 2026-09-20 と note-second.html を出す＝RED。**
+4. **f147_note_card_updated_is_the_latest_note_face_date（同・面の fixture の写し）。** 写しの full を写した 2 本目 second（draft・生成 09-20）を足し、full を 4 通りに書き換える: draft のまま承認欄 09-21 を足した写し（読まない＝更新 2026-09-20・開く → note-second.html）／発効にして承認欄 09-21 を足した写し（更新 2026-09-21・開く → note-full.html）／発効で承認欄の無い写し（生成日＝更新 2026-09-20・開く → note-second.html）／発効にして承認欄 09-20 を足した写し（full の承認と second の生成が同じ 2026-09-20＝id の順で後の note-second.html を開く）。どれも 更新 <日付> がちょうど 1 つで、カードの span.up の総数も 1 つ。**base では発効の写しが 更新 2026-09-20 と note-second.html を出す＝RED。**
 
 fixture は新しい file を足さない。変異は歯の中で一時 dir の写しを書き換える（既存の口 index_fixture_copy・index_from・adr_article・note_card と同じ形・helper は up_span と index_with_edited_records の 2 つを足す）。正本の読みは歯の側の手書き（生成側の口を呼ばない・P-10.1）。
 
@@ -70,7 +70,7 @@ fixture は新しい file を足さない。変異は歯の中で一時 dir の�
 2. **本便の差分の全部を base に当てた写しで、** workspace の nextest は 937 / 937（base 933 + 単体 1 + face_index 3）・clippy 0 警告・床 4 本 rc 0・verify の 9 行すべて rc 0。
 3. **RED（起草役の実測）。** binary の歯だけを base に当てた写し（936 本）で 3 本が落ちる＝(c) の 2・3・4。単体の歯だけを当てると組み立てが通らない（E0425 が 7 つ＝shelf_updated 3・adr_dated・ADR_UNREAD・note_dated・NOTE_UNREAD）。
 4. **folio2 自身の面の変化（起草役の実測）。** base と本便の写しで `folio build --dir design-intent --out <置き場> --write` の出力は 30 file・1,946,214 byte のまま。違う file は index.html の 1 枚だけで、違う行は 61 行目の 1 行（更新 2026-09-24 → 更新 2026-09-25・タグの並びは同じ）。判断の記録 23 枚・設計ノート 2 枚・憲法・要件書・様式・script は byte で一致する。本便の写しの index.html は `folio parts --check --page index=<path>` で合格（違反 0・まだ分からない 0）。
-5. **突然変異（起草役の実測・本便を当てた写しの実装だけを 1 通りずつ変え、単体の歯 f146_ と f147_・歯の file face_index・face_index_shelf・face_adr・face_note・face_labels を撃つ）。** 7 通りとも 1 本以上が落ちる。
+5. **突然変異（起草役の実測・本便を当てた写しの実装だけを 1 通りずつ変え、単体の歯 f146_ と f147_・歯の file face_index・face_index_shelf・face_adr・face_note・face_labels を撃つ）。** 8 通りとも 1 本以上が落ちる。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -81,6 +81,7 @@ fixture は新しい file を足さない。変異は歯の中で一時 dir の�
 | M5 shelf_updated を最小にする | (c) の 1・2・3・4（4 本） |
 | M6 設計ノートの「開く →」を id の順の最後にする | (c) の 4（1 本） |
 | M7 判断の記録のカードが最初の記録の日付だけを読む | (c) の 2・3（2 本） |
+| M8 設計ノートの「開く →」を同じ日付の id の順で先の 1 本にする（rfind を find に） | (c) の 4（1 本） |
 
 ### (f) 大きさ・verify と done の対応
 
@@ -95,7 +96,7 @@ fixture は新しい file を足さない。変異は歯の中で一時 dir の�
 | `crates/folio/src/face_adr.rs` | 920 | 580 | 915（−5） | 585 |
 | `crates/folio/src/face_note.rs` | 1,019 | 481 | 1,011（−8） | 489 |
 
-   余地はどれも S の見積 100 を超える（最小は face_note.rs の 481）。行数の上限の歯（face.rs 1,250・face_srs.rs 1,100）の対象の file は触らない。歯の file は src の外なので余地を測らない（参考値 wc -l で face_index 1,157 → 1,291）。
+   余地はどれも S の見積 100 を超える（最小は face_note.rs の 481）。行数の上限の歯（face.rs 1,250・face_srs.rs 1,100）の対象の file は触らない。歯の file は src の外なので余地を測らない（参考値 wc -l で face_index 1,157 → 1,300）。
 3. **size は S。**
 4. **verify は 9 行**で、done の 9 の塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --bin folio f147_` = (c) の 1。
@@ -166,5 +167,5 @@ section = "1"
 write-set = ["crates/folio/src/face_labels.rs", "crates/folio/src/face_index_read.rs", "crates/folio/src/face_index.rs", "crates/folio/src/face_adr.rs", "crates/folio/src/face_note.rs", "crates/folio/tests/face_index.rs", "crates/folio/tests/face_index_shelf.rs", "crates/folio/tests/face_adr.rs", "crates/folio/tests/face_note.rs", "crates/folio/tests/face_labels.rs"]
 verify = ["cargo nextest run -p folio --bin folio f147_", "cargo nextest run -p folio --test face_index f147_", "cargo nextest run -p folio --bin folio face_labels_tests", "cargo nextest run -p folio --test face_index", "cargo nextest run -p folio --test face_index_shelf", "cargo nextest run -p folio --test face_adr", "cargo nextest run -p folio --test face_note", "cargo nextest run -p folio --test face_labels", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "単体の歯 f147_（adr_dated が発効と廃止で承認欄の日付と名 承認・提案中と承認欄の無い記録で記録の日付と名 生成、note_dated が発効で承認欄の日付・draft と見本と承認欄の無い発効で生成日、ADR_UNREAD と NOTE_UNREAD の字、shelf_updated が最大と空の列で空の字）が緑、face_index の f147_ の 3 本（面の fixture の写し 4 通りで判断の記録のカードの 更新 が各記録の面の日付の最大・実の判断の記録の全本数で手書きの読みの最大・設計ノートの写し 3 通りで 更新 と開く の先が各設計ノートの面の日付の最大に従う）が緑、face_labels.rs の単体の歯の全部が緑、face_index の歯の全部が緑、face_index_shelf の歯の全部が緑、face_adr の歯の全部が緑、face_note の歯の全部が緑、face_labels の歯が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main の出力と file 数が同じで index.html 以外は byte 一致・index.html の違う行は判断の記録のカードの 更新 の行だけ"
+done = "単体の歯 f147_（adr_dated が発効と廃止で承認欄の日付と名 承認・提案中と承認欄の無い記録で記録の日付と名 生成、note_dated が発効で承認欄の日付・draft と見本と承認欄の無い発効で生成日、ADR_UNREAD と NOTE_UNREAD の字、shelf_updated が最大と空の列で空の字）が緑、face_index の f147_ の 3 本（面の fixture の写し 4 通りで判断の記録のカードの 更新 が各記録の面の日付の最大・実の判断の記録の全本数で手書きの読みの最大・設計ノートの写し 4 通りで 更新 と開く の先が各設計ノートの面の日付の最大に従い同じ日付の 2 本は id の順で後の 1 本を開く・どの写しでもカードの 更新 の行は 1 つ）が緑、face_labels.rs の単体の歯の全部が緑、face_index の歯の全部が緑、face_index_shelf の歯の全部が緑、face_adr の歯の全部が緑、face_note の歯の全部が緑、face_labels の歯が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main の出力と file 数が同じで index.html 以外は byte 一致・index.html の違う行は判断の記録のカードの 更新 の行だけ"
 <!-- contracts:end -->
