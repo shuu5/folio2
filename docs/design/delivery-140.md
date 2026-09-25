@@ -6,8 +6,8 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `em` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 10 本（書き換える 7 本 + 本文が変わらない verify の scope 3 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
 - 門: 本便は設計文書の正本（`design-intent/design-note/schema.yaml` の生成区間）を書き換えるので、天井の門の対象である（規則の表の行 D-12）。起草役が write-set 10 本を base の binary で `folio ceiling --gate --dir design-intent --write-set …` に渡すと **0（通す・断りの字 = 印が 4 観点とも合格・引き金の要約値が同じ・印の後に引き金の外の変更が在る（節点 6 個と節点の外の字・次の引き金の周が読む））**。便の全差分を当てた写しで撃っても同じ字で 0 だった（§1 (g)）。
 - 前の便: 前提の着地は無い。**base = main 021b7a4（便 138 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
-- 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は着地済み（main 021b7a4＝本便の base）。便 138 の書き換えた file は面の生成器と面の歯と面の fixture だけで（`face_labels.rs`・`face_srs.rs`・`face_index_read.rs`・`tests/face_srs.rs`・`tests/face_index.rs`・`tests/fixtures/face/` の 2 本）、本便の write-set と 1 本も重ならない（`git diff --stat f82dba1 021b7a4` で本便の write-set の 10 本は 1 byte も動いていない）。便 139（起草中・入口の面の `face_index*.rs` の見込み）とも重ならない見込みである（起草役の実測の時点で枝 docs/d139 に commit は無い）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 021b7a4 で 897・本便の後 899）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
-- 改訂 b（2026-09-25・席の依頼）: base を main f82dba1 から 021b7a4（便 138 の着地）へ移し、枝を rebase した。数え直した値は nextest の本数（base 889 → 897・本便の後 891 → 899）だけが動き、write-set の 10 本の行数・生成区間と anchor の数と sha256・既存の歯の落ちる 18 本・RED・突然変異・門・床・`folio build` の差 0 は f82dba1 の値と同じだった（write-set の 10 本は f82dba1 と 021b7a4 の間で 1 byte も動いていない）。write-set・verify・size・done は変えない。
+- 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は着地済み（main 021b7a4＝本便の base）。便 138 の書き換えた file は面の生成器と面の歯と面の fixture だけで（`face_labels.rs`・`face_srs.rs`・`face_index_read.rs`・`tests/face_srs.rs`・`tests/face_index.rs`・`tests/fixtures/face/` の 2 本）、本便の write-set と 1 本も重ならない（`git diff --stat f82dba1 021b7a4` で本便の write-set の 10 本は 1 byte も動いていない）。重なりは 0。便 139（起草中・`face_index*.rs` と `tests/face_index.rs` の見込み）とも重なりは 0 である（起草役の実測の時点で枝 docs/d139 に commit は無い）。**共通の検証（workspace の nextest）の本数は受付の時点の main で数え直す**（base 021b7a4 で 897・本便の後 899）。共通の検証は同時に撃たない逐次を勧める（`crates/folio/tests/sheet.rs` の一時 dir の衝突を避けるため）。
+- 改訂 b（2026-09-25・席の依頼）: base を main f82dba1 から 021b7a4（便 138 の着地）へ移し、枝を rebase した。数え直した値は nextest の本数（base 889 → 897・本便の後 891 → 899）だけが動き、write-set の 10 本の行数・生成区間と anchor の数と sha256・既存の歯の落ちる 18 本・RED・突然変異・門・床・`folio build` の差 0 は f82dba1 の値と同じだった（write-set の 10 本は f82dba1 と 021b7a4 の間で 1 byte も動いていない）。write-set・verify・size・done は変えない。 同じ改訂で、§0 の重なりの欄に便 139 との重なり 0 を書き、(f) の 3 に `tests/schema.rs` の残り 4 行の注記を足した（席の裁定 2026-09-25・問い 6 点は推奨どおり）。
 
 ## 1. 設計
 
@@ -123,7 +123,7 @@
 | `crates/folio/src/note.rs` | 916 | 584 | 916（不変） | 584 |
 
    余地はどちらも S の見積 100 を超える。src の外の参考値は、`tests/schema.rs` 684 → 696（歯 f89 の上限 700）・`tests/graph.rs` 612 → 613・`tests/schema_docs.rs` 1,189・`tests/floor_cases.rs` 761・`design-intent/design-note/schema.yaml` 234 → 234・土台の写し 225 → 225・`note-region.txt` 171 → 171・`node-digest-anchor.txt` 192 → 192。
-3. **size は S。** 触る src は `floor_note.rs` の 1 本（字 1 か所 + 単体の歯 1 本）で、増分は +20 行。
+3. **size は S。** 触る src は `floor_note.rs` の 1 本（字 1 か所 + 単体の歯 1 本）で、増分は +20 行。ただし `tests/schema.rs` は便の後に 696 行で、歯 f89 の上限 700 まで残り 4 行である。次に `tests/schema.rs` へ歯を足す便は、歯の file の分割が要る（`tests/schema_docs.rs` も上限 1,200 に対し 1,189 行）。
 4. **verify は 8 行**で、done の 8 の塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --bin folio f140_` = (c) の 1。
    2. `cargo nextest run -p folio --test schema f140_` = (c) の 2。
@@ -182,7 +182,7 @@
 
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
 - 前提の着地: 無し（base = main 021b7a4・便 138 は着地済みで write-set の重なり 0・§0）。
-- 並行の便: 便 139（起草中）とは重ならない見込み（§0）。受付は逐次。
+- 並行の便: 便 139（起草中）とは重なり 0（§0）。受付は逐次。
 - 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.208）を閉じる。次の周の整合の観点で F-2 と同じ所見が立たないかを見る。生成区間のほかの scribe2 の 13 行は器（今は scribe2）を指す字なので残したが、v3 の器が folio2 の便を運ぶようになるときは、語彙の項 器 の定義を直す一括と合わせてその 13 行を見直すかを、台帳の控えに残すかを決める。
 
 <!-- contracts:begin -->
