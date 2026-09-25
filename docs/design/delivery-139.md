@@ -5,19 +5,19 @@
 - 出所: 天井の 33 周目（2026-09-25・本流 94e6d3e）の読みやすさの所見 **F-6**（重さ 直す・場所 index の shelf.documents.adr）。一括 20 の仕分け（`docs/design/batch20-triage.md`）の便の候補 **B-1**。台帳の控え **f2-648.205**。カードに題が無いという同じ指摘は 3・5・27・28・30・33 周目に立ち、33 周目で 6 回目（仕分けの数え）。依頼は席から起草役へ（2026-09-25）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `el` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 8 本（書き換える 6 本 + 本文が変わらない verify の scope 2 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が write-set 8 本を base の binary で `folio ceiling --gate` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。
-- 前の便: 前提の着地は無い。**base = main f82dba1。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。起草の途中で便 138 が着地した（main 021b7a4）ので、その main でも同じ差分を当てて数え直し、§1 に並べて書いた。**受付は便 138 の着地の後（main 021b7a4 以降）とし、受付の時点の main で数え直す。**
-- 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は `crates/folio/src/face_index_read.rs`（要件書のカードの更新の行）・`crates/folio/tests/face_index.rs`（歯 2 本を末尾に）・`crates/folio/tests/badge.rs` と `crates/folio/tests/site.rs`（verify の scope・本文は不変）を持ち、本便の write-set と 4 本が重なる。便 138 は起草の途中で main 021b7a4 に着地した。本便の模擬の差分（字の置き換えの script）は 021b7a4 にもそのまま当たり、便 138 が触った所（関数 srs_card と updated・歯の file の末尾の便 138 の歯）と本便の直す所（型 Record・関数 records・関数 adr_rows・歯の file の末尾への追記）は別の行である。ただし base f82dba1 の上で作った一続きの差分（patch）は、歯の file の末尾で 021b7a4 に当たらない（起草役の実測）ので、器は受付の時点の main の上で書く。便 138 は入口の凍結 anchor 2 本を変えていない。一括 20 の便の候補 B-5（便 140 の見込み・`crates/folio/src/floor_note.rs` と床の fixture）は本便の write-set と重ならない。共通の検証は同時に撃たない逐次を勧める。
+- 前の便: 前提は便 138 の着地（本流 021b7a4）。**base = main 021b7a4。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。
+- 並行の便との重なり: 便 138（行 ek・台帳 f2-648.210）は着地済み（main 021b7a4）で、本便の write-set と共に持つ 4 本（`crates/folio/src/face_index_read.rs`・`crates/folio/tests/face_index.rs`・`crates/folio/tests/badge.rs`・`crates/folio/tests/site.rs`）は着地後の形で数えた。便 138 は入口の凍結 anchor 2 本を変えておらず、base の `folio build` の出力は便 138 の前（f82dba1）と 30 file とも byte で同じである（起草役の実測）。一括 20 の便の候補 B-5（便 140 の見込み・`crates/folio/src/floor_note.rs` と床の fixture）は本便の write-set と重ならない。共通の検証は同時に撃たない逐次を勧める。
 
 ## 1. 設計
 
-### (a) いま起きていること（実測・base main f82dba1・数は参考値）
+### (a) いま起きていること（実測・base main 021b7a4・数は参考値）
 
 1. **カードは番号だけを並べる。** 入口の面の生成器 `crates/folio/src/face_index.rs` の関数 adr_rows は、判断の記録の card に 2 行を出す。1 行目は本数と範囲と状態ごとの数（● 23 本・ADR-1〜ADR-23（発効 23））。2 行目は更新の日付・23 本の番号のリンク（class xref・行き先 adr-n.html）を中黒でつないだ列・開く →（最も新しい番号 ADR-23 の面へ）・card 全体の当たり判定（class sc-hit・行き先は開く → と同じ）である。見出しの字はどこにも無い。
 2. **正本の見出しは読んでいるが捨てている。** 読み手 `crates/folio/src/face_index_read.rs` の関数 records は、判断の記録の正本ごとに欄 title を必須として読み（escape した字）、値を捨てる。型 Record は id・状態の名札・日付だけを持つ（便 26 が title を必須の欄にした）。
 3. **正本の見出しの長さ（base の design-intent/adr の 23 本・空白を含む字数）。** 最長は ADR-7 の 171 字、最短は ADR-15 の 33 字、中央は 89 字、23 本の合計は 2,011 字。100 字を超えるのは 6 本（ADR-4・6・7・8・10・12）。区切りの字（前後に空白の付いたダッシュ）を持つのは 6 本（ADR-3・7・8・18・19・20）で、区切りの前だけに切っても合計は 1,636 字・最長は 106 字である。
 4. **カードの幅（起草役がブラウザで測った参考値）。** 棚の置き場の格子は、横 1,400 の窓で card 1 枚の幅が約 320 で、判断の記録の card の高さは 392 である。幅 390 の窓（縦 1 列）では 397 である。
 5. **当たり判定の重なり。** 様式の定義は、card 全体の当たり判定を card の上に絶対配置で重ね、その上に出すのは class sc-row の行の中のリンクと開く → だけである（folio.css の shelf-card の規則）。行の外に置いた要素（一覧・折りたたみ）は当たり判定の下に隠れ、押すと当たり判定の行き先（最新の記録）へ飛ぶ。
-6. **base の歯（参考値）。** workspace の nextest 889 / 889・clippy 0 警告・床 4 本 rc 0・`folio build` の出力 30 file。`git grep -n 'f139_' -- crates` は 0 件。歯の file の本数は face_index 20・face_index_shelf 11・badge 16・site 13。main 021b7a4（便 138 の後）では workspace 897 / 897・face_index 22。
+6. **base の歯（参考値）。** workspace の nextest 897 / 897・clippy 0 警告・床 4 本 rc 0・`folio build` の出力 30 file。`git grep -n 'f139_' -- crates` は 0 件。歯の file の本数は face_index 22・face_index_shelf 11・badge 16・site 13。
 
 ### (b) 直す先 — 読み手が見出しを持ち、カードの最後に番号と見出しの一覧の折りたたみを足す
 
@@ -55,7 +55,7 @@ fixture は新しい file を足さない。2 本目の記録は歯の中で fix
 
 ### (e) 既存の歯のうち落ちるもの・凍結 anchor が動くか・面の変化
 
-1. **落ちる既存の歯は 5 本で、4 本は凍結 anchor 2 本の手の直しで、1 本は歯の本文の 1 か所で直る（起草役の実測）。** 実装だけを base に当てた写し（歯の file と凍結の面は base のまま）で、workspace の nextest は 889 本のうち 5 本が落ちる。
+1. **落ちる既存の歯は 5 本で、4 本は凍結 anchor 2 本の手の直しで、1 本は歯の本文の 1 か所で直る（起草役の実測）。** 実装だけを base に当てた写し（歯の file と凍結の面は base のまま）で、workspace の nextest は 897 本のうち 5 本が落ちる。
 
 | 歯 | 直し方 |
 | --- | --- |
@@ -64,9 +64,9 @@ fixture は新しい file を足さない。2 本目の記録は歯の中で fix
 | site の site_write_matches_the_frozen_fixture | 同上（expected-index.html を読む） |
 | face_index_shelf の face_index_shelf_adr_card_is_readable_with_one_record | 歯の本文の 1 か所: 在ることを求める字の 3 つ目（card の当たり判定）を一覧の行（ADR-2・見本の判断の記録）に替え、当たり判定が無いことを 1 行で確かめる |
 
-   入口の census の歯（面へのリンクが id の順に中黒で並ぶ）は、2 行目の番号の列を残すので落ちない。実装と凍結の面 2 本を当てた写し（歯を除く）で 889 本中 1 本（face_index_shelf の上の 1 本）だけが落ちる。本便の差分の全部を base に当てた写しで、workspace の nextest は 893 / 893（base 889 + f139_ 4）・clippy 0 警告・床 4 本 rc 0・face_index 24 / 24・face_index_shelf 11 / 11・badge 16 / 16・site 13 / 13。main 021b7a4 に当てた写しでは 901 / 901（897 + 4）・face_index 26 / 26 で、ほかの数は同じ。
+   入口の census の歯（面へのリンクが id の順に中黒で並ぶ）は、2 行目の番号の列を残すので落ちない。実装と凍結の面 2 本を当てた写し（歯を除く）で 897 本中 1 本（face_index_shelf の上の 1 本）だけが落ちる。本便の差分の全部を base に当てた写しで、workspace の nextest は 901 / 901（base 897 + f139_ 4）・clippy 0 警告・床 4 本 rc 0・face_index 26 / 26・face_index_shelf 11 / 11・badge 16 / 16・site 13 / 13。
 2. **動く凍結 anchor は 2 本で、1 か所ずつ。** `tests/fixtures/face/expected-index.html` と `tests/fixtures/face/expected-index-sheet.html` の判断の記録の card の 2 行目の 1 行が、当たり判定の a を外した 1 行と、折りたたみの 3 行（details の開き・ADR-2 の行・閉じ）の 4 行になる（起草役は手で書き換え、生成器の出力と byte で一致した）。ほかの面の凍結 anchor（憲法・要件書・判断の記録 2 本・設計ノート）・床の凍結の土台・天井の束の凍結 anchor は 1 byte も変えない。判断の記録の面の歯 f74_glossary_chip_is_verbatim_the_index_chip は expected-index.html の付録の札を読むが、札の字は変わらず緑のまま（common-verify で撃つ）。
-3. **RED（起草役の実測）。** 歯と凍結の面だけを base に当てた写しで、893 本中 9 本が落ちる＝f139_ の 4 本全部と、(e) の 1 の 5 本（凍結の面 4 本・face_index_shelf の 1 本は実装が無いので逆向きに落ちる）。
+3. **RED（起草役の実測）。** 歯と凍結の面だけを base に当てた写しで、901 本中 9 本が落ちる＝f139_ の 4 本全部と、(e) の 1 の 5 本（凍結の面 4 本・face_index_shelf の 1 本は実装が無いので逆向きに落ちる）。
 4. **突然変異（起草役の実測・本便を当てた写しの実装だけを 1 通りずつ変える・f139_ の 4 本と face_index_shelf の 11 本を撃つ）。** 7 通りとも 1 本以上が落ちる。
 
 | 変異 | 落ちる歯 |
@@ -79,23 +79,23 @@ fixture は新しい file を足さない。2 本目の記録は歯の中で fix
 | M6 名札に本数を出さない | (c) の 1・4 |
 | M7 番号をリンクにしない | (c) の 1・2・4・face_index_shelf |
 
-5. **folio2 自身の面の変化（起草役の実測）。** `folio build --dir design-intent --out <置き場> --write` の出力は 30 file のまま、base と違うのは index.html の 1 枚だけで、判断の記録の card の 2 行目の 1 行が 26 行（2 行目・折りたたみの開き・23 本の行・閉じ）になる。main 021b7a4 の上でも同じ（30 file・index.html だけ・1 行 → 26 行）。組み立てた入口の面は `folio parts --check` に合格する。
+5. **folio2 自身の面の変化（起草役の実測）。** `folio build --dir design-intent --out <置き場> --write` の出力は 30 file のまま、base と違うのは index.html の 1 枚だけで、判断の記録の card の 2 行目の 1 行が 26 行（2 行目・折りたたみの開き・23 本の行・閉じ）になる。組み立てた入口の面は `folio parts --check` に合格する。
 
 ### (f) 大きさ・verify と done の対応
 
 1. **write-set の印。** 8 本とも印なし（書き換える 6 本 = `crates/folio/src/face_index.rs`・`crates/folio/src/face_index_read.rs`・`crates/folio/tests/face_index.rs`・`crates/folio/tests/face_index_shelf.rs`・`tests/fixtures/face/expected-index.html`・`tests/fixtures/face/expected-index-sheet.html`／本文不変の 2 本 = `crates/folio/tests/badge.rs`・`crates/folio/tests/site.rs`・verify の scope）。
 2. **余地（CapHeadroom）。** 測るのは `crates/folio/src/` の下の 2 本。各行を ceil(字数 / 120) で数えて足す（空行は 1・`wc -l` ではない）。起草役は python と awk の 2 実装で数え、一致した。書き換える src の file に行数の上限を持つ歯（歯 f100 の形）は無い（`grep -rn 1100 crates/folio/tests` は face_srs.rs だけ）。
 
-| file | base f82dba1 の正規化行数（参考値） | 余地 = 1500 − 正規化行数 | 起草役の模擬の後 | 便の後の余地 | main 021b7a4 で |
-| --- | ---: | ---: | ---: | ---: | --- |
-| `crates/folio/src/face_index.rs` | 773 | 727 | 793（+20） | 707 | 773 → 793 |
-| `crates/folio/src/face_index_read.rs` | 622 | 878 | 625（+3） | 875 | 623 → 626 |
+| file | base の正規化行数（参考値） | 余地 = 1500 − 正規化行数 | 起草役の模擬の後 | 便の後の余地 |
+| --- | ---: | ---: | ---: | ---: |
+| `crates/folio/src/face_index.rs` | 773 | 727 | 793（+20） | 707 |
+| `crates/folio/src/face_index_read.rs` | 623 | 877 | 626（+3） | 874 |
 
-   余地はどれも S の見積 100 を超える。歯の file と fixture は src の外なので余地を測らない（参考値 face_index 810 → 929〔main 021b7a4 では 846 → 965〕・face_index_shelf 516 → 518・expected-index.html 160 → 163・expected-index-sheet.html 164 → 167）。
+   余地はどれも S の見積 100 を超える。歯の file と fixture は src の外なので余地を測らない（参考値 face_index 846 → 965・face_index_shelf 516 → 518・expected-index.html 160 → 163・expected-index-sheet.html 164 → 167）。
 3. **size は S。**
 4. **verify は 6 行**で、done の 6 の塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --test face_index f139_` = (c) の 1〜4（4 本）。
-   2. `cargo nextest run -p folio --test face_index` = 入口の面の歯の全部（凍結の面 2 本との byte 一致・census・parts --check を含む・参考値 24 本、main 021b7a4 では 26 本）。
+   2. `cargo nextest run -p folio --test face_index` = 入口の面の歯の全部（凍結の面 2 本との byte 一致・census・parts --check を含む・参考値 26 本）。
    3. `cargo nextest run -p folio --test face_index_shelf` = 棚の歯の全部（(e) の 1 の 1 本を含む・参考値 11 本）。
    4. `cargo nextest run -p folio --test badge badge_faces_without_the_mark` = 名札の無い面の凍結 anchor 7 本との byte 一致。
    5. `cargo nextest run -p folio --test site site_write_matches_the_frozen_fixture` = 組み立ての出力の凍結 anchor との byte 一致。
@@ -105,13 +105,13 @@ fixture は新しい file を足さない。2 本目の記録は歯の中で fix
 ### (g) 門と受付
 
 1. **門。** 本便は design-intent の下を 1 本も書き換えないので天井の門の対象外で、実測は 0（通す）（§0 の 門）。
-2. **受付。** 受付の先撃ち（precheck）で契約に起因する断りは 0（起草役の実測）。受付は便 138 の着地の後の main で数え直してから（§0 の 前の便）。
+2. **受付。** 受付の先撃ち（precheck）で契約に起因する断りは 0（起草役の実測）。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-25/d139-draft.md`、模擬の差分と script は同じ dir の d139-scripts（repo には入れない）。
 
-1. 模擬: 受付の時点の main の写しの根で apply-139.py（実装）・anchor-139.py（凍結の面 2 本）・apply-139-teeth.py（歯）を撃つ。どれも字の置き換えで、f82dba1 と 021b7a4 の両方に当たる。workspace の nextest・clippy・床 4 本・`folio build --write` の出力の file 数と base との `diff -r`・`folio parts --check --page index=<面>`・verify の 6 行を撃つ。
+1. 模擬: 受付の時点の main の写しの根で apply-139.py（実装）・anchor-139.py（凍結の面 2 本）・apply-139-teeth.py（歯）を撃つ。どれも字の置き換えで、base 021b7a4 に当たる（便 138 の前の f82dba1 にも当たる）。workspace の nextest・clippy・床 4 本・`folio build --write` の出力の file 数と base との `diff -r`・`folio parts --check --page index=<面>`・verify の 6 行を撃つ。
 2. RED: 歯と凍結の面だけを当てると (e) の 3 のとおり。実装だけを当てると (e) の 1 の 5 本が落ちる。
 3. 突然変異: mut-139.sh（(e) の 4）。
 4. 余地: lines-139.py と lines-139.awk（同じ式の 2 実装）を写しの根で write-set の src の file に当てる。
@@ -144,7 +144,7 @@ fixture は新しい file を足さない。2 本目の記録は歯の中で fix
 ## 5. 依存
 
 - 外部 crate は増やさない。新しい dir は無い。host に要る命令は無い。
-- 前提の着地: 無し（base = main f82dba1）。受付は便 138 の着地（main 021b7a4）の後。
+- 前提の着地: 便 138（base = main 021b7a4）。
 - 並行の便: 便 138 は着地済み（§0）。受付は逐次。
 - 本便の着地の後に席が見ること: 台帳の本便の件（f2-648.205）を閉じる。次の周の読みやすさの観点が、畳んだ一覧で所見 F-6 を解けたと読むか、長い見出し（最長 171 字）を正本の側の所見として立てるかを見る。判断の記録の面の側に一覧を置くか（所見が挙げたもう 1 つの置き場）を台帳の控えに残すかを決める。持ち主の walk を求めるかを決める。
 
@@ -153,7 +153,7 @@ schema = 1
 
 [[contract]]
 id = "el"
-title = "一括 20 の B-1（天井の 33 周目 読みやすさ F-6・同じ指摘は 6 回目・台帳 f2-648.205）: 入口の棚の判断の記録のカードが番号だけを 23 個並べ、読み手が番号から何の判断か取れない問題を直す。読み手（crates/folio/src/face_index_read.rs）の型 Record に正本の title の逐語（escape 済み）を持たせ、カード（crates/folio/src/face_index.rs の関数 adr_rows）の最後に、既存の折りたたみ details.note（名札 番号と見出しの一覧（<本数> 本）・名札は型付きの定数）の中に既存の ul.basis で 1 本 1 行・id の数の昇順・番号のリンク（adr-n.html）と見出しの逐語（切らない）を出す。カード全体の当たり判定 sc-hit は折りたたみと一覧の番号を覆い押すと最新の記録へ飛ぶので、判断の記録のカードからだけ外す。1 行目と 2 行目の番号の列と 開く → はそのまま。部品・class・様式の定義・ほかのカード・設計文書は変えない。入口の凍結 anchor 2 本（expected-index.html・expected-index-sheet.html）の 1 か所ずつを手で直し、face_index_shelf の既存の歯 1 本の当たり判定の字を一覧の行に替える。歯は face_index の f139_ 4 本。判断の記録 ADR-5 の撤退条件 ②（見た目だけの直し）には当たらない。便 138（main 021b7a4）の着地の後に受付し、受付の時点の main で数え直す"
+title = "一括 20 の B-1（天井の 33 周目 読みやすさ F-6・同じ指摘は 6 回目・台帳 f2-648.205）: 入口の棚の判断の記録のカードが番号だけを 23 個並べ、読み手が番号から何の判断か取れない問題を直す。読み手（crates/folio/src/face_index_read.rs）の型 Record に正本の title の逐語（escape 済み）を持たせ、カード（crates/folio/src/face_index.rs の関数 adr_rows）の最後に、既存の折りたたみ details.note（名札 番号と見出しの一覧（<本数> 本）・名札は型付きの定数）の中に既存の ul.basis で 1 本 1 行・id の数の昇順・番号のリンク（adr-n.html）と見出しの逐語（切らない）を出す。カード全体の当たり判定 sc-hit は折りたたみと一覧の番号を覆い押すと最新の記録へ飛ぶので、判断の記録のカードからだけ外す。1 行目と 2 行目の番号の列と 開く → はそのまま。部品・class・様式の定義・ほかのカード・設計文書は変えない。入口の凍結 anchor 2 本（expected-index.html・expected-index-sheet.html）の 1 か所ずつを手で直し、face_index_shelf の既存の歯 1 本の当たり判定の字を一覧の行に替える。歯は face_index の f139_ 4 本。判断の記録 ADR-5 の撤退条件 ②（見た目だけの直し）には当たらない。base = main 021b7a4（便 138 の着地の後）・受付の時点の main で数え直す"
 req = ["FR4"]
 section = "1"
 write-set = ["crates/folio/src/face_index.rs", "crates/folio/src/face_index_read.rs", "crates/folio/tests/face_index.rs", "crates/folio/tests/face_index_shelf.rs", "tests/fixtures/face/expected-index.html", "tests/fixtures/face/expected-index-sheet.html", "crates/folio/tests/badge.rs", "crates/folio/tests/site.rs"]
