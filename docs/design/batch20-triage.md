@@ -169,6 +169,7 @@
 | `design-intent/adr/ADR-3.yaml` | 平易文の末尾の読み方の段の 1 か所と注の末尾の段 |
 | `design-intent/adr/ADR-23.yaml` | 平易文の 2 か所と 1 文と注の末尾の段 |
 | 改訂 c（34 周目） | 要件書の制約 CON8 の見出しと NFR1 の注・語彙の機構の項・規則の表の D-14 の注と R-13 の注（どちらも `ruling` の頭の要旨）・判断の記録 ADR-3・ADR-21・ADR-23 の平易文と注の段。**周の引き金の欄は 0 か所** |
+| `design-intent/preview/ceiling-stamp.yaml` | **34 周目の印**（`folio ceiling --stamp` の生成物・段取りの 4・席が 92f9e7a の上で書いた・引き金の要約値は改訂 b と同じ・門は通す） |
 | `docs/design/batch20-triage.md` | **新設**（この file） |
 
 判断の記録 4 本の**文脈・決定・案・帰結・撤退条件・改訂の欄・承認欄・状態は 1 字も触っていない**（見出しは ADR-22 と ADR-21 だけ）。**憲法・天井の正本・入口・索引の欄の決まりの正本・支度表・実装（`crates/`）・凍結 anchor（`tests/fixtures/`・`design-intent/anchors/`）・生成区間・印（`design-intent/preview/ceiling-stamp.yaml`）・歯は 1 byte も触っていない。**
