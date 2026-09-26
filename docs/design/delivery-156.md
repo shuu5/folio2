@@ -86,7 +86,7 @@ fixture は足さず変えない。歯は既存の口（Work・edit・lines・sh
 | `crates/folio/src/rules.rs` | 295 | 1205 | 314（+19） | 1186 |
 | `crates/folio/src/vocab.rs` | 297 | 1203 | 299（+2） | 1201 |
 
-   src の外は `tests/mechanism_live.rs` 232 → 396・`tests/vocab.rs` 60 → 61。rustfmt --check（edition 2024）の差の数は check.rs 4 → 4・mentions.rs 4 → 4・rules.rs 1 → 1・vocab.rs と main.rs 0 → 0・tests/mechanism_live.rs 5 → 4・tests/vocab.rs 0 → 0（足した字は fmt に合う）。
+   src の外は `tests/mechanism_live.rs` 232 → 398・`tests/vocab.rs` 60 → 61。rustfmt --check（edition 2024）の差の数は check.rs 4 → 4・mentions.rs 4 → 4・rules.rs 1 → 1・vocab.rs と main.rs 0 → 0・tests/mechanism_live.rs 5 → 4・tests/vocab.rs 0 → 0（足した字は fmt に合う）。
 3. **size は S。** src は 5 本で計 +36（知らせの 1 行と名札の読み手 1 つ）。
 4. **verify は 4 行**で、done の 4 の塊と 1 対 1。
    1. `cargo nextest run -p folio --test mechanism_live f156_` = (c) の 1・2。
