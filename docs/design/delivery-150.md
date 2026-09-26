@@ -4,6 +4,7 @@
 - 条: P-4.1（検査が実行できなかった結果を異常なしとして扱わない＝置き場でない `--dir` で 通す と言わない）/ P-4.2（判定できないものは まだ分からない として表に出す＝理由の行に撃ち直し方を書く）/ P-5.1（置き場の印の file と理由の字は型付きの定数で持つ）/ P-15.2 の向き（門の判定の式は 1 つの関数のまま＝設計文書の判定 is_design_source は変えず、その前に置き場の確かめを置く）/ P-10.1（期待の字は歯の側の手書きで持つ＝`tests/fixtures/ceiling/` は 1 byte も変えない）/ N-3.1（例外の口を足さない＝旗を足さない）。
 - 出所: 天井の 41 周目 実態 F-1（止める・反証 支持）。台帳 **f2-648.224**。席が本流で再現した（`--dir design-intnet` と `--dir design-intent/adr` で、write-set に `design-intent/srs.yaml` が在っても 0 通す）。要件書 第 1.46 版（一括 24・承認待ち）の FR20 の注は、この穴を「門の今の既知の穴」と書く。依頼は席から起草役へ（2026-09-26）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `ew` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は手書きで 3 本（書き換える 2 本 + 本文が変わらない verify の scope 1 本）。新しい file も縮む file も消す file も無く（`+` も `-` も当たらない）、新しい dir も作らない。
+- 改訂 b（2026-09-26・独立の検証 d150-verify.md〔支持・一致 22・blocking 0〕の非 blocking 1・2・席の裁定）: (c) の 2 の歯に判定の順を縛る 1 通り（今の dir の外で置き場でもない --dir は 今の dir の下に無い の理由）を足し、(e) の 4 の表に M10（置き場の確かめを根の突き合わせより前へ移す）を足した。(i) の 1 に、実装だけの write-set の 2 は規範文の字どおりの読みより厳しい側である旨を 1 文足した。実装・write-set・verify の行・size・余地は変えない。
 - 門: 本便は設計文書の正本（`design-intent/` の下）を 1 本も書き換えないので、天井の門の対象外である。起草役が作業ツリー planner-d150 の一番上で write-set 3 本を base の binary（写しの組み立て）で `folio ceiling --gate --dir design-intent --write-set …` に渡すと **0（通す・断りの字 = 設計文書の正本を書き換えない便）**。便を当てた写しの binary でも同じ字で 0。
 - 前の便: 前提の着地は無い。**base = main 5d56658（便 149 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。起草役は `git archive 5d56658` の写しを組み立てて測った（本流の作業ツリーの binary は再現の対照にだけ使った）。
 - 並行の便との重なり: base の時点で、門（`crates/folio/src/gate.rs`）と歯の file `crates/folio/tests/gate.rs`・`crates/folio/tests/stamp.rs` を書き換える便の契約は無い（一括 24 の枝 docs/batch24 は `design-intent/` と文書だけを書く）。共通の検証は同時に撃たない逐次を勧める。
@@ -49,7 +50,7 @@
 ### (c) 歯（関数名 f150_・base で 0 件）
 
 1. **f150_the_place_is_a_dir_with_the_mark（単体の歯・`crates/folio/src/gate.rs` の既存の tests の区間 gate_tests の末尾）。** PLACE_MARK が `check.rs` の FILES の先頭に .yaml を足した字と同じであること。一時 dir の中で、is_place が、constitution.yaml を持つ dir を真、実在しない dir・空の dir・constitution.yaml という名の dir を持つ dir・ceiling.yaml と index.yaml だけを持つ dir・constitution.yaml の file そのもの（file を --dir に）を偽とすること。**base では PLACE_MARK と is_place が無く組み立てが落ちる＝RED。**
-2. **f150_the_gate_is_unknown_when_the_dir_is_not_a_place（`crates/folio/tests/gate.rs`・binary 経由）。** 既存の Repo（一時 dir の design-intent/ に束の source の写し）に合格で新しい印（stamp-pass.yaml を fresh）を置き、一時 dir に空の dir empty を作る（歯の中で作る・fixture の dir は足さない）。一時 dir を今の dir にして、write-set を design-intent/srs.yaml と crates/folio/src/gate.rs にし、`--dir` を design-intnet・design-intent/adr・empty・design-intent/srs.yaml・一時 dir の下の design-intnet の絶対 path にした 5 通りと、`--dir design-intnet` で write-set を crates/folio/src/gate.rs だけにした 1 通りを撃つ。6 通りとも終了コード 2 で、標準出力が まだ分からない と --dir が設計文書の置き場でない（<渡した --dir の字>・constitution.yaml が無い）・作業ツリーの一番上から撃つ を持つ。**base では 6 通りとも 0（通す・設計文書の正本を書き換えない便）＝RED。**
+2. **f150_the_gate_is_unknown_when_the_dir_is_not_a_place（`crates/folio/tests/gate.rs`・binary 経由）。** 既存の Repo（一時 dir の design-intent/ に束の source の写し）に合格で新しい印（stamp-pass.yaml を fresh）を置き、一時 dir に空の dir empty を作る（歯の中で作る・fixture の dir は足さない）。一時 dir を今の dir にして、write-set を design-intent/srs.yaml と crates/folio/src/gate.rs にし、`--dir` を design-intnet・design-intent/adr・empty・design-intent/srs.yaml・一時 dir の下の design-intnet の絶対 path にした 5 通りと、`--dir design-intnet` で write-set を crates/folio/src/gate.rs だけにした 1 通りを撃つ。6 通りとも終了コード 2 で、標準出力が まだ分からない と --dir が設計文書の置き場でない（<渡した --dir の字>・constitution.yaml が無い）・作業ツリーの一番上から撃つ を持つ。加えて判定の順（(b) の 3）を縛る 1 通り: 同じ写しで `--dir ../nope`（今の dir の外で、置き場でもない）を撃つと、終了コード 2 で、標準出力が --dir が今の dir の下に無い を持ち 置き場でない を持たない（根の突き合わせが置き場の確かめより先）。**base では 6 通りとも 0（通す・設計文書の正本を書き換えない便）＝RED**（順の 1 通りは base でも 今の dir の下に無い を返す）。
 3. **f150_the_gate_reads_the_place_as_before（同）。** 置き場のときの答えが変わらないこと（GREEN の側の見張り）。印の無い写しで、write-set が実装の file だけなら 0 と 設計文書の正本を書き換えない便、要件書なら 2 と 印が無い（印を読みに行く）。合格で新しい印を置いた後、`--dir design-intent`・`--dir ./design-intent/`・置き場の絶対 path の 3 通りで要件書の write-set を撃つと、どれも 0 と 正本の要約値が同じ。**base でも緑**（base の答えを本便の後も保つことを縛る歯・(e) の 4 の M9 で落ちる）。
 
 fixture は新しい file を足さない。歯は既存の口（Repo・put_stamp・gate・gate_at・code・stdout）だけを使う。凍結 anchor は読むだけで書き換えない。
@@ -66,7 +67,7 @@ fixture は新しい file を足さない。歯は既存の口（Repo・put_stam
 1. **落ちる既存の歯は 0 本（起草役の実測）。** 本便の差分を base に当てた写しで、workspace の nextest **952 / 952**（base 949 + 単体 1 + gate 2）・clippy 0 警告・床 4 本 rc 0・`folio build --write` の出力 31 file（base と diff -r で全 file が一致）・tests/gate.rs 18 / 18（既存 16 を含む）・tests/stamp.rs 13 / 13。既存の歯の置き場（束の source の写し・周の一時 dir の src）は、どれも constitution.yaml を持つ。便 126 の歯 f126_the_gate_is_unknown_when_the_trigger_cannot_be_measured は constitution.yaml の字を壊すが file は残すので、置き場の確かめを通って今までどおり 引き金の要約値が測れない で 2 になる（緑）。凍結 anchor（`tests/fixtures/ceiling/` の下）は 1 byte も変わらない（差分は `crates/folio/src/gate.rs` と `crates/folio/tests/gate.rs` の 2 file だけ）。
 2. **回帰なし（本流の撃ち方・起草役の実測）。** repo の写しの根で `--dir design-intent` を使い、base と本便の binary に同じ write-set を 7 通り渡した（便 149 の write-set・本便の write-set・要件書と語彙・./ 付き・+ 付きの新しい判断の記録・preview と retired だけ・docs/design だけ）。7 通りとも終了コードと標準出力が byte で同じだった。(a) の 2 の A・F・G（対照）も base と同じ字。
 3. **RED（起草役の実測）。** 歯だけを base に当てた写しで、単体の歯は組み立てが落ち（is_place と PLACE_MARK が無い）、gate の f150_the_gate_is_unknown_when_the_dir_is_not_a_place は落ちる（1 通り目の答えが 0 の 通す）。f150_the_gate_reads_the_place_as_before は base でも緑（見張りの歯）。
-4. **突然変異（起草役の実測・本便を当てた写しの `crates/folio/src/gate.rs` を 1 通りずつ変える）。** 撃つ歯は f150_ の 3 本・単体の gate_classifies_design_sources と f142_・tests/gate.rs と tests/stamp.rs の全部（34 本）。9 通りとも f150_ の 1 本以上が落ちる。M1〜M8 では既存の歯は緑のまま。
+4. **突然変異（起草役の実測・本便を当てた写しの `crates/folio/src/gate.rs` を 1 通りずつ変える）。** 撃つ歯は f150_ の 3 本・単体の gate_classifies_design_sources と f142_・tests/gate.rs と tests/stamp.rs の全部（34 本）。10 通りとも f150_ の 1 本以上が落ちる。M9 のほかは既存の歯は緑のまま。
 
 | 変異 | 単体 f150_ | gate f150_ 置き場でない | gate f150_ 置き場は今までどおり |
 | --- | --- | --- | --- |
@@ -79,6 +80,7 @@ fixture は新しい file を足さない。歯は既存の口（Repo・put_stam
 | M7 印を index.yaml にする | 落ちる | 落ちる | 緑 |
 | M8 理由の字から --dir の字を落とす | 緑 | 落ちる | 緑 |
 | M9 確かめの向きを逆にする（置き場なら まだ分からない） | 緑 | 落ちる | 落ちる（既存の歯 17 本も落ちる） |
+| M10 置き場の確かめを根の突き合わせ（dir_parts）より前へ移す | 緑 | 落ちる（`--dir ../nope` の理由が 置き場でない になる） | 緑 |
 
 5. **面の変化は無い。** 門は面を書かず、`folio build` の出力は base と byte で同じ（(e) の 1）。
 
@@ -91,7 +93,7 @@ fixture は新しい file を足さない。歯は既存の口（Repo・put_stam
 | --- | ---: | ---: | ---: | ---: |
 | `crates/folio/src/gate.rs` | 523 | 977 | 568（+45） | 932 |
 
-   余地は S の見積 100 を超える。行数の上限の歯（face.rs・face_srs.rs・tests/schema.rs）は本便の write-set に当たらない。src の外の参考値は `tests/gate.rs` 860 → 936・`tests/stamp.rs` 773（不変）。rustfmt の差の数は gate.rs 12 → 12・tests/gate.rs 18 → 18（本便の足した字は fmt に合う・本流も fmt に合わない所を持ち、CI は fmt を見ない）。
+   余地は S の見積 100 を超える。行数の上限の歯（face.rs・face_srs.rs・tests/schema.rs）は本便の write-set に当たらない。src の外の参考値は `tests/gate.rs` 860 → 944・`tests/stamp.rs` 773（不変）。rustfmt の差の数は gate.rs 12 → 12・tests/gate.rs 18 → 18（本便の足した字は fmt に合う・本流も fmt に合わない所を持ち、CI は fmt を見ない）。
 3. **size は S。** 触る src は 1 本で、src の増分は +45（関数 1 つ・定数 2 つ・run に 10 行・注 4 行）と単体の歯 1 本。
 4. **verify は 5 行**で、done の 5 の塊と 1 対 1 に揃える。
    1. `cargo nextest run -p folio --bin folio f150_` = (c) の 1。
@@ -120,7 +122,7 @@ fixture は新しい file を足さない。歯は既存の口（Repo・put_stam
 
 ### (i) 要件との関係・本便が運ばないもの・言えないこと・撤退条件
 
-1. **要件との関係（正本は書き換えない）。** 本便は、置き場でない `--dir` の 2 を、印が読めない・引き金の要約値が測れない と同じ「判定が実行できないときの まだ分からない」の族として実装に足すだけである（ADR-24 決定 (2)）。FR20 の規範文・確かめ方と、受入基準 AC18 の 8 場合は動かさない（天井の引き金を動かさない）。規範文の照らせない形の一覧か注に「--dir が置き場でない」の断りを足すかは、次の一括の材料である（席が台帳 f2-648.224 に控える）。要件書 第 1.46 版（一括 24）の FR20 の注の「門の今の既知の穴…未着地」の段は、本便の着地の後に着地の字へ直す材料になる（注は設計文書の正本で、便では触れない）。
+1. **要件との関係（正本は書き換えない）。** 本便は、置き場でない `--dir` の 2 を、印が読めない・引き金の要約値が測れない と同じ「判定が実行できないときの まだ分からない」の族として実装に足すだけである（ADR-24 決定 (2)）。FR20 の規範文・確かめ方と、受入基準 AC18 の 8 場合は動かさない（天井の引き金を動かさない）。規範文の照らせない形の一覧か注に「--dir が置き場でない」の断りを足すかは、次の一括の材料である（席が台帳 f2-648.224 に控える）。なお (a) の 2 の E の形（実在しない --dir・write-set が実装の file だけ）は、規範文（第 1.45 版）の照らせない形の一覧に無く、字どおりには「置き場の file が 1 つも無いので 0」と読める。本便は --dir が置き場であることを規範文の前提と読み、字どおりの読みより厳しい側（2）を返す。この前提を規範文か注へ上げるのは次の一括の材料である（台帳 f2-648.224 に控え済み）。要件書 第 1.46 版（一括 24）の FR20 の注の「門の今の既知の穴…未着地」の段は、本便の着地の後に着地の字へ直す材料になる（注は設計文書の正本で、便では触れない）。
 2. **運ばないもの。** 要件書 FR20 の規範文・注と受入基準 AC18 の場合。設計ノート ceiling-gate.md の字。`folio check` の側（正本の欠けの判定）。根の突き合わせ（便 142）・設計文書の判定 is_design_source・印・要約値の関数。admit.sh と一括の手順（今の撃ち方のまま答えが変わらない）。台帳への記帳（席）。外部 crate。
 3. **言えないこと。** 印が示すのは「constitution.yaml を持つ dir である」ことだけで、write-set が指す置き場と同じ置き場であることは言えない。例えば repo の根で `--dir tests/fixtures/ceiling/bundle/source`（別の置き場の写し）を渡すと、置き場と読み、write-set の `design-intent/srs.yaml` はその下に無いので 0（通す）のまま（起草役の実測）。印の file の中身は読まず、symlink も解く（`is_file` は symlink を辿る）。symlink の印や、中身の壊れた印でも置き場と読む（中身の壊れは引き金の要約値の測りと床が見る）。
 4. **撤退条件。** (1) 本便の後に、置き換えも足しもしない既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(2) 本便の後に、着地の直前の main の撃ち方（repo の根で `--dir design-intent`）で (e) の 2 の 7 通りの write-set の答えが、着地の直前の main の binary の答えと終了コードか標準出力で違うか、`folio build` の出力か folio2 自身の床 4 本の結果が 1 byte でも変わったら、止めて席へ返す。(3) 受付の時点の main で `crates/folio/src/gate.rs` の関数 run か `crates/folio/tests/gate.rs` の口 Repo・gate_at が base と違えば、(a)(b)(e) を (h) の手順で数え直してから運ぶ（穴が既に閉じていたら止めて席へ返す）。
@@ -160,5 +162,5 @@ section = "1"
 write-set = ["crates/folio/src/gate.rs", "crates/folio/tests/gate.rs", "crates/folio/tests/stamp.rs"]
 verify = ["cargo nextest run -p folio --bin folio f150_", "cargo nextest run -p folio --test gate f150_", "cargo nextest run -p folio --test gate", "cargo nextest run -p folio --test stamp", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "単体の歯 f150_（PLACE_MARK が folio check の正本の一覧の先頭の constitution.yaml で、is_place が印を file として持つ dir を真、実在しない dir・空の dir・印の名の dir を持つ dir・ceiling.yaml と index.yaml だけの dir・印の file そのものを偽とする）が緑、tests/gate.rs の f150_ の 2 本（design-intnet・design-intent/adr・空の dir・design-intent/srs.yaml・実在しない絶対 path の --dir と、実装の file だけの write-set の design-intnet が rc 2 で --dir が設計文書の置き場でない（<--dir>・constitution.yaml が無い）・作業ツリーの一番上から撃つ を出す / 置き場の --dir では実装だけの write-set が rc 0 で 設計文書の正本を書き換えない便、印の無い置き場の要件書が rc 2 で 印が無い、合格で新しい印の置き場は design-intent・./design-intent/・絶対 path の 3 通りとも rc 0 で 正本の要約値が同じ）が緑、tests/gate.rs の歯の全部（受入基準 AC18 の 8 場合と便 126・129・142 の歯を含む）が緑、tests/stamp.rs の歯の全部（--dir src で門を撃つ歯を含む）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main の出力と file 数も byte も変わらず、repo の根で --dir design-intent の門の答えは §1 (e) の 2 の 7 通りで着地の直前の main の binary と同じである"
+done = "単体の歯 f150_（PLACE_MARK が folio check の正本の一覧の先頭の constitution.yaml で、is_place が印を file として持つ dir を真、実在しない dir・空の dir・印の名の dir を持つ dir・ceiling.yaml と index.yaml だけの dir・印の file そのものを偽とする）が緑、tests/gate.rs の f150_ の 2 本（design-intnet・design-intent/adr・空の dir・design-intent/srs.yaml・実在しない絶対 path の --dir と、実装の file だけの write-set の design-intnet が rc 2 で --dir が設計文書の置き場でない（<--dir>・constitution.yaml が無い）・作業ツリーの一番上から撃つ を出す 、今の dir の外で置き場でもない ../nope は rc 2 で --dir が今の dir の下に無い を出し 置き場でない を出さない / 置き場の --dir では実装だけの write-set が rc 0 で 設計文書の正本を書き換えない便、印の無い置き場の要件書が rc 2 で 印が無い、合格で新しい印の置き場は design-intent・./design-intent/・絶対 path の 3 通りとも rc 0 で 正本の要約値が同じ）が緑、tests/gate.rs の歯の全部（受入基準 AC18 の 8 場合と便 126・129・142 の歯を含む）が緑、tests/stamp.rs の歯の全部（--dir src で門を撃つ歯を含む）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main の出力と file 数も byte も変わらず、repo の根で --dir design-intent の門の答えは §1 (e) の 2 の 7 通りで着地の直前の main の binary と同じである"
 <!-- contracts:end -->
