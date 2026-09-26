@@ -5,13 +5,14 @@
 - 出所: 外の置き場の実測（`.local/share/folio2/handoff-2026-09-24/folio2-v3-entry-notes.md` §4 の末尾）と台帳 **f2-648.195**。持ち主の裁定 2026-09-26 15:22 JST（棚卸しの問 2「推奨で」）= 狭める向きも広げる向きと対称に止める・ADR-16 の注に「狭める向きは許す」の断りは書かない。
 - 置き場: 審査の材料は行 `fd` が指す §1 だけ。write-set は 2 本で、新しい file も dir も無い。
 - 門: 対象外。作業ツリー planner-d157 の一番上で、base の binary・本便の binary・本流の target/debug/folio に write-set 2 本を渡すと、どれも **0（通す・設計文書の正本を書き換えない便）**。
-- 前の便: **base = main d6d84fa（便 153 の着地の後）。数は base の写しの実測（参考値・行 D-13）**で、受付の時点の main が違えば数え直す。
+- 前の便: **base = main eecbff9（便 153〜156 の着地の後）。数は base の写しの実測（参考値・行 D-13）**で、受付の時点の main が違えば数え直す。
 - 同乗しない: 台帳 f2-648.185（main.rs の説明の字）は本便の write-set に main.rs が入らないので別の S にする（§1 (i) の 2）。
 - 改訂 b（2026-09-27・検証役の記録 `d157-verify.md`）: 歯 1 に順の段と骨格の置き場の段を足し、check.rs の頭の注を直す先に入れ、床の側の代価と古くなる字を §1 (i) の 1 に補った。
+- 改訂 c（2026-09-27・便 156 の着地の後）: base を main eecbff9 へ載せ替え、数を撃ち直して §1 (a) の 5・(e)・(f)・(g) の数を改めた（中身は改訂 b と同じ）。
 
 ## 1. 設計
 
-### (a) いま起きていること（base d6d84fa の実測・参考値）
+### (a) いま起きていること（base eecbff9 の実測・参考値）
 
 1. **外の置き場での答え。** 一時 dir で git の init → `folio init --dir design-intent` → commit の後、骨格の憲法の値域の節を 1 か所ずつ変えて commit し、`folio check` を撃った。右の欄は本便を当てた写しの binary。
 
@@ -25,7 +26,7 @@
 2. **床は部分集合かだけを見る。** `crates/folio/src/check.rs` の関数 place_range は、置き場の値域の鍵に組み立てた版（build.rs が folio2 の憲法から導出した定数 ENUMS）に無い値があるときだけ「まだ分からない」を出す。外した値は、条が使っていれば違反になるが、使っていなければ黙って通る。
 3. **面は既に集合の一致で断る。** 同じ置き場で `folio face --face constitution` は、should を消した憲法を「組み立てた版の 3 値全部でない・組み立て時の憲法の値域と違う（組み立て直す）」の まだ分からない（rc 2）で断る（`crates/folio/src/face_constitution_read.rs` の enum_skew）。床と面の答えが食い違っている。本便が面に揃えるのは狭める向きだけで、同じ値を 2 度書いた値域は本便の後も床が黙り面が「2 度ある」で断る（便 122 の「重複は問わない」のまま・直すなら別の便の判断）。
 4. **folio2 自身は変わらない。** 組み立てた版の値域は folio2 の憲法から導出するので、folio2 自身の値域はいつも組み立てた版と等しい。
-5. **base の歯。** workspace の nextest 959 / 959・clippy 0 警告・床 4 本 rc 0・`folio build --write` の出力 34 file。`--test constitution_range` は 5 本。`f157_` と行 id `fd` は 0 件。
+5. **base の歯。** workspace の nextest 972 / 972・clippy 0 警告・床 4 本 rc 0・`folio build --write` の出力 34 file。`--test constitution_range` は 5 本。`f157_` と行 id `fd` は 0 件。
 
 ### (b) 直す先 — `crates/folio/src/check.rs` の関数 place_range
 
@@ -53,7 +54,7 @@ fixture は足さない（凍結 anchor はそのまま読む）。
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **落ちる既存の歯は (c) の 3 で置き換える 2 本だけ。** 本便を当てた写しで workspace の nextest **961 / 961**・clippy 0 警告・床 4 本 rc 0・`folio build --write` は 34 file で base と diff -r 一致・`--test constitution_range` 7 / 7。
+1. **落ちる既存の歯は (c) の 3 で置き換える 2 本だけ。** 本便を当てた写しで workspace の nextest **974 / 974**・clippy 0 警告・床 4 本 rc 0・`folio build --write` は 34 file で base と diff -r 一致・`--test constitution_range` 7 / 7。
 2. **RED。** 歯だけを base に当てると、f157_ の 2 本と置き換えた f122_reordered_range_… が落ち、ほかの 4 本は緑。
 3. **突然変異（写しの check.rs を 1 通りずつ変え、`--test constitution_range` を撃つ）。** 11 通りとも 1 本以上が落ちる。表の 歯 1・歯 2 は (c) の 1・2、置換 は (c) の 3 の 1。X1・X2・X8 は (c) の 1 の ③ が、X7 は ⑥ が落とす（改訂 b・検証役の生き残り）。
 
@@ -78,7 +79,7 @@ fixture は足さない（凍結 anchor はそのまま読む）。
 
 | file | base の正規化行数（参考値） | 余地 | 模擬の後 | 便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
-| `crates/folio/src/check.rs` | 1027 | 473 | 1038（+11） | 462 |
+| `crates/folio/src/check.rs` | 1033 | 467 | 1044（+11） | 456 |
 
    src の外は `tests/constitution_range.rs` 446 → 621。rustfmt --check（edition 2024）の差の数は check.rs 4 → 4・tests/constitution_range.rs 10 → 9（足した字は fmt に合う）。
 3. **size は S。** src は 1 本で +11（字の 1 件と注・頭の注の 2 行は書き換えで行数は同じ）。
@@ -91,7 +92,7 @@ fixture は足さない（凍結 anchor はそのまま読む）。
 
 ### (g) 門・受付・並行の便
 
-門は対象外で 0（冒頭）。受付の先撃ち（precheck）で契約に起因する断りは 0（(h) の 5）。便 154（行 fa）と便 155（行 fb・anchor.rs と tests/freeze_root.rs）の write-set とは重ならない。便 156（行 fc）は check.rs と main.rs を含む。重なるのは check.rs の file だけで、便 156 は Materials・check_dir・check_constitution の名札を触り place_range と頭の注の 6〜7 行は触らない（検証役の写しで両方の順の merge が衝突なし・合わせた木の歯は緑）。**本便は便 156 の後に載る＝受付の時点で便 156 の着地後の main を base に (h) で数え直す**（両方の後の check.rs は見込み 1042・余地 458 で S のまま）。
+門は対象外で 0（冒頭）。受付の先撃ち（precheck）で契約に起因する断りは 0（(h) の 5）。便 154（行 fa）と便 155（行 fb・anchor.rs と tests/freeze_root.rs）の write-set とは重ならない。便 156（行 fc）は着地済みで base に含む。便 156 の check.rs の差（Materials・check_dir・check_constitution の名札・正規化行 +6）は place_range と頭の注の 6〜7 行に当たらず、本便の差は base eecbff9 の上にそのまま当たって歯は緑（改訂 c で撃ち直した）。
 
 ### (h) 数え直す手順（行 D-13）
 
@@ -127,7 +128,7 @@ fixture は足さない（凍結 anchor はそのまま読む）。
 
 ## 5. 依存
 
-- 外部 crate と新しい dir は無い。前提の着地は無い（base = main d6d84fa）。並行の便は §1 (g)。
+- 外部 crate と新しい dir は無い。前提の着地は無い（base = main eecbff9）。並行の便は §1 (g)。
 - 着地の後に席が見ること: 本流の target/debug/folio を組み直す。.195 を閉じる。.185 を別の S として起こす。§1 (i) の 1 の字を次の節目の材料に控える。
 
 <!-- contracts:begin -->
@@ -135,7 +136,7 @@ schema = 1
 
 [[contract]]
 id = "fd"
-title = "群 A（台帳 f2-648.195）: 置き場の憲法の値域の節で、組み立てた版の値を外した（狭めた）鍵を床が黙って通す（広げた鍵は まだ分からない）。持ち主の裁定（2026-09-26 棚卸しの問 2・推奨で）どおり、crates/folio/src/check.rs の place_range に、組み立てた版の値のうち置き場に無い値を組み立てた版の順に名指す まだ分からない 1 件（組み立て時の値域に在る値が無い・値域を置き場ごとに狭める口は無い・FR25）を広げた向きの字の直後に足し、関数と file の頭の注を集合の一致に直す。狭めた鍵も値域の表に入れ、違反は出さない。広げた向き・引けない鍵・撤退条件の種類の突き合わせ（link.rs）・面・init の骨格・命令の旗・folio2 自身の出力は変えない。歯は tests/constitution_range.rs の f157_ 2 本（字の順の段と folio init の骨格の置き場の段を含む）と、狭めた値域を黙ると期待していた f122_ 2 本の置き換え（名も替える）。便 156 の後に載る。台帳 .185（main.rs の説明の字）は同乗させない。門の対象外。base = main d6d84fa・受付の時点の main で数え直す"
+title = "群 A（台帳 f2-648.195）: 置き場の憲法の値域の節で、組み立てた版の値を外した（狭めた）鍵を床が黙って通す（広げた鍵は まだ分からない）。持ち主の裁定（2026-09-26 棚卸しの問 2・推奨で）どおり、crates/folio/src/check.rs の place_range に、組み立てた版の値のうち置き場に無い値を組み立てた版の順に名指す まだ分からない 1 件（組み立て時の値域に在る値が無い・値域を置き場ごとに狭める口は無い・FR25）を広げた向きの字の直後に足し、関数と file の頭の注を集合の一致に直す。狭めた鍵も値域の表に入れ、違反は出さない。広げた向き・引けない鍵・撤退条件の種類の突き合わせ（link.rs）・面・init の骨格・命令の旗・folio2 自身の出力は変えない。歯は tests/constitution_range.rs の f157_ 2 本（字の順の段と folio init の骨格の置き場の段を含む）と、狭めた値域を黙ると期待していた f122_ 2 本の置き換え（名も替える）。便 154〜156 の着地の後の main に載る。台帳 .185（main.rs の説明の字）は同乗させない。門の対象外。base = main eecbff9・受付の時点の main で数え直す"
 req = ["FR25"]
 section = "1"
 write-set = ["crates/folio/src/check.rs", "crates/folio/tests/constitution_range.rs"]
