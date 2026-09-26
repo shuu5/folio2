@@ -3,9 +3,10 @@
 - 要件: FR20（天井の門・要件書 第 1.48 版）。FR20 の規範文と受入基準 AC18 は変えず、門と印が同じ関数で測る引き金の要約値（周を回し直す要否を決める規範の欄の写しの要約値）の中身だけを変える。AC18 は器の要件面に無い id なので req に書かない。
 - 条: P-5.1（引き金の欄は型付きの定数に置く）/ P-6.2（天井の正本の生成区間は生成器 `folio schema --write` の出力で、手で直さない）/ P-10.1〜10.3（凍結 anchor は生成器から独立に組み直して測り直す）/ P-15.2（門と印は同じ関数 trigger_digest を呼ぶまま）。
 - 出所: 判断の記録 ADR-26 決定 (3)（ADR-18 決定 (1) ② の改訂・2026-09-27 00:40 JST 発効・台帳 f2-648 notes）。要旨の正本は `docs/design/ceiling-rules-triage.md` の §引き金の便の契約の要旨。
-- 置き場: 審査の材料は行 `ex` が指す §1 だけ。write-set は 30 本（書き換える 28 本 + 本文を変えない verify の scope 2 本）で、新しい file・縮む file・新しい dir は無い。
-- 門: 対象（write-set に天井の正本 design-intent/ceiling.yaml が在る）。base の binary で作業ツリー planner-d151 の一番上から撃つと **2（まだ分からない・印が古い（引き金の要約値が違う））**。一括 27 の取り込みで ADR-26 が発効し、引き金の要約値が動いたためである。移行の周の印の後は 0（通す）の見込み（(g) の 1）。
-- 前の便: **base = main 6c0977b（一括 27 の取り込みの後）。数はすべて base の写しの実測（参考値・行 D-13）**で、受付の時点の main が違えば数え直す。
+- 置き場: 審査の材料は行 `ex` が指す §1 だけ。write-set は 30 本（書き換える 28 本 + 本文を変えない verify の scope 2 本）で、新しい file と新しい dir は無い。src の 2 本は行が減るが、余地が足りるので `-`（縮む面の宣言）は付けない。
+- 門: 対象（write-set に天井の正本 design-intent/ceiling.yaml が在る）。本流 949af4b（51 周目の印）の一番上で本流の binary に write-set 30 本を渡すと **0（通す・印が 4 観点とも合格・引き金の要約値が同じ・印の後に引き金の外の変更が在る）**。本便の binary では同じ場所で 2 になる（着地の後の話・§5）。
+- 前の便: **base = main 949af4b（一括 28 の着地の後）。数はすべて base の写しの実測（参考値・行 D-13）**で、受付の時点の main が違えば数え直す。枝の親は 6c0977b だが、一括 28 は crates/ と tests/ に触れず数は同じ。
+- 改訂 b（2026-09-27・独立の検証 d151-verify.md〔支持・blocking 0〕の不一致 4 つ・席の依頼）: base と門の答えを 949af4b に、(g) の 3 を merge 済みの字に、縮む file の字を 1 つに揃え、歯 2 に adr/schema.yaml の 1 通りを足した。
 
 ## 1. 設計
 
@@ -20,6 +21,7 @@
 | 提案中の ADR-3 を足す | 0 通す（同上） | 2 同上 |
 | ADR-2 を発効へ・承認欄を足す | 2 印が古い（引き金の要約値が違う） | 0 通す（引き金の外の変更・節点 1 個） |
 | adr/retired/ に記録を置く | 0 通す（正本の要約値が同じ） | 同じ |
+| adr/schema.yaml を置く | 0 通す（引き金の外の変更・節点 0 個） | 同じ |
 
 3. **読み手の全数（`git grep`）。** TRIGGER_ADR_STATUS を読むのは ceiling.rs（FLOOR と単体の歯 1 本）と gate.rs の effective_adrs だけ。trigger_digest を呼ぶのは門と印（stamp.rs）だけで、面の名札（face.rs）と `folio derive` は引き金を読まない。生成区間の写しは design-intent/ceiling.yaml・tests/fixtures の ceiling.yaml 20 本・凍結 anchor ceiling-region.txt に在る。
 4. **base の歯。** workspace の nextest 952 / 952・clippy 0 警告・床 4 本 rc 0・`folio build --write` 33 file。`git grep -n f151_ -- crates` は 0 件、行 id `ex` は docs/design に 0 件。
@@ -34,7 +36,7 @@
 ### (c) 歯（`crates/folio/tests/gate.rs`・既存の口 Repo・put_stamp_with_nodes・edit・gate だけ）
 
 1. **f151_a_proposed_adr_moves_the_trigger。** 合格で新しい印を置き、先に要件書の write-set で 0 を確かめる（印の引き金が今の関数と合うことの対照）。次に、提案中の ADR-2 の決定の字を変える形と提案中の ADR-3 を足す形の 2 通りで、終了コード 2 と 印が古い・引き金の要約値が違う を見る。**base では 0 通す＝RED。**
-2. **f151_the_adr_status_and_approval_do_not_move_the_trigger。** ADR-2 の状態を提案中から発効へ変えて承認欄を足すと 0 と 引き金の外の変更、adr/retired/ に提案中の記録を置くと 0 と 正本の要約値が同じ を見る。**base では 1 通り目が 2（印が古い）＝RED。** 2 通り目は base でも緑の見張り（下の dir を読まない）。
+2. **f151_the_adr_status_and_approval_do_not_move_the_trigger。** ADR-2 の状態を提案中から発効へ変えて承認欄を足すと 0 と 引き金の外の変更、adr/retired/ に提案中の記録を置くと 0 と 正本の要約値が同じ、欄の決まり adr/schema.yaml を置くと 0 と 引き金の外の変更 を見る。**base では 1 通り目が 2（印が古い）＝RED。** 2・3 通り目は base でも緑の見張り（下の dir と schema.yaml を読まない）。
 3. **受入基準 AC18 の場合の見張り。** 門の歯の既存 18 本は緑のまま残す（verify の 2 行目）。ただし (e) の 1 の 2 通りは向きが逆になるので外す。
 
 fixture の file は足さない（記録は歯の中で一時 dir に書く）。
@@ -65,6 +67,7 @@ fixture の file は足さない（記録は歯の中で一時 dir に書く）�
 | M4 下の dir（retired/）も読む | 緑 | 落ちる | なし |
 | M5 床の木に status の葉を残す | 緑 | 緑 | 単体の anchor の byte 一致 |
 | M6 trigger_note を base の字に戻す | 緑 | 緑 | 同上 |
+| M7 schema.yaml を除かない | 緑 | 落ちる | なし |
 
 ### (f) 大きさ・verify と done の対応
 
@@ -75,23 +78,23 @@ fixture の file は足さない（記録は歯の中で一時 dir に書く）�
 | crates/folio/src/ceiling.rs | 742 | 758 | 736 |
 | crates/folio/src/gate.rs | 572 | 928 | 565 |
 
-   src は縮む。src の外は tests/gate.rs 927 → 970・tests/schema_docs.rs 1189 → 1190・tests/graph.rs 613 → 614。rustfmt の差の数は増えない（tests/gate.rs は 21 → 20）。
+   src は行が減る（`-` は付けない・置き場の行）。src の外は tests/gate.rs 927 → 979・tests/schema_docs.rs 1189 → 1190・tests/graph.rs 613 → 614。rustfmt の差の数は増えない（tests/gate.rs は 21 → 20）。
 2. **size は M。** src は 2 本で縮むが、write-set が凍結 anchor 2 本・fixture の写し 20 本・生成区間 1 本に及ぶ。
 3. **write-set の印。** 30 本とも印なし。本文を変えない 2 本は crates/folio/tests/stamp.rs と crates/folio/tests/ceiling.rs（verify の `--test` で名指す）。
 4. **verify は 8 行**で、done の塊と 1 対 1。順に (c) の 2 本・門の歯の全部 20 本・印の歯 13 本・単体 ceiling::tests 8 本（anchor の byte 一致）・schema_docs 29 本（生成区間の数）・ceiling 23 本（写しの生成区間）・graph 16 本（節点の anchor）・clippy。base では 1 行目が 0 件で rc 4、ほかは緑（門は 18 本）。fixture を読むほかの歯は共通の検証（workspace の nextest）が見る。
 
 ### (g) 門と受付
 
-1. **門。** 作業ツリー planner-d151 の一番上で write-set 30 本を渡すと、base の binary・本流の target/debug/folio・本便の binary のどれも 2（まだ分からない・印が古い（引き金の要約値が違う））。ADR-26 決定 (3) の移行の周で印を新しくすれば 0 の見込み。生成区間は引き金の欄（重さ・文書の一覧・観点の行）の外なので、本便の ceiling.yaml の変化は引き金を動かさない。
+1. **門。** 本流 949af4b の一番上で write-set 30 本を渡すと、本流の target/debug/folio と base の写しの binary は 0（通す・印が 4 観点とも合格・引き金の要約値が同じ・印の後に引き金の外の変更が在る）。本便の binary は同じ場所で 2（印が古い）で、着地で本流の印が古くなることに当たる（§5）。生成区間は引き金の欄（重さ・文書の一覧・観点の行）の外なので、本便の ceiling.yaml の変化は引き金を動かさない。
 2. **受付の先撃ち。** 契約に起因する断りは 0（(h) の 3）。
-3. **並行。** base の時点で gate.rs・ceiling.rs と歯の file を書き換える便の契約は無い。一括 28 の枝 docs/batch28 は design-intent/adr/ の 2 file だけを書き、write-set と重ならない。
+3. **並行。** base の時点で gate.rs・ceiling.rs と歯の file を書き換える便の契約は無い。一括 28 は merge 済み（949af4b・design-intent/adr/ADR-1.yaml・adr/schema.yaml・preview/ceiling-stamp.yaml の 3 file）で、write-set と重ならない。
 
 ### (h) 数え直す手順
 
 記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-27/d151-draft.md`、script は同じ dir の d151-scripts（repo には入れない）。
 
 1. 模擬は base の clone で build-sim-151.sh（実装 → `folio schema --write` → fixture の区間 → anchor の測り直し → 歯）。差分は c151.patch、検査は verify-151.sh と workspace の nextest・床 4 本・build の diff -r。
-2. RED は r151-teeth.patch、4 通りの答えは probe-151.py、突然変異は mut-151.py、余地は lines-151.py と lines-151.awk。
+2. RED は r151-teeth.patch、5 通りの答えは probe-151.py、突然変異は mut-151.py、余地は lines-151.py と lines-151.awk。
 3. 受付の先撃ち: `~/.cache/folio2-orchestrator/r86/precheck.sh <worktree> docs/design/delivery-151.md#ex`。
 
 ### (i) 言えないこと・撤退条件
@@ -120,7 +123,7 @@ fixture の file は足さない（記録は歯の中で一時 dir に書く）�
 ## 5. 依存
 
 - 外部 crate は増やさない。新しい dir は無い。
-- 前提の着地は無い（base = main 6c0977b）。門を通すには移行の周の印が要る（ADR-26 決定 (3)）。
+- 前提の着地は無い（base = main 949af4b・本流の印は 51 周目で門は 通す）。
 - 並行の便は無い。
 - 本便の着地の後に席が見ること: 本流の target/debug/folio を組み直す（admit.sh はこの binary で門を撃つ）。引き金の要約値の関数が変わるので本流の印は古くなり、以後の設計文書の便は次の周（止める の直しか節目）まで門で まだ分からない になる（行 D-16・それだけでは周を起こさない）。ADR-26 の注の【引き金の便】の段は消える定数 TRIGGER_ADR_STATUS を名指し、要件書 FR20 と規則の表の行 D-16 の注には「引き金の便の着地まで」の字が残る。どれも次の節目の材料として台帳に積む。
 
@@ -129,11 +132,11 @@ schema = 1
 
 [[contract]]
 id = "ex"
-title = "引き金の便（判断の記録 ADR-26 決定 (3)・ADR-18 決定 (1) の改訂）: 周の引き金の要約値は crates/folio/src/gate.rs の effective_adrs が発効して承認欄を持つ判断の記録だけを拾い、crates/folio/src/ceiling.rs の TRIGGER_ADR_FIELDS（status を含む 8 欄）を写すので、発効の記帳だけで動き、提案中の記録の字は入らない。TRIGGER_ADR_STATUS と床の木の trigger.adr.status を消して TRIGGER_ADR_FIELDS を 7 欄に、effective_adrs を adr_records に改名して置き場の直下の .yaml（schema.yaml を除く）を状態を問わず全部写し、trigger_note を置き換え、天井の正本の生成区間を folio schema --write で書き直す。凍結 anchor 2 本と測った定数・fixture の ceiling.yaml 20 本の生成区間を測り直し、向きが逆になる既存の歯 2 通りを f151_ の 2 本へ移す。門は対象で base では まだ分からない（移行の周の印の後は 通す の見込み）。base = main 6c0977b・受付の時点の main で数え直す"
+title = "引き金の便（判断の記録 ADR-26 決定 (3)・ADR-18 決定 (1) の改訂）: 周の引き金の要約値は crates/folio/src/gate.rs の effective_adrs が発効して承認欄を持つ判断の記録だけを拾い、crates/folio/src/ceiling.rs の TRIGGER_ADR_FIELDS（status を含む 8 欄）を写すので、発効の記帳だけで動き、提案中の記録の字は入らない。TRIGGER_ADR_STATUS と床の木の trigger.adr.status を消して TRIGGER_ADR_FIELDS を 7 欄に、effective_adrs を adr_records に改名して置き場の直下の .yaml（schema.yaml を除く）を状態を問わず全部写し、trigger_note を置き換え、天井の正本の生成区間を folio schema --write で書き直す。凍結 anchor 2 本と測った定数・fixture の ceiling.yaml 20 本の生成区間を測り直し、向きが逆になる既存の歯 2 通りを f151_ の 2 本へ移す。門は対象で本流 949af4b（51 周目の印）では 通す。base = main 949af4b・受付の時点の main で数え直す"
 req = ["FR20"]
 section = "1"
 write-set = ["crates/folio/src/ceiling.rs", "crates/folio/src/gate.rs", "crates/folio/tests/ceiling.rs", "crates/folio/tests/gate.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/stamp.rs", "design-intent/ceiling.yaml", "tests/fixtures/adr/effective-no-approval/ceiling.yaml", "tests/fixtures/adr/schema-drift/ceiling.yaml", "tests/fixtures/adr/two-adopted/ceiling.yaml", "tests/fixtures/anchor/no-anchor/ceiling.yaml", "tests/fixtures/anchor/root-digest-drift/ceiling.yaml", "tests/fixtures/ceiling/bundle/source/ceiling.yaml", "tests/fixtures/check/dup-key/ceiling.yaml", "tests/fixtures/check/empty-field/ceiling.yaml", "tests/fixtures/check/missing-file/ceiling.yaml", "tests/fixtures/check/unknown-section/ceiling.yaml", "tests/fixtures/face/ceiling.yaml", "tests/fixtures/floor_base/design-intent/ceiling.yaml", "tests/fixtures/link/adr-id-missing/ceiling.yaml", "tests/fixtures/link/amended-by-orphan/ceiling.yaml", "tests/fixtures/link/retreat-kind-drift/ceiling.yaml", "tests/fixtures/refs/bad-counts/ceiling.yaml", "tests/fixtures/refs/dangling-id/ceiling.yaml", "tests/fixtures/refs/orphan-rule/ceiling.yaml", "tests/fixtures/schema/ceiling-region.txt", "tests/fixtures/schema/node-digest-anchor.txt", "tests/fixtures/vocab/exemptions/ceiling.yaml", "tests/fixtures/vocab/unknown-word/ceiling.yaml"]
 verify = ["cargo nextest run -p folio --test gate f151_", "cargo nextest run -p folio --test gate", "cargo nextest run -p folio --test stamp", "cargo nextest run -p folio --bin folio ceiling::tests", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --test ceiling", "cargo nextest run -p folio --test graph", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "tests/gate.rs の f151_ の 2 本（提案中の ADR-2 の決定の字と提案中の ADR-3 の追加が rc 2 で 印が古い・引き金の要約値が違う / ADR-2 の発効と承認欄が rc 0 で 引き金の外の変更、adr/retired/ の記録が rc 0 で 正本の要約値が同じ）が緑、tests/gate.rs の全部（AC18 の場合を含む）・tests/stamp.rs の全部・単体の ceiling::tests（床の木と凍結 anchor の byte 一致）・tests/schema_docs.rs（生成区間 44 行 4619 byte）・tests/ceiling.rs（ceiling.yaml の写しが全部 anchor と同じ生成区間）・tests/graph.rs（節点の anchor）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と file 数も byte も変わらない"
+done = "tests/gate.rs の f151_ の 2 本（提案中の ADR-2 の決定の字と提案中の ADR-3 の追加が rc 2 で 印が古い・引き金の要約値が違う / ADR-2 の発効と承認欄が rc 0 で 引き金の外の変更、adr/retired/ の記録が rc 0 で 正本の要約値が同じ、adr/schema.yaml が rc 0 で 引き金の外の変更）が緑、tests/gate.rs の全部（AC18 の場合を含む）・tests/stamp.rs の全部・単体の ceiling::tests（床の木と凍結 anchor の byte 一致）・tests/schema_docs.rs（生成区間 44 行 4619 byte）・tests/ceiling.rs（ceiling.yaml の写しが全部 anchor と同じ生成区間）・tests/graph.rs（節点の anchor）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と file 数も byte も変わらない"
 <!-- contracts:end -->
