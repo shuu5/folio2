@@ -266,8 +266,8 @@ id の一覧の凍結の口は `crates/folio/src/ids.rs`（関数 `freeze`）。
 
 | # | file | 欄 | 何を書くか |
 |---|---|---|---|
-| 1 | `design-intent/rules.yaml` | 行 R-18・R-19・D-15 の `ruling` | 頭の「一括 26 の承認待ち（席が承認の後に…・値と文面は一括 26 の問 1 で持ち主に問う）」を「f2-648 notes <日付> <時刻> JST（逐語「<逐語>」・一括 26 の問 1 の項 n = …の初版の行）」に。後ろの「行を足す向きの裁定 = …15:22 JST…」は残す |
-| 2 | `design-intent/rules.yaml` | 同じ 3 行の `ruled_at` | 承認の日付 |
+| 1 | `design-intent/rules.yaml` | 行 R-18・R-19・D-15 の `ruling`（改訂 f: 行 D-11 の `ruling` も = 注の 1 文の追記〔R-20 の保留〕・条 P-17.1〕・頭の「一括 26 の承認待ち（…）・前の裁定 = …」を「f2-648 notes <日付> <時刻> JST（逐語「<逐語>」・…）・前の裁定 = …」に） | 頭の「一括 26 の承認待ち（席が承認の後に…・値と文面は一括 26 の問 1 で持ち主に問う）」を「f2-648 notes <日付> <時刻> JST（逐語「<逐語>」・一括 26 の問 1 の項 n = …の初版の行）」に。後ろの「行を足す向きの裁定 = …15:22 JST…」は残す |
+| 2 | `design-intent/rules.yaml` | 同じ 3 行と行 D-11 の `ruled_at` | 承認の日付（D-11 は改訂 f で 2026-09-26 = 起草の日・承認の日付に上げる） |
 | 3 | `design-intent/anchors/ids-v1.48.yaml`（問 2 を承認）／`ids-v1.47.yaml`（問 2 を退ける） | 新しい file | 承認の記帳（#10〜#13 を含む）の commit の後、床が合格の枝で `folio check --dir design-intent --freeze-ids` を撃ち、できた file を commit する（行 D-15 の最初の当てはめ・写しで id 80 本・commit の後の床は合格） |
 | 4 | `docs/design/batch26-triage.md` | 頭の状態の行 | 「承認済み・発効（…逐語…）」に。枝の上の周の結果を足す |
 | 5 | `docs/design/state.md` | 規則の表の行・次の一手・未決 | 行 R-18・R-19・D-15 の発効と、id の一覧の凍結 anchor が 2 本になったこと、R-20 の保留 |
