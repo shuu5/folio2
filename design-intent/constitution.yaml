@@ -475,7 +475,7 @@ articles:
     plain: 「今回だけ特別」のスイッチを足す変更は、機械が止めます。変えたいときは正式に改訂します。
     rationale:
       - {kind: v1-incident, ref: "ADR-0047 §2.2（例外機構を導入しない＝逃げ道と規律を一致させる）"}
-    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: 正本と rules のうち、最上位の節の未知の節（top_level）と、meta・前文・前文の mechanism・条・条の mechanism・規範文・rules 行（閾値行と開発規律行）のそれぞれが直に持つ欄の未知の欄と、meta・前文・前文の mechanism・条の mechanism が表でない形と、mechanism の必須の欄 kind・live の欠けを、schema 検査が落とす（床は folio check・最上位の節のほかは便 128〔台帳 f2-648.176〕の着地から）。条の中の行のうち、relations の鍵は閉じた一覧（reqs・rules・articles・sections）に無いものを違反にし（crates/folio/src/refs.rs）、amended_by の各行の必須の欄の空を違反にする（crates/folio/src/link.rs・条 A-2 と N-4 の機構の注と同じ中身）。rationale と retreat の行の未知の欄と、この一覧に入らない最上位の節の中の欄と、mechanism の鍵そのものの不在とほかの部位の必須の欄はまだ数えない（後続の便・台帳の控え）。}
+    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: 正本と rules のうち、最上位の節の未知の節（top_level）と、meta・前文・前文の mechanism・条・条の mechanism・規範文・rules 行（閾値行と開発規律行）のそれぞれが直に持つ欄の未知の欄と、meta・前文・前文の mechanism・条の mechanism が表でない形と、mechanism の必須の欄 kind・live の欠けを、schema 検査が落とす（床は folio check・最上位の節のほかは便 128〔台帳 f2-648.176〕の着地から）。条の中の行のうち、relations の鍵は閉じた一覧（reqs・rules・articles・sections）に無いものを違反にし（crates/folio/src/refs.rs）、amended_by の各行の欄の欠けと未知の欄（違反の字「未知の欄（N-3）」）と必須の欄の空を違反にする（crates/folio/src/link.rs が欄の閉じた一覧で数える・必須の欄は条 A-2 と N-4 の機構の注と同じ中身）。rationale と retreat の行の未知の欄と、この一覧に入らない最上位の節の中の欄と、mechanism の鍵そのものの不在とほかの部位の必須の欄はまだ数えない（後続の便・台帳の控え）。}
     note: scribe2 N3（host 固有の分岐を code に焼かない）とは別の条。番号の一致は意図していない。
     relations: {articles: [A-2], sections: [§6]}
 
