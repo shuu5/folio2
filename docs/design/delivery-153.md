@@ -113,7 +113,7 @@ fixture は足さない。歯は既存の口（Work・folio・folio2・fixture_c
 
 ### (g) 門と受付
 
-門は対象外で 0（冒頭）。受付の先撃ち（precheck）は preflight ok・契約に起因する断り 0・write-set=declared files=5・teeth=f152_ は 3（起草役の実測・(h) の 5）。
+門は対象外で 0（冒頭）。受付の先撃ち（precheck）は preflight ok・契約に起因する断り 0・write-set=declared files=5（起草役の実測・(h) の 5）。`teeth=f152_:1@crates/folio/tests/init.rs` の 1 行が出て、`teeth=f153_:0` の 2 行は便の前に歯が無いことによる（断りではない）。
 
 ### (h) 数え直す手順（行 D-13）
 
