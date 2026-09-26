@@ -1,11 +1,11 @@
 # folio2 判断の記録 ADR-26 — 正本（1 判断 = YAML 1 file）。欄の決まりは adr/schema.yaml。人が読む面は判断の記録の面（adr-26.html・生成物・手で直さない）。
-# 状態: proposed（起草 2026-09-26・orchestrator 席の起草役〔opus 5.5〕・一括 27 の承認要求 docs/design/ceiling-rules-triage.md の 🔴 問）。憲法の条文は 1 字も変えない。
+# 状態: accepted（起草 2026-09-26・改訂 b〜e 2026-09-27・orchestrator 席の起草役〔opus 5.5〕・発効 2026-09-27 00:40 JST 持ち主「承認する」= 一括 27 の 🔴 問 1〔docs/design/ceiling-rules-triage.md〕・f2-648 notes・対話面 R-8）。憲法の条文は 1 字も変えない。
 # 起点: 持ち主の直命（2026-09-26 17:32 JST・f2-648 notes）→ 席の調査（~/.local/share/folio2/handoff-2026-09-26/ceiling-audit/）→ 討論 7 論点（2026-09-26 23:26〜23:34 JST・全部「推奨で」）。
 
 id: ADR-26
 title: 天井の周と承認の回数を規則で締める（節目・上限・承認の範囲・置き換え）
 
-status: proposed
+status: accepted
 date: 2026-09-26
 
 plain: |
@@ -90,7 +90,10 @@ retreat:
     (2) 席の裁定で発効した版を持ち主が覆した回数が 2 回に達したら、決定 (4) を持ち主の承認へ戻すかを持ち主に問う。
     (3) 行 R-21 の上限で まだ分からない に落ちた一括が続けて 3 つになったら、行 R-21 の値を持ち主に問い直す。
 
+approval: {who: 持ち主, date: 2026-09-27, ruling: "f2-648 notes 2026-09-27 00:40 JST（逐語「承認する」・一括 27 の 🔴 問 1 = 規則の表の行 5 本の新設と D-12・D-14 の置き換え・本判断の発効・要件書 第 1.48 版・天井の正本 第 0.17 版の全部）", verbatim: 承認する, surface: R-8}
+
 note: |
   【出所】持ち主の直命 2026-09-26 17:32 JST と討論の裁定 7 つ（f2-648 notes 2026-09-26 23:26〜23:34 JST・論点 1〜7 とも逐語「推奨で」〔論点 1 は「とりあえず論点１は推奨で」〕）。調査の材料は ~/.local/share/folio2/handoff-2026-09-26/ceiling-audit/（synthesis.md・structure.md・rounds.md・approvals.md）。
   【引き金の便】引き金の定数は crates/folio/src/ceiling.rs の TRIGGER_ADR_FIELDS と TRIGGER_ADR_STATUS（gate.rs が発効の記録だけを拾う）。本文の「引き金の型付きの定数」はこれを指す。引き金の便の契約の要旨は docs/design/ceiling-rules-triage.md に在る。
+  【発効】2026-09-27 00:40 JST（対話面 R-8・逐語「承認する」・f2-648 notes）。一括 27 の 🔴 問 1 への回答で、要件書 第 1.48 版・天井の正本 第 0.17 版・規則の表の行と同じ承認である。枝の上の 48 周目（止める 2 → 改訂 c）と 49 周目（4 観点合格・印 5c1cd7a・行 R-21 の上限）と独立の検証を経た。
   【この判断自身の形】本判断は決定 (5) の最初の適用で、行 D-12 と D-14 は注を足さずに字を置き換え、裁定の欄は最新の 1 つにした。
