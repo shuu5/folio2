@@ -72,7 +72,7 @@
 ### (g) 門・受付・並行の便・外の置き場
 
 1. **門。** 57648da の写しとその binary で write-set 30 本は 0（通す）。受付の時点で撃ち直す。
-2. **受付。** 便 172 の着地の後に受け付ける。live な run（便 170・f2-648.254）と write-set が重なる＝`write-set-overlap` の断りは run を止めるまで出る（席が持ち主に停止を頼む）。受付の本流が 57648da と中身で違えば (i) の 3。
+2. **受付。** 便 172 の着地の後に受け付ける。live な run（便 170・f2-648.254）と write-set が重なる＝`write-set-overlap` の断りは run を止めるまで出る（席が持ち主に停止を頼む）。受付の本流が 57648da と中身で違えば (i) の 3。受付の先撃ち（precheck）は、今の本流の上では `write-set-item-unresolved`（crates/folio/tests/seal.rs が base に無い）1 件が出る＝便 172 の着地の前だけの断り。57648da に本契約を置いた写しでは 0（preflight ok）。
 3. **外の置き場（tsuzuri）の手順。** 便 172 の §1 (g) の 4 のとおり。便 172 の binary で revises の塊を消してから封を足した置き場は、本便の binary で `folio schema --dir design-intent --write` → commit だけで合格（tsuzuri 56352b2 の clone で実測・tsuzuri.log の P1）。revises を残して封を足した置き場は、本便の binary で revises が未知の欄（3 本）になり、消すと封と違う 3 本が残る（P2）。
 4. **init の骨格。** 骨格の欄の決まりは床の定数から出るので revises の 3 か所が消えるだけ（骨格の ADR-1 は proposed）。
 
