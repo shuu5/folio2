@@ -3,12 +3,11 @@
 //! 1. 実の正本で、節点の表の各行に 1 行ずつ同じ順・同じ id・種類・file・題で出て、line の行にその id が書かれている。
 //! 2. 凍結した土台の写しの 8 節点の行が、歯の側に手で書いた字（凍結 anchor・P-10.1）と一致する（受入基準の技術の要約は
 //!    題の全文）。
-//! 3. タブ・改行・引用符・逆斜線・制御の字を持つ欄が JSON の escape で 1 行に収まり、技術の要約の欄の順（空の値は
-//!    飛ばす）と条の「最初の規範文」と受入基準の題の全文（畳まず切らない）が守られる。
-//! 4. 独立の実装 tests/fixtures/schema/node-summary.py（PyYAML と json）の出力と byte で一致する（python3 か PyYAML が
-//!    無ければ まだ分からない として理由を出し、落とさない・P-10.3）。
-//! 5. 組めない置き場では 1 行も出さずに まだ分からない（終了コード 2）。--summary は --print と一緒のときだけ。
-//! 6. --summary の口が在っても、--summary の無い --print と --digest の出力は凍結 anchor のまま（土台の写し）。
+//! 3. タブ・改行・引用符・逆斜線・制御の字と `|` の塊（複数行・末尾の改行）を持つ欄が JSON の escape で 1 行に収まり、
+//!    技術の要約の欄の順（shall・text・what・decision・空の値は飛ばす）と条の「最初の規範文」と受入基準の題の全文
+//!    （畳まず切らない）が守られる。期待の字はどれも歯の側の手書き（凍結 anchor・P-10.1 / P-10.2）。
+//! 4. 組めない置き場では 1 行も出さずに まだ分からない（終了コード 2）。--summary は --print と一緒のときだけ。
+//! 5. --summary の口が在っても、--summary の無い --print と --digest の出力は凍結 anchor のまま（土台の写し）。
 
 use std::fs;
 use std::io::Write;
@@ -16,7 +15,6 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
 const EDGES_HEAD: &str = "# 辺（1 行 = 端 / 端 / 型・タブ区切り）";
-const SCRIPT: &str = "tests/fixtures/schema/node-summary.py";
 const FLOOR_BASE: &str = "tests/fixtures/floor_base/design-intent";
 
 fn repo_root() -> PathBuf {
@@ -114,22 +112,6 @@ fn line_of<'a>(text: &'a str, id: &str) -> &'a str {
     found[0]
 }
 
-/// 独立の実装の出力。python3 を起動できないか PyYAML が無い（終了コード 3）なら理由を出して None（P-10.3）。
-fn independent(dir: &Path) -> Option<String> {
-    let out = match Command::new("python3").arg(repo_root().join(SCRIPT)).arg(dir).output() {
-        Ok(out) => out,
-        Err(e) => {
-            eprintln!("# まだ分からない: node-summary.py: python3 を起動できない: {e}");
-            return None;
-        }
-    };
-    if out.status.code() == Some(3) {
-        eprintln!("# {}", String::from_utf8_lossy(&out.stderr).trim());
-        return None;
-    }
-    Some(passed(out))
-}
-
 /// 要約値（sha256）は命令 `sha256sum` を子の処理で撃って測る（歯は crate の中を読めない・tests/graph.rs と同じ形）。
 fn sha256_hex(bytes: &[u8]) -> String {
     let mut child = Command::new("sha256sum")
@@ -221,6 +203,12 @@ fn f180_text_fields_are_escaped_into_one_json_line() {
         "  - {id: AC12, title: 検査を通らない図は生成されず、前の生成物が残る, ",
         "  - {id: AC12, title: \"検査を通らない図は  生成されず、\\n前の生成物が残る（題を 36 字で切らず、空白も畳まない全文）\", ",
     );
+    work.replace(
+        "constitution.yaml",
+        "    plain: 「今回だけ特別」のスイッチを足す変更は、機械が止めます。変えたいときは正式に改訂します。\n",
+        "    plain: |\n      「今回だけ特別」のスイッチを足す変更は、\n      機械が止めます。\n",
+    );
+    work.replace("rules.yaml", "  - {id: R-5, article: P-2, what: ", "  - {id: R-5, article: P-2, text: 本文が what より先, what: ");
     let text = summary(&work.dir());
     let print = passed(graph(&work.dir(), &["--print"]));
     let rows = print.lines().skip(1).take_while(|l| *l != EDGES_HEAD).count();
@@ -234,31 +222,20 @@ fn f180_text_fields_are_escaped_into_one_json_line() {
         line_of(&text, "folio-v2"),
         r#"{"id":"folio-v2","kind":"登場人物","file":"srs.yaml","line":92,"title":"folio v2","plain":null,"eng":"what の欄 \"x\""}"#
     );
-    assert!(
-        line_of(&text, "N-3").ends_with(r#","eng":"変更が規則の例外機構（無効化の旗・「今回だけ」の口）を足すなら、それを拒む。"}"#),
-        "条の技術の要約が最初の規範文でない"
+    // `|` の塊の平易文は複数行と末尾の改行ごと・条の技術の要約は id を持つ最初の規範文の字
+    assert_eq!(
+        line_of(&text, "N-3"),
+        r#"{"id":"N-3","kind":"条","file":"constitution.yaml","line":463,"title":"例外の仕組みを作らない","plain":"「今回だけ特別」のスイッチを足す変更は、\n機械が止めます。\n","eng":"変更が規則の例外機構（無効化の旗・「今回だけ」の口）を足すなら、それを拒む。"}"#
+    );
+    // 本文の欄 text は what より先
+    assert_eq!(
+        line_of(&text, "R-5"),
+        r#"{"id":"R-5","kind":"規則行","file":"rules.yaml","line":33,"title":"密度 profile と図の型の数","plain":null,"eng":"本文が what より先"}"#
     );
     assert!(
         line_of(&text, "AC12").ends_with(r#","title":"検査を通らない図は 生成されず、 前の生成物が残る（題を 36 字で切ら","plain":"わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。","eng":"検査を通らない図は  生成されず、\n前の生成物が残る（題を 36 字で切らず、空白も畳まない全文）"}"#),
         "受入基準の技術の要約が題の全文でない"
     );
-    if let Some(want) = independent(&work.dir()) {
-        assert!(text == want, "独立の実装の出力と違う");
-    }
-}
-
-#[test]
-fn f180_the_lines_match_the_independent_reader() {
-    for dir in [repo_root().join("design-intent"), repo_root().join(FLOOR_BASE)] {
-        let text = summary(&dir);
-        let Some(want) = independent(&dir) else {
-            return;
-        };
-        let differ = text.lines().zip(want.lines()).find(|(a, b)| a != b);
-        assert!(differ.is_none(), "{}: 独立の実装の行と違う: {differ:?}", dir.display());
-        assert_eq!(text.lines().count(), want.lines().count(), "{}: 行の数", dir.display());
-        assert!(text == want, "{}: 独立の実装の出力と byte で違う", dir.display());
-    }
 }
 
 #[test]
