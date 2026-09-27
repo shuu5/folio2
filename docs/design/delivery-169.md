@@ -68,7 +68,7 @@ fixture は `tests/fixtures/ceiling/findings/stamp-fail.yaml` の refutes の 1 
 
 ### (f) 大きさ・verify と done の対応
 
-1. **write-set の印。** 書き換える 7 本 = src 4 本・`-crates/folio/tests/gate.rs`（縮む・997 → 863 行）・`crates/folio/tests/stamp.rs`・`tests/fixtures/ceiling/findings/stamp-fail.yaml`。本文を変えない 1 本 = `crates/folio/tests/findings.rs`（`--test findings` の scope）。gate.rs は模擬で 1 行減るだけなので縮む印を付けない。
+1. **write-set の印。** 書き換える 7 本 = src 4 本・`crates/folio/tests/gate.rs`（縮む＝write-set では頭に - を付ける・997 → 863 行）・`crates/folio/tests/stamp.rs`・`tests/fixtures/ceiling/findings/stamp-fail.yaml`。本文を変えない 1 本 = `crates/folio/tests/findings.rs`（`--test findings` の scope）。gate.rs は模擬で 1 行減るだけなので縮む印を付けない。
 2. **余地（CapHeadroom）。** 各行 ceil(字数 / 120) の和（空行は 1）。python と awk の 2 実装が 4 本とも一致した。
 
 | file | base | base の余地 | 模擬の後 | 便の後の余地 |
