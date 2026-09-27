@@ -4,14 +4,14 @@
 - 条: P-4.1 / P-4.2（照らせない形や読み違いで 通す と言わない＝置き場を丸ごと書き換える便を「正本を書き換えない便」と読まない）/ P-3.3（0 は天井の合格ではない＝理由の行に印の周と「印の後の変更は審査していない」）/ P-10.1（期待の字は歯の側の手書き＝`tests/fixtures/ceiling/` は 1 byte も変えない）/ N-3.1（例外の口を足さない＝旗や data で名指しを狭められない）。
 - 出所: tsuzuri（外の置き場）の写しで天井を 1 周した検証の写し（t3v の tz2・印に反証で支持された 止める が在る）に本流 c52baba の binary の門を撃つと、write-set の `.`・`design-intent`・`design-intent/`・`./design-intent` がどれも 0（通す・設計文書の正本を書き換えない便）、`design-intent/srs.yaml` は 1（止める）だった（席の実測 2026-09-27 22:2x・起草役が写しで撃ち直した＝(a) の 2）。要件の字は第 1.51 版で直った。依頼は席から起草役へ（2026-09-27）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `fy` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 2 本（src 1・歯の file 1・どちらも増える）。新しい file・縮む file・消す file・新しい dir は無い。
-- 門: 対象外。本便は設計文書の正本（`design-intent/` の下）を書き換えない。write-set 2 本を本流の binary（本流の作業ツリーの `target/debug/folio`・c52baba の組み立て）で `folio ceiling --gate` に渡すと **0（通す・`通す（設計文書の正本を書き換えない便）`）**。
-- 前提: **base = main c52baba（便 177 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。起草の時点で要件書 第 1.51 版は枝 docs/srs151（PR #367・席が merge 中）に在り、本流 c52baba は第 1.50 版である。本便は要件書を書き換えないので、PR #367 の着地の前後で write-set・歯・数は変わらない。起草の終わりに PR #367 は本流 93e00c0 に着地した（`design-intent/srs.yaml` だけ）。93e00c0 に見本を当てた写しでも、workspace の nextest 1003 / 1003・clippy 0 警告・床 4 本 rc 0・verify の 4 行 rc 0・`folio build --write` 35 file（93e00c0 の要約 dac8d7274867d26f が base の binary と見本の binary で同じ）だった（起草の記録 on151.log）。
-- 実装の見本: origin の枝 `impl/d178`（commit e6d502d・親は c52baba）が本便の後の中身。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout e6d502d -- <write-set の file>`）。write-set の外は変えない。
-- 並行の便との重なり: base の時点で、門（`crates/folio/src/gate.rs`）と `crates/folio/tests/gate.rs` を書き換える未着地の便の契約は無い（便 175・177 は着地済み＝本流 90dcc26・c52baba。枝 impl/d177 の差分は着地した中身）。受付の時点で precheck が重なりを見る。
+- 門: 対象外。本便は設計文書の正本（`design-intent/` の下）を書き換えない。write-set 2 本を本流の作業ツリーの binary（`target/debug/folio`・c52baba の組み立て＝src は 93e00c0 と同じ）と 93e00c0 の写しの binary で `folio ceiling --gate` に渡すと、どちらも **0（通す・`通す（設計文書の正本を書き換えない便）`）**。
+- 前提: **base = main 93e00c0（要件書 第 1.51 版・PR #367 の着地の後）。この契約の数はすべて base の実測（参考値）である**（規則の表の行 D-13）。受付の時点の main が base と違えば、その main で数え直す。起草は main c52baba（便 177 の着地の後）から始め、PR #367 の着地の後に 93e00c0 で全部を測り直した（c52baba と 93e00c0 の差は `design-intent/srs.yaml` だけで、write-set の 2 本・歯・fixture・`folio build` の file 数と、見本の数〔歯の本数・余地・差分の byte・突然変異〕は同じ。`folio build` の要約だけが要件書の字の分だけ違う）。本便は要件書を書き換えない。
+- 実装の見本: origin の枝 `impl/d178`（commit 6cba2eb = 見本の commit e6d502d〔親 c52baba〕に本流 93e00c0 を merge したもの）が本便の後の中身で、`git diff 93e00c0 6cba2eb` が便の全体の差分。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 6cba2eb -- <write-set の file>`・e6d502d と同じ中身）。write-set の外は変えない。
+- 並行の便との重なり: base の時点で、門（`crates/folio/src/gate.rs`）と `crates/folio/tests/gate.rs` を書き換える未着地の便の契約は無い（便 175・177 は着地済み＝本流 90dcc26・c52baba。枝 impl/d177 の差分は着地した中身。PR #367〔93e00c0〕は `design-intent/srs.yaml` だけ）。受付の時点で precheck が重なりを見る。
 
 ## 1. 設計
 
-### (a) いま起きていること（base c52baba の実測・参考値）
+### (a) いま起きていること（base 93e00c0 の実測・参考値）
 
 1. **門の判定の順と穴の場所。** `crates/folio/src/gate.rs` の関数 run は、根の突き合わせ（関数 dir_parts・other_root・便 142）と置き場の確かめ（関数 is_place・便 150）の後、関数 is_design_source で write-set に設計文書の正本が在るかを見て、1 つも無ければ印を読まずに 0（`通す（設計文書の正本を書き換えない便）`）を返す。is_design_source は項目の要素の列（頭の `+`・`-`・`~` を剥がし、`.` と空の要素を落とした列）が `--dir` の要素の列より長く、その頭が `--dir` の列と同じときだけ真を返す（base の 224 行 `if parts.len() <= root.len() || … { return false; }`）。そのため置き場そのもの（`design-intent`・`design-intent/`・`./design-intent`）と、置き場を下に持つ dir（作業ツリーの一番上 `.` ほか）の項目は「正本を書き換えない」と読まれ、印に反証で支持された 止める が在っても 0 になる。置き場の下の dir の項目（`design-intent/adr/`）と file の項目は今の式で読める（便 169 の歯 f169_a_dir_item_covers_the_stop_files_under_it）。
 2. **穴の再現（t3v の写し tz2 の置き場を起草役の scratch に写し、今の dir をその一番上にして 1 本ずつ撃った・元の写しは触らない）。** tz2 の印は反証で支持された 止める 7 件（srs.yaml 2・design-note/surface-board.yaml・design-note/schema.yaml・constitution.yaml 2・design-note/surface.yaml）と 退けた 1 件を持つ。本流の binary と base の写しの binary は同じ答えだった。
@@ -27,7 +27,7 @@
 | `design-intent/preview/`・`crates`（対照） | 0（設計文書の正本を書き換えない便） | 同じ |
 
 3. **folio2 自身の置き場。** 本流の印（周 2026-09-27-round51・4 観点合格）は `refutes: []`。repo の写しの根で `.` と `design-intent` の 4 形を撃つと、base は 0（設計文書の正本を書き換えない便）、本便の後も 0 だが理由が `通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）` に変わる（(a) の 2 の script で実測）。
-4. **base の歯（参考値）。** workspace の nextest 998 / 998・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 35 file（全 file の sha256 の要約 6a4c51d7c0fb66c7）。`crates/folio/tests/gate.rs` 15 本・binary の単体の歯 151 本。`git grep -n f178_ -- crates` は 0 件・行 id `fy` は 0 件。
+4. **base の歯（参考値）。** workspace の nextest 998 / 998・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 35 file（全 file の sha256 の要約 dac8d7274867d26f）。`crates/folio/tests/gate.rs` 15 本・binary の単体の歯 151 本。`git grep -n f178_ -- crates` は 0 件・行 id `fy` は 0 件。
 
 ### (b) 直す先 — 置き場を名指す項目を、置き場の file を全部指す項目として読む
 
@@ -43,7 +43,7 @@
 3. **f178_a_place_item_is_unknown_on_an_unrefuted_stop（同）。** 観点 reality が反証待ちの まだ分からない（wait: 反証）の印に、反証で支持された 止める（srs.yaml・coherence C-1）と反証の済んでいない 止める（rules.yaml・reality R-2）を置く。4 形はどれも 2 で `まだ分からない（反証の済んでいない 止める の場所の file を書き換える: rules.yaml（reality R-2）`（2 が 1 より先・C-1 を出さない）。**base は 0 ＝RED。**
 4. **f178_a_place_item_is_unknown_without_a_stamp（同）。** 印が無い写しで 4 形 → 2（`まだ分からない（印が無い）`）。4 観点合格の印から観点 reality の行を外した写しで 4 形 → 2（`まだ分からない（印の観点の結果が欠けている: reality（無い）`）。**base は 0 ＝RED。**
 5. **f178_an_item_names_the_place_or_a_dir_above_it（`crates/folio/src/gate.rs` の既存の tests の区間・単体の歯）。** names_the_place を直に呼ぶ: `--dir design-intent` で `.`・`./`・空の字・`design-intent`・`design-intent/`・`./design-intent`・`+design-intent`・`~./design-intent/`・`-.` が真、`design-intent/srs.yaml`・`design-intent/adr/`・`design`・`design-intent-x`・`crates`・`docs/` が偽。`--dir .worktrees/x/design-intent` で `.`・`.worktrees`・`.worktrees/x/`・`./.worktrees/x/design-intent` が真、`x`・`design-intent`・`x/design-intent`・`.worktrees/y`・`.worktrees/x/design-intent/srs.yaml` が偽（後方の部分列は名指さない）。`--dir .`（空の列）で `.` が真・`srs.yaml` が偽。covers に空の列の dir の項目を渡すと、場所 `srs.yaml`・`adr/ADR-1.yaml`・`design-note/` のどれにも当たる。**base は names_the_place が無く組み立てが落ちる（E0425）＝RED。**
-6. **RED の実測。** 歯だけの差分（r178-teeth.patch = tests/gate.rs と gate.rs の tests の区間・8,135 byte）を base に当てると単体の組み立てが落ちる（E0425 names_the_place）。tests/gate.rs だけを当てた base では f178_ の binary の 4 本とも落ちる（本文は red-178.log）。
+6. **RED の実測。** 歯だけの差分（r178-teeth.patch = tests/gate.rs と gate.rs の tests の区間・8,135 byte）を base に当てると単体の組み立てが落ちる（E0425 names_the_place）。tests/gate.rs だけを当てた base では f178_ の binary の 4 本とも落ちる（本文は red-151.log・c52baba でも同じ＝red-178.log）。
 7. **既存の歯は本文も fixture も変えない。** 便 142・150・169 の歯（tests/gate.rs の 15 本）と単体の gate_classifies_design_sources・f142_・f150_ は変えずに通る（verify の 3）。
 
 ### (d) 採らなかった形
@@ -54,8 +54,8 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異・外の置き場
 
-1. **落ちる既存の歯は 0 本（起草役の実測）。** 本便の差分を base に当てた写しで、workspace の nextest **1003 / 1003**（998 + f178_ の 5 本）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 35 file（base と全 file の sha256 の要約が同じ 6a4c51d7c0fb66c7）。tests/gate.rs 19 / 19・binary の単体の歯 152 本。
-2. **突然変異（本便を当てた写しの names_the_place / run だけを 1 通りずつ変え、f178_ の 5 本を撃つ）。** 10 通りとも f178_ のどれかが落ちる（mut.log・各変異の本文は mut-M<n>.out）。落ちる歯の略: 止める = a_place_item_stops_on_an_upheld_stop・通す = a_place_item_passes_when_no_stop_is_upheld・未反証 = a_place_item_is_unknown_on_an_unrefuted_stop・印なし = a_place_item_is_unknown_without_a_stamp・単体 = an_item_names_the_place_or_a_dir_above_it。
+1. **落ちる既存の歯は 0 本（起草役の実測）。** 本便の差分を base に当てた写しで、workspace の nextest **1003 / 1003**（998 + f178_ の 5 本）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 35 file（base と全 file の sha256 の要約が同じ dac8d7274867d26f）。tests/gate.rs 19 / 19・binary の単体の歯 152 本。
+2. **突然変異（本便を当てた写しの names_the_place / run だけを 1 通りずつ変え、f178_ の 5 本を撃つ）。** 10 通りとも f178_ のどれかが落ちる（見本 6cba2eb で撃った mut.log・各変異の本文は mut-M<n>.out。c52baba の上の e6d502d で撃った結果〔mut-c52baba/〕と同じ）。落ちる歯の略: 止める = a_place_item_stops_on_an_upheld_stop・通す = a_place_item_passes_when_no_stop_is_upheld・未反証 = a_place_item_is_unknown_on_an_unrefuted_stop・印なし = a_place_item_is_unknown_without_a_stamp・単体 = an_item_names_the_place_or_a_dir_above_it。
 
 | 変異 | 落ちる f178_ |
 | --- | --- |
@@ -75,8 +75,8 @@
 
 ### (f) 大きさ・verify と done の対応
 
-1. **write-set の印。** 2 本とも印なし（`crates/folio/src/gate.rs` と `crates/folio/tests/gate.rs`・どちらも増える）。差分 11,167 byte（`git diff c52baba e6d502d | wc -c`・2 file・+176 −3）。
-2. **余地（CapHeadroom）。** 測るのは `crates/folio/src/gate.rs` の 1 本。各行を ceil(字数 / 120) で数えて足す（空行は 1・`wc -l` ではない）。起草役は python と awk の 2 実装で数え、一致した（lines.log）。
+1. **write-set の印。** 2 本とも印なし（`crates/folio/src/gate.rs` と `crates/folio/tests/gate.rs`・どちらも増える）。差分 11,167 byte（`git diff 93e00c0 6cba2eb | wc -c`・2 file・+176 −3）。
+2. **余地（CapHeadroom）。** 測るのは `crates/folio/src/gate.rs` の 1 本。各行を ceil(字数 / 120) で数えて足す（空行は 1・`wc -l` ではない）。起草役は python と awk の 2 実装で数え、一致した（lines151.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
@@ -84,7 +84,7 @@
 
    歯の file は src の外なので余地を測らない（参考値 685 行 → 816 行・wc -l）。
 3. **size は S。** 余地 1034 は S の見積 100 を超える。
-4. **verify は 4 行**で、done の 4 つの塊と 1 対 1 に揃える。便の後の写しで 4 行とも rc 0（verify.log）。base では 1 と 2 が 0 件で rc 4、3 と 4 は rc 0。
+4. **verify は 4 行**で、done の 4 つの塊と 1 対 1 に揃える。便の後の写しで 4 行とも rc 0（run151.log）。base では 1 と 2 が 0 件で rc 4、3 と 4 は rc 0。
    1. `cargo nextest run -p folio --test gate f178_` = (c) の 1〜4（4 本）。
    2. `cargo nextest run -p folio --bin folio f178_` = (c) の 5（1 本）。
    3. `cargo nextest run -p folio --test gate` = 門の歯の全部（AC18 の場合と便 142・150・169 の歯を含む・参考値 19 本）。
@@ -110,7 +110,7 @@
 
 1. **運ばないもの。** 要件書・判断の記録・設計ノートの字（第 1.51 版の字は PR #367 が運ぶ）・印（`stamp.rs`）・根の突き合わせと置き場の確かめ・is_design_source・fixture の file・外の置き場の印の直し（その置き場の手番）・台帳への記帳（席）・外部 crate・新しい dir。
 2. **言えないこと。** (1) 項目は今の dir（作業ツリーの一番上）からの相対で読む。`--dir .worktrees/x/design-intent` のとき項目 `design-intent`（`--dir` の後方の部分列）は今の dir の design-intent（別の置き場）を指し、置き場も置き場を下に持つ dir も名指さないので今どおり（ほかに正本が無ければ 0）。規範文の照らせない形（`--dir` の 2 番目か後ろの要素から末尾までの並びの**下に在る** path・便 142）はこの項目そのものを含まない。席の受付の手順（admit.sh）は本流の作業ツリーの一番上から `--dir design-intent` で門を撃つので、この形は起きない。(2) 空の字の項目（と `+`・`-`・`~` だけの項目）は、要素の列が `.` と同じ空の列になるので作業ツリーの一番上を名指すと読む（広い側）。(3) 置き場を名指す項目は、書き換える file が実際に在るかを見ない（置き場の file を全部書き換える便として扱う・規範文の字どおり）。(4) 天井の正本の文書の一覧が preview/ か retired の下の file を名指す置き場（今は無い）では、そこを場所とする 止める にも置き場を名指す項目が当たる（広い側）。
-3. **撤退条件。** (1) 本便が要件書 FR20（第 1.51 版）の字を変えないと書けないと分かったら、止めて席へ返す。(2) 受付の時点で本流の gate.rs の run・is_design_source・covers が base（c52baba）と違えば、止めて席へ返す（数え直してから運ぶ）。(3) 本便の後に既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(4) 本便の後に folio2 自身の床 4 本の結果か `folio build` の出力（35 file）が 1 byte でも変われば、止めて席へ返す。
+3. **撤退条件。** (1) 本便が要件書 FR20（第 1.51 版）の字を変えないと書けないと分かったら、止めて席へ返す。(2) 受付の時点で本流の gate.rs の run・is_design_source・covers が base（93e00c0）と違えば、止めて席へ返す（数え直してから運ぶ）。(3) 本便の後に既存の歯が 1 本でも落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(4) 本便の後に folio2 自身の床 4 本の結果か `folio build` の出力（35 file）が 1 byte でも変われば、止めて席へ返す。
 
 ## 2. 範囲
 
@@ -140,7 +140,7 @@ schema = 1
 
 [[contract]]
 id = "fy"
-title = "門の穴の直し（要件書 第 1.51 版の FR20・AC18 の 9 場合目）: folio ceiling --gate は、置き場そのものか置き場を下に持つ dir を名指す write-set の項目（. と design-intent と design-intent/ と ./design-intent・--dir .worktrees/x/design-intent なら .worktrees と .worktrees/x/ も）を、置き場の file を全部書き換える項目として読む。crates/folio/src/gate.rs に関数 names_the_place（頭の + - ~ を剥がし . と空の要素を落とした項目の要素の列が --dir の列そのものかその前方の部分列）を足し、run は is_design_source か names_the_place が真の項目が無いときだけ 設計文書の正本を書き換えない便 の 0 を返し、名指す項目は --dir からの列が空の dir の項目として 止める の場所と照らす（印の 止める のどれにも当たる）。その後の判定（反証の済んでいない 止める と印の欠けの 2 が先・反証で支持された 止める の 1・印の周を添えた 0）と、根の突き合わせと置き場の確かめ（便 142・150）の順と字・is_design_source・covers・置き場の下の dir と file の項目と実装だけの便の答え・印・要件書と設計文書は変えない。歯は f178_ の 5 本（tests/gate.rs の 4 本 = 4 形 × 支持の 止める 1・止める 無し 0・未反証 2・印が無いか欠け 2 と今どおりの対照を binary で・gate.rs の単体 1 本 = names_the_place の真偽と空の列の covers）。実装の見本は origin の枝 impl/d178 の commit e6d502d（親 c52baba）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。設計文書の正本を書き換えないので門の対象外。base = main c52baba"
+title = "門の穴の直し（要件書 第 1.51 版の FR20・AC18 の 9 場合目）: folio ceiling --gate は、置き場そのものか置き場を下に持つ dir を名指す write-set の項目（. と design-intent と design-intent/ と ./design-intent・--dir .worktrees/x/design-intent なら .worktrees と .worktrees/x/ も）を、置き場の file を全部書き換える項目として読む。crates/folio/src/gate.rs に関数 names_the_place（頭の + - ~ を剥がし . と空の要素を落とした項目の要素の列が --dir の列そのものかその前方の部分列）を足し、run は is_design_source か names_the_place が真の項目が無いときだけ 設計文書の正本を書き換えない便 の 0 を返し、名指す項目は --dir からの列が空の dir の項目として 止める の場所と照らす（印の 止める のどれにも当たる）。その後の判定（反証の済んでいない 止める と印の欠けの 2 が先・反証で支持された 止める の 1・印の周を添えた 0）と、根の突き合わせと置き場の確かめ（便 142・150）の順と字・is_design_source・covers・置き場の下の dir と file の項目と実装だけの便の答え・印・要件書と設計文書は変えない。歯は f178_ の 5 本（tests/gate.rs の 4 本 = 4 形 × 支持の 止める 1・止める 無し 0・未反証 2・印が無いか欠け 2 と今どおりの対照を binary で・gate.rs の単体 1 本 = names_the_place の真偽と空の列の covers）。実装の見本は origin の枝 impl/d178 の commit 6cba2eb（見本 e6d502d に本流 93e00c0 を merge したもの）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。設計文書の正本を書き換えないので門の対象外。base = main 93e00c0"
 req = ["FR20"]
 section = "1"
 write-set = ["crates/folio/src/gate.rs", "crates/folio/tests/gate.rs"]
