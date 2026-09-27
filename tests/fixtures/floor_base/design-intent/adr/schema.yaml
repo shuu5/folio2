@@ -18,7 +18,7 @@ schema:
   owner: 持ち主
   owner_note: 条文を改訂する発効した判断の承認者はこの値（N-4）。planner 席は条文を改訂しない判断だけを承認できる
   required: [id, title, status, date, context, decision, options, basis, retreat, plain]
-  optional: [amends, revises, grill, approval, consequences, produced, supersedes, superseded_by, note, figures]
+  optional: [amends, grill, approval, consequences, produced, supersedes, superseded_by, note, figures]
   non_empty: [title, context, decision, plain]
   non_empty_note: ほかに床が非空を課す欄 = basis（空の一覧を落とす）・options の name / text / reason・retreat.condition・grill の who / where / summary・approval の ruling / verbatim・amends の field / version / previous_text / new_text・憲法の各条の amended_by の approved_by / ruling / previous_text / rationale・anchor の承認一覧の who / ruling / verbatim
   enums:
@@ -27,7 +27,6 @@ schema:
     retreat_kind: [spike, measure, ruling]
     approver: [持ち主, planner 席, orchestrator 席]
     surface: [R-8]
-    revise_kind: [narrow, widen]
   enums_note: retreat_kind は憲法 schema.enums.retreat_kind と同じ（食い違えば落ちる）。surface は対話面を rules 行の id で指す（P-5.2・P-12.1 が名指す R-8 = 持ち主と planner 席の対話面）
   status_note:
     proposed: 提案中・拘束力なし（承認欄は空でよい）
@@ -59,7 +58,6 @@ schema:
     value: 値は型付き。文字列はそのまま（json として読める文字列は引用符付き）、一覧・表・数・真偽・空（null）は json の 1 値（一覧は丸ごと 1 値・例 '["always","ask-first","never"]'・空（null）は null）、空文字は（空）の印、前に無かった欄は previous_text が（新設）、今に無い欄は new_text が（削除）。印を値として持つ欄は落ちる
     matching: 直前 anchor と現行の差分を欄単位で全件並べ、amends と 1 対 1 に消し込む。previous_text は前の値と完全一致・new_text は今の値と完全一致。余った差分も余った記録も落とす。同じ消し込みを列の全区間（隣り合う anchor どうし）でも行う＝次の版を凍結した後に前の版の amends を書き換えても落ちる。`folio check --emit-amends` が最新 anchor との差分を amends にそのまま貼れる形（1 行 1 件の json・- {…}）で印字する（違反があれば stderr に出し、終了コードは素の床と同じ）
     renumber: 規範文の改番（同じ本文を消して別の id で足す）と、過去の版の anchor に在って最新 anchor に無い番号の再利用は落ちる（P-7.1）。本文も変えて付け替えた改番は「削除 + 新設」と弁別できない（限界）
-  revises_entry: {required: [target, decision, kind, summary], optional: []}
   grill: {required: [when, who, where, summary], optional: []}
   grill_note: A-2.3 の記録（条文を改訂する発効した判断に必須）
   approval: {required: [who, date, ruling, verbatim, surface], optional: []}
@@ -110,6 +108,7 @@ schema:
     - 版管理（git）との照合＝環境変数（GIT_DIR / GIT_WORK_TREE 等）は継承せず、全ての参照（--all）の履歴を見る。落とすもの = 先頭（HEAD）に anchor があって作業ツリーに無い・履歴に一度でも在った anchor が無い（削除を commit しても）・履歴に在った同じ形式の anchor と中身が違う（差し替え・書き換え。固定の欄・digest の方式・写しの取り方が今と違う古い anchor は移行の痕跡として見ない）・anchors/ か anchor file が版管理から除外（ignore）されている（追跡済みでも、file の pattern でも）・最新版以外の anchor が追跡されていない（凍結した anchor は commit する）・design-intent 自体が版管理の根・版管理の根が design-intent の上に無い。「まだ分からない」（終了コード 2）にするもの = 版管理が無い・commit が 1 つも無い（HEAD 無し）・読めない写し、と anchor が 1 本も無い浅い写し（shallow・anchor が揃った浅い写しは残りの検査で進む）＝写しで回すときも git init + commit の中で回す。版管理は比較元ではなく「消された・差し替えられた anchor」を早く止める補助で、列の真偽は索引と digest と根の定数が受け持つ
     - 同じ版の anchor は上書きしない・anchor と索引は消さない・空にしない。生成は folio check --freeze-anchor で、全検査が 0 違反かつ「まだ分からない」が無く、版が最新より新しく、差分とその版の発効した判断があるときだけ書く。列の始め直し（最初の版が first_version でない・版管理の先頭か履歴に anchor が在った・記録が在るのに anchor が無い・根の digest が床の定数と違う）は認めない
     - 正本 4 file（憲法・rules・語彙・要件書）・anchors/・adr/ とその中の file・design-intent 自体は symlink でなく実体
+  seal: {file: adr-seals.yaml, kind: adr-seals, outside: [status, superseded_by]}
   limits_note:
     - 前文（precedence）と schema 節の差分は amended_by を持てない（憲法 schema の precedence.optional が空）ので、それを amends に持つ発効した判断の記録の実在と欄単位の対の一致だけを確かめる。前文に amended_by を足すのは A-2 の改訂で行う。
     - 改番と番号の再利用は「同じ本文の付け替え」「過去の版に在って最新 anchor に無い番号の再登場」の 2 つの形だけを見る。本文も変えて付け替えた改番は弁別できない（削除 + 新設として通る）。

@@ -11,7 +11,6 @@ schema:
   required: [id, title, status, date, context, decision, options, basis, retreat, plain]
   optional:
     - amends
-    - revises
     - grill
     - approval
     - consequences
@@ -28,7 +27,6 @@ schema:
     retreat_kind: [spike, measure, ruling]
     approver: [持ち主, planner 席, orchestrator 席]
     surface: [R-8]
-    revise_kind: [narrow, widen]
   enums_note: retreat_kind は組み立て時に憲法 schema.enums.retreat_kind から導出した列（便 49）。置き場の憲法の retreat_kind にこの列に無い値が在れば「まだ分からない」（部分集合の比較・順と重複は問わない・FR25・便 122）。surface は対話面を rules 行の id で指す（P-5.2・P-12.1 が名指す R-8 = 持ち主と orchestrator 席の対話面）
   status_note:
     proposed: 提案中・拘束力なし（承認欄は空でよい）
@@ -61,13 +59,6 @@ schema:
     value: 値は型付き。文字列はそのまま（json として読める文字列は引用符付き）、一覧・表・数・真偽・空（null）は json の 1 値（一覧は丸ごと 1 値・例 '["always","ask-first","never"]'・空（null）は null）、空文字は（空）の印、前に無かった欄は previous_text が（新設）、今に無い欄は new_text が（削除）。印を値として持つ欄は落ちる
     matching: 直前 anchor と現行の差分を欄単位で全件並べ、amends と 1 対 1 に消し込む。previous_text は前の値と完全一致・new_text は今の値と完全一致。余った差分も余った記録も落とす。同じ消し込みを列の全区間（隣り合う anchor どうし）でも行う＝次の版を凍結した後に前の版の amends を書き換えても落ちる。`folio check --emit-amends` が最新 anchor との差分を amends にそのまま貼れる形（1 行 1 件の json・- {…}）で印字する（違反があれば stderr に出し、終了コードは素の床と同じ）
     renumber: 規範文の改番（同じ本文を消して別の id で足す）と、過去の版の anchor に在って最新 anchor に無い番号の再利用は落ちる（P-7.1）。本文も変えて付け替えた改番は「削除 + 新設」と弁別できない（限界）
-  revises_entry: {required: [target, decision, kind, summary], optional: []}
-  revises_note:
-    target: 改訂する先の判断の記録の id（ADR-n）。自分の id は書かない。実在は判断の記録の全欄の走査が数える。条の改訂は amends と amended_by が持ち、判断を丸ごと置き換える形は supersedes / superseded_by が持つ＝この欄は「発効した判断が生きたまま、その決定の範囲が別の判断で変わる」ときだけに使う
-    decision: 改訂する決定の番号（その判断の decision の中の番号の字・例 (4)）。1 本の記録の中で target と decision の対は一意＝同じ決定を 2 行で書かない
-    kind: 改訂の向き。narrow = 決定の範囲を狭める／widen = 広げる。床は値域だけを見て、向きが本当かは人が読む（P-12.2）
-    summary: その決定の何をどう変えたかの 1 文。逐語の突き合わせ（amends の previous_text / new_text）は持たない＝判断の記録は版ごとの凍結 anchor を持たないので、床が字面を突き合わせる相手が無い（P-10.2）
-    reverse: 改訂される側に来歴の欄は置かない（片側だけ）。改訂の有無は改訂する側のこの欄から数える＝条の改訂の来歴（amended_by）と違い、凍結 anchor との消し込みが無いので双方向にしても床が確かめられるものが増えない
   grill: {required: [when, who, where, summary], optional: []}
   grill_note: A-2.3 の記録（条文を改訂する発効した判断に必須）
   approval: {required: [who, date, ruling, verbatim, surface], optional: []}
@@ -119,6 +110,8 @@ schema:
     - 同じ版の anchor は上書きしない・anchor と索引は消さない・空にしない。生成は folio check --freeze-anchor で、全検査が 0 違反かつ「まだ分からない」が無く、版が最新より新しく、差分とその版の発効した判断があるときだけ書く。列の始め直し（最初の版が first_version でない・版管理の先頭か履歴に anchor が在った・記録が在るのに anchor が無い・根の digest が列の根の表の置き場の名の行と違う）は認めない。表に無い名の列の根は、凍結の命令が組んだ digest の全桁（表に足す値）を出して凍結しない
     - 始まりの凍結は folio check --freeze-start で、憲法の列（索引か constitution- で始まる anchor）と id の一覧（ids- で始まる anchor）がどちらも 0 本の置き場でだけ、最初の版の anchor と索引と id の一覧を同時に書く（どちらか 1 本でも在れば何も書かずに断る）。数えから外すのは 2 つの基準の不在の「まだ分からない」だけで、列の根の表の照らしを含むほかの検査が 0 違反で「まだ分からない」も無いときだけ書く。書いた後は旗なしの床が全部を数える
     - 正本 4 file（憲法・rules・語彙・要件書）・anchors/・adr/ とその中の file・design-intent 自体は symlink でなく実体
+  seal: {file: adr-seals.yaml, kind: adr-seals, outside: [status, superseded_by]}
+  seal_note: ADR-30 決定 (3)。発効した判断の記録（effective_status）の本文を anchor.dir の下の封の一覧（file）で凍らせる。行 = id と要約値（outside の欄を除く記録の木を anchor の digest と同じ json に直列化した sha256）で、足した順に並ぶ。本文が行と違う・発効しているのに行が無い・行が在るのに発効した記録が無い・同じ id の行が 2 つ・digest が中身と合わない は落とし、封の一覧が無ければ「まだ分からない」。判断を変えるときは新しい判断の記録を立て、前の記録は status と superseded_by だけを変えて退役させる（P-7.2）。生成は folio check --freeze-adrs で、全検査が 0 違反で「まだ分からない」も無いときだけ欠けた行を末尾に足す（在る行は書き換えない・本文が行と違えば断る・N-1.1）。行と file の欠けは凍結の旗の前提の検査に数えない
   limits_note:
     - 前文（precedence）と schema 節の差分は amended_by を持てない（憲法 schema の precedence.optional が空）ので、それを amends に持つ発効した判断の記録の実在と欄単位の対の一致だけを確かめる。前文に amended_by を足すのは A-2 の改訂で行う。
     - 改番と番号の再利用は「同じ本文の付け替え」「過去の版に在って最新 anchor に無い番号の再登場」の 2 つの形だけを見る。本文も変えて付け替えた改番は弁別できない（削除 + 新設として通る）。
