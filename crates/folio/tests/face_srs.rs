@@ -247,6 +247,11 @@ fn f81_approval_history_is_folded() {
         .strip_prefix(open)
         .unwrap();
     assert_eq!(unlink_adr(inner), esc(history), "折りたたみの中が来歴の逐語でない");
+    // 要旨の帯は最初の「。」までだけ（来歴を持つ写しで当てる・実の正本は要旨の 1 文だけなので要旨の歯が空回りしない）
+    let band = span(&html, "<section id=\"approval\"", "</section>");
+    let lead = span(band, "<p class=\"lead\">", "</p>");
+    let (_, rest) = lead.split_once(" — ").expect("lead に「 — 」が無い");
+    assert_eq!(rest, esc("v0.3 = 2026-09-05 発効。"), "lead が要旨だけでない");
 
     let real = real_srs("f81-fold-real");
     let (_, real_history) = split_note(&srs());

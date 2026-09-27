@@ -266,26 +266,31 @@ fn source_rows_by_previous(text: &str) -> (Vec<String>, Vec<String>) {
     (folded, plain)
 }
 
-/// 変異: 行 R-5 の裁定の欄の最新の裁定の後ろに、前の裁定を 2 件足す。
+/// 変異: 行 R-5・R-6・R-7 の裁定の欄の最新の裁定の後ろに、前の裁定をそれぞれ 1・2・3 件足す（件数ごとの性質を当てる）。
 /// 行 D-18（裁定の欄は最新の 1 つ）の刈り込み（一括 30）の後の正本は前の裁定を持つ行を持たないので、
 /// 畳む側の性質は、この変異を当てた写しで当てる（外の置き場の規則の表は前の裁定を持ちうる）。
 fn add_previous(t: &str) -> String {
     let mut out = String::new();
     for line in t.split_inclusive('\n') {
-        if !line.starts_with("  - {id: R-5,") {
+        let Some(n) = [("R-5", 1), ("R-6", 2), ("R-7", 3)]
+            .iter()
+            .find(|(id, _)| line.starts_with(&format!("  - {{id: {id},")))
+            .map(|(_, n)| *n)
+        else {
             out.push_str(line);
             continue;
-        }
-        let at = line.find(", ruled_at:").expect("行 R-5 に ruled_at が無い");
+        };
+        let at = line.find(", ruled_at:").expect("行に ruled_at が無い");
         let (head, tail) = line.split_at(at);
         let (head, quote) = match head.strip_suffix('"') {
             Some(h) => (h, "\""),
             None => (head, ""),
         };
-        assert!(head.ends_with('）'), "行 R-5 の最新の裁定が「）」で終わらない: {head}");
-        out.push_str(&format!(
-            "{head}・前の裁定 = 歯の変異の前の裁定 1（2026-09-01）・前の裁定 = 歯の変異の前の裁定 2（2026-09-02）{quote}{tail}"
-        ));
+        assert!(head.ends_with('）'), "行の最新の裁定が「）」で終わらない: {head}");
+        let prev: String = (1..=n)
+            .map(|k| format!("・前の裁定 = 歯の変異の前の裁定 {k}（2026-09-0{k}）"))
+            .collect();
+        out.push_str(&format!("{head}{prev}{quote}{tail}"));
     }
     out
 }
