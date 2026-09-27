@@ -456,4 +456,57 @@ mod stamp_tests {
             ]
         );
     }
+
+    /// 便 176（docs/design/delivery-176.md §1 (c) の 3・検証役の提案）: meta.id は字のまま同じ file だけを数え（前方一致・大小文字の
+    /// 違い・最上位の id は当たらない）、読めない .yaml は並びのどこに在っても広い側。名の規則が先で、頭が区切りを含むとき・
+    /// `<頭>.yaml` が symlink のとき・置き場の dir が symlink のとき・file 形の文書では meta.id を見ない。
+    #[test]
+    fn f176_the_meta_id_matches_exactly_whatever_the_order() {
+        let td = std::env::temp_dir().join(format!("folio-f176-exact-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&td);
+        let notes = td.join("design-note");
+        fs::create_dir_all(&notes).unwrap();
+        let put = |name: &str, text: &str| fs::write(notes.join(name), text).unwrap();
+        put("schema.yaml", "meta: {id: design-note-schema}\n");
+        put("longer.yaml", "meta: {id: design-note-schema-v2}\n");
+        put("design.yaml", "meta: {id: design-note}\n");
+        put("upper.yaml", "meta: {id: DESIGN-NOTE-SCHEMA}\n");
+        put("top.yaml", "id: design-note-schema\n");
+        put("alias.yaml", "meta: {id: schema}\n");
+        put("slash.yaml", "meta: {id: a/b}\n");
+        fs::write(td.join("root.yaml"), "meta: {id: FR2}\n").unwrap();
+        let documents = vec![
+            ("design-note".to_string(), "design-note/".to_string()),
+            ("srs".to_string(), "srs.yaml".to_string()),
+            ("linked".to_string(), "linked/".to_string()),
+        ];
+        let at = |doc: &str, at: &str| stop_file(&td, &documents, doc, at).unwrap();
+        let mut answers = vec![
+            at("design-note", "design-note-schema.x"),
+            at("design-note", "schema.x"),
+            at("design-note", "a/b.x"),
+            at("srs", "FR2.shall"),
+        ];
+        put("zz-broken.yaml", "meta: [\n");
+        answers.push(at("design-note", "design-note-schema.x"));
+        fs::remove_file(notes.join("zz-broken.yaml")).unwrap();
+        std::os::unix::fs::symlink(&notes, td.join("linked")).unwrap();
+        answers.push(at("linked", "design-note-schema.x"));
+        std::os::unix::fs::symlink(notes.join("schema.yaml"), notes.join("via.yaml")).unwrap();
+        put("target.yaml", "meta: {id: via}\n");
+        answers.push(at("design-note", "via.x"));
+        let _ = fs::remove_dir_all(&td);
+        assert_eq!(
+            answers,
+            [
+                "design-note/schema.yaml",
+                "design-note/schema.yaml",
+                "design-note/",
+                "srs.yaml",
+                "design-note/",
+                "linked/",
+                "design-note/"
+            ]
+        );
+    }
 }
