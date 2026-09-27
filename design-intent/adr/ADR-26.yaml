@@ -94,6 +94,6 @@ approval: {who: 持ち主, date: 2026-09-27, ruling: "f2-648 notes 2026-09-27 00
 
 note: |
   【出所】持ち主の直命 2026-09-26 17:32 JST と討論の裁定 7 つ（f2-648 notes 2026-09-26 23:26〜23:34 JST・論点 1〜7 とも逐語「推奨で」〔論点 1 は「とりあえず論点１は推奨で」〕）。調査の材料は ~/.local/share/folio2/handoff-2026-09-26/ceiling-audit/（synthesis.md・structure.md・rounds.md・approvals.md）。
-  【引き金の便】引き金の定数は crates/folio/src/ceiling.rs の TRIGGER_ADR_FIELDS と TRIGGER_ADR_STATUS（gate.rs が発効の記録だけを拾う）。本文の「引き金の型付きの定数」はこれを指す。引き金の便の契約の要旨は docs/design/ceiling-rules-triage.md に在る。
+  【引き金の便】引き金の定数は crates/folio/src/ceiling.rs の TRIGGER_ADR_FIELDS（gate.rs は判断の記録を状態を問わず記録ごとに拾い、状態の欄は写さない＝発効の記帳だけでは印は古くならない・便 151・台帳 f2-648.232）。本文の「引き金の型付きの定数」はこれを指す。引き金の便の契約の要旨は docs/design/ceiling-rules-triage.md に在る。
   【発効】2026-09-27 00:40 JST（対話面 R-8・逐語「承認する」・f2-648 notes）。一括 27 の 🔴 問 1 への回答で、要件書 第 1.48 版・天井の正本 第 0.17 版・規則の表の行と同じ承認である。枝の上の 48 周目（止める 2 → 改訂 c）と 49 周目（4 観点合格・印 5c1cd7a・行 R-21 の上限）と独立の検証を経た。
   【この判断自身の形】本判断は決定 (5) の最初の適用で、行 D-12 と D-14 は注を足さずに字を置き換え、裁定の欄は最新の 1 つにした。
