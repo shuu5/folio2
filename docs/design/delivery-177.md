@@ -5,19 +5,19 @@
 - 出所: 便 175 と同じ起草の記録（`~/.local/share/folio2/handoff-2026-09-27/d175-draft.md`）。便 175 の見本（1 便）が差分 124,156 byte で上限 120,000 byte を超え、2 便に割った。要件書・規則の表・憲法・人の書く正本は変えない。台帳の id は席が起こす。
 - 置き場: 審査の材料は行 `fx` の §1 だけ。write-set 11 本（src 3・歯の file 5〔中身の変わらない 2 本は verify の --test の scope〕・生成区間 1・凍結 anchor 2）。新しい dir・新しい file・消す file は無い。
 - 門: **0（通す）**（本流 efe3e7b の binary・印の 51 周目に支持の 止める は無い）。受付の本流（便 175 の後）で撃ち直す。
-- base = 便 175 の見本の後（impl/d175 の commit d047870・数はその写しの実測・参考値・行 D-13）。**受付は便 175 の着地の後。**
-- 実装の見本: origin の枝 `impl/d177`（commit 4b3f408・親は d047870）が本便の後の中身（差分 26,714 byte・9 file・+54 −168）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 4b3f408 -- <write-set の file>`）。write-set の外は変えない。
+- base = 便 175 の見本の後（impl/d175 の commit 501c39a・数はその写しの実測・参考値・行 D-13）。**受付は便 175 の着地の後。**
+- 実装の見本: origin の枝 `impl/d177`（commit ef26066・`git diff 501c39a ef26066` が本便の差分）が本便の後の中身（差分 26,714 byte・9 file・+54 −168）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout ef26066 -- <write-set の file>`）。write-set の外は変えない。
 
 ## 1. 設計
 
-実装の見本は origin の枝 `impl/d177`（commit 4b3f408・親は d047870 = 便 175 の見本）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 4b3f408 -- <write-set の file>`）。write-set の外は変えない。受付は便 175 の着地の後。
+実装の見本は origin の枝 `impl/d177`（commit ef26066・base は 501c39a = 便 175 の見本）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout ef26066 -- <write-set の file>`）。write-set の外は変えない。受付は便 175 の着地の後。
 
-### (a) いま起きていること（参考値・便 175 の後 = d047870）
+### (a) いま起きていること（参考値・便 175 の後 = 501c39a）
 
 1. **印は読み手の無い節点の表を書く。** `folio ceiling --stamp`（`stamp.rs`）は印の末尾に残差の要約値 `rest` と節点ごとの要約値の表 `nodes` を書く（組み方は `graph.rs` の `stamp_table`）。便 169 の後の門は印の round・verdict・viewpoints・refutes だけを読み、面の名札（`stamp::marks`）は at・sources と観点の行だけを読む＝rest と nodes の読み手は 0（grep の実測）。門が変わった節点の数を数えていた頃の欄（便 99・ADR-13 決定 (8)）。
 2. **生成区間がそれを言う。** `design-intent/graph.yaml` の生成区間の注 `schema.digest_note` の末文「天井の印はこの要約値の表と、節点にも辺の欄にも属さない残りの byte の要約値（残差）を持つ（ADR-13 決定 (8)）」。本便で印が持たなくなるので、同じ便で落とさないと偽になる。tsuzuri の写しと骨格も番号を落とした同じ字。
 3. **節点の要約値そのものは生きている。** `folio graph --print` の 4 列目と床の口 `check_index` が同じ Scan を使う（残る）。残差の独立の script `node-digest.py` と凍結 anchor `node-digest-anchor.txt` も `tests/graph.rs` の歯が縛るまま（本便は動かさない）。
-4. **base の歯（d047870 の写し）。** nextest 999 / 999・clippy 0 警告・床 4 本 rc 0・`folio build --write` 35 file（要約 6a4c51d7c0fb66c7）。`git grep -n f177_ -- crates` 0 件・行 id `fx` 0 件。
+4. **base の歯（501c39a の写し）。** nextest 999 / 999・clippy 0 警告・床 4 本 rc 0・`folio build --write` 35 file（要約 6a4c51d7c0fb66c7）。`git grep -n f177_ -- crates` 0 件・行 id `fx` 0 件。
 
 ### (b) 直す先
 
@@ -25,14 +25,17 @@
 2. **`graph.rs`。** `stamp_table` と、それだけが使う use（`ceiling_src::Ceiling`・`gate`）を外す。床の木の注 digest_note の末文を落とす（graph.yaml の生成区間は 3,537 byte に）。`check_index` の注と違反の字の「天井の印が組めない」を「folio graph --print が組めない」に（印はもう Scan を使わない）。
 3. **`main.rs`。** 注の「索引と天井の印が組めない」を「索引が組めない」に（1 行）。
 4. **生成区間。** `design-intent/graph.yaml` を `folio schema --dir design-intent --write` の出力に。
-5. **凍結 anchor 2 本。** ① `tests/fixtures/schema/graph-region.txt` = 前の anchor から (a) の 2 の末文を字で落とした写し（定数 F95_GRAPH_* を sha256sum で測った値に）② `tests/fixtures/ceiling/findings/stamp-expected.yaml` = 前の anchor から nodes の見出しと 23 行を落とした写し（10 行 560 byte）。
+5. **凍結 anchor 2 本（席の裁定 2026-09-27: 案 A・前例どおり測り直す・design-intent/anchors/ の下は動かさない）。** folio の code を呼ばない独立の実装（python）で組み、folio の出力と byte で一致させる（歯 `tests/schema_docs.rs`・`tests/stamp.rs` が突き合わせる）。
+   - ① `tests/fixtures/schema/graph-region.txt`: 手順 = 前の anchor の digest_note の行から (a) の 2 の末文（155 byte・前の「。」から）を字の一致で 1 か所だけ落とす（apply-tests-177.py の 1）。変わる範囲 = 行 35 の 1 行の中のその字だけ・3,692 → 3,537 byte。定数 F95_GRAPH_*（行数 35 のまま）。
+   - ② `tests/fixtures/ceiling/findings/stamp-expected.yaml`: 手順 = 前の anchor の末尾の `nodes:` の見出しから終わりまで（24 行）を落とす（同 2）。変わる範囲 = 行 11〜34 だけ・前の 10 行は同じ・1,343 → 560 byte。
+   - **外す字の分だけ動くことの確かめ（手順）**: `anchor-diff-175-177.py`（folio を呼ばない）が ① は 1 行の中の末文のほかが同じ、② は前の 10 行が同じ、を assert で確かめて通った（anchor-diff.log）。
 6. **変えないもの。** 門の式・印のほかの欄・面の名札・`folio graph --print` と `check_index` の判定・`node-digest.py` と `node-digest-anchor.txt`・人の書く正本・本流の印（次の --stamp まで rest と nodes を持つ＝読み手は無い）・門の印の fixture。
 
 ### (c) 歯（f177_・base で 0 件）
 
 1. **f177_no_region_claims_the_stamp_node_table（`tests/place_name.rs`・binary）。** folio2 自身の置き場・骨格の命令が書いた置き場・tsuzuri の名で `schema --write` した置き場の 9 本の生成区間に、手書きの字「天井の印はこの要約値の表」「残差」が無い（便 175 の道具 f175_no_false_claims に字の一覧を渡す）。**base は 3 つとも索引の欄の決まりで落ちる（RED）。**
 2. **f177_the_stamp_has_no_node_table（`tests/stamp.rs`・binary）。** `--stamp` の書いた印の最上位の欄が 8 つでこの順、要約値を落とした印が凍結 anchor stamp-expected.yaml（10 行 560 byte）と byte で同じ。**base は rest・nodes が在って落ちる（RED）。**
-3. RED の本文は `red177.log`（歯だけ = r177-teeth.patch を d047870 の写しに当てた・2 本とも落ちる）。
+3. RED の本文は `red177.log`（歯だけ = r177-teeth.patch を 501c39a の写しに当てた・2 本とも落ちる）。
 
 ### (d) 採らなかった形
 
@@ -52,7 +55,7 @@
 
 ### (f) 大きさ・verify と done の対応
 
-1. **write-set の印。** 縮む（`-`）は src 3 本・歯の file 1 本（stamp）・生成区間 1 本・anchor 2 本。増えるのは歯の file 2 本（place_name・schema_docs）。tests/graph.rs と tests/gate.rs は verify の --test の scope で中身は変わらない。差分 26,714 byte（9 file・+54 −168・`git diff d047870 4b3f408`）。
+1. **write-set の印。** 縮む（`-`）は src 3 本・歯の file 1 本（stamp）・生成区間 1 本・anchor 2 本。増えるのは歯の file 2 本（place_name・schema_docs）。tests/graph.rs と tests/gate.rs は verify の --test の scope で中身は変わらない。差分 26,714 byte（9 file・+54 −168・`git diff 501c39a ef26066`）。
 2. **余地（CapHeadroom）。** python と awk が一致（lines.log）。
 
 | file | base | base の余地 | 便の後 | 便の後の余地 |
@@ -72,7 +75,7 @@
 
 ### (h) 数え直す手順（行 D-13）
 
-記録と script は便 175 と同じ（`d175-draft.md`・`d175-scripts`）。1 apply-177.sh（apply-src-177.py → apply-tests-177.py → schema --write）を d047870 の写しに当てると 4b3f408 の中身。2 run-175.sh。3 red-175-177.sh。4 mut-175-177.py（M4・M5）。5 lines-175.sh。6 verify-175-177.sh <写し> 177。7 commit の後に `~/.cache/folio2-orchestrator/r86/precheck.sh <worktree> docs/design/delivery-177.md#fx`。
+記録と script は便 175 と同じ（`d175-draft.md`・`d175-scripts`）。1 apply-177.sh（apply-src-177.py → apply-tests-177.py → schema --write）を 501c39a の写しに当てると ef26066 の中身。1b anchor-diff-175-177.py。2 run-175.sh。3 red-175-177.sh。4 mut-175-177.py（M4・M5）。5 lines-175.sh。6 verify-175-177.sh <写し> 177。7 commit の後に `~/.cache/folio2-orchestrator/r86/precheck.sh <worktree> docs/design/delivery-177.md#fx`。
 
 ### (i) 要件との関係・言えないこと・撤退条件
 
@@ -107,7 +110,7 @@ schema = 1
 
 [[contract]]
 id = "fx"
-title = "印の節点の表（rest・nodes）と graph.rs の stamp_table を外し、索引の欄の決まりの注 digest_note から印の 1 文を落とす（判断の記録 ADR-30 決定 (6)・便 175 の後半）: stamp.rs の印は rest と nodes を書かず最上位の欄は round・at・verdict・sources・faces・viewpoints・refutes・reads の 8 つ、graph.rs は stamp_table とそれだけが使う use を外し、check_index の注と違反の字から天井の印を外し、main.rs の注を合わせる。design-intent/graph.yaml の生成区間を folio schema --write の出力にし、凍結 anchor 2 本（graph-region.txt・stamp-expected.yaml）を前の anchor を直した写しで測り直す。folio graph --print と check_index と node-digest の anchor は変えない。実装の見本は origin の枝 impl/d177 の commit 4b3f408（親 d047870 = 便 175 の見本）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。受付は便 175 の着地の後。base = 便 175 の見本の後の d047870"
+title = "印の節点の表（rest・nodes）と graph.rs の stamp_table を外し、索引の欄の決まりの注 digest_note から印の 1 文を落とす（判断の記録 ADR-30 決定 (6)・便 175 の後半）: stamp.rs の印は rest と nodes を書かず最上位の欄は round・at・verdict・sources・faces・viewpoints・refutes・reads の 8 つ、graph.rs は stamp_table とそれだけが使う use を外し、check_index の注と違反の字から天井の印を外し、main.rs の注を合わせる。design-intent/graph.yaml の生成区間を folio schema --write の出力にし、凍結 anchor 2 本（graph-region.txt・stamp-expected.yaml）を前の anchor を直した写しで測り直す。folio graph --print と check_index と node-digest の anchor は変えない。実装の見本は origin の枝 impl/d177 の commit ef26066（base 501c39a = 便 175 の見本）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。受付は便 175 の着地の後。base = 便 175 の見本の後の 501c39a"
 req = ["FR19", "FR20"]
 section = "1"
 write-set = ["-crates/folio/src/graph.rs", "-crates/folio/src/main.rs", "-crates/folio/src/stamp.rs", "crates/folio/tests/place_name.rs", "crates/folio/tests/schema_docs.rs", "-crates/folio/tests/stamp.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/gate.rs", "-design-intent/graph.yaml", "-tests/fixtures/ceiling/findings/stamp-expected.yaml", "-tests/fixtures/schema/graph-region.txt"]
