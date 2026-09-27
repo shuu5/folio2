@@ -59,7 +59,7 @@
 //! 便 126（delivery-126.md §1 (f)）: 天井の正本の生成区間に trigger・trigger_note の 18 行（CEILING_REGION_* を測り直した値に）。
 //! 便 129（delivery-129.md §1 (c)(e)）: 引き金の憲法の scope の 1 行と 3 つの注の字（CEILING_REGION_*・F95_GRAPH_* を測り直した値に）。
 //! 便 151（delivery-151.md §1 (b)(e)）: 引き金の adr から status の葉と状態の欄が外れ trigger_note の字が変わった（CEILING_REGION_* を測り直した値に）。
-//! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 18 行が外れ、索引の欄の決まりの注から周の引き金の
+//! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 17 行が外れ、索引の欄の決まりの注から周の引き金の
 //! 2 文が外れた（CEILING_REGION_*・F95_GRAPH_* を、前の anchor を行と字で直した写しを sha256sum で測り直した値に）。
 
 use std::fs;
