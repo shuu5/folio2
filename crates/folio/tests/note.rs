@@ -927,12 +927,19 @@ fn f161_who_and_ruling_agree_with_the_adr_approval() {
 
 // ── 章の上限（便 179・docs/design/delivery-179.md §1 (c)）──
 
-/// 見本 example.yaml（節 6・図 1）に節 7〜12 を足す（章 13）。
+/// 見本 example.yaml（節 6・図 1）に節 7〜12 と 2 枚目の図を足す（章 13）。
 fn thirteen_chapters(w: &Work) {
     let extra: String = (7..=12)
         .map(|n| format!("  - {{n: {n}, type: prose, title: 追加 {n}, body: 追加の節。}}\n"))
         .collect();
     w.mutate("\nfigures:\n", &format!("\n{extra}figures:\n"));
+    // 2 枚目の図（図の章は枚数に依らず 1 章＝面と床が同じ数え方でなければ字が割れる）
+    let path = w.dir().join("design-note/example.yaml");
+    let text = std::fs::read_to_string(&path).unwrap();
+    let at = text.find("  - id: fig-1\n").unwrap();
+    let end = text[at..].find("\nsources:").map(|e| at + e + 1).unwrap();
+    let second = text[at..end].replacen("id: fig-1", "id: fig-2", 1);
+    std::fs::write(&path, format!("{}{}{}", &text[..end], second, &text[end..])).unwrap();
 }
 
 /// 写しの規則の表の欄 key が note-chapters の行（本流の行 R-19）の値を置き換える（字の当て先は 1 か所）。
