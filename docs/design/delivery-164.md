@@ -103,7 +103,7 @@
 1. **門と、注の字の 2 つの形（席が選ぶ）。** 作業ツリー planner-d164 の一番上で、base の binary に write-set を渡した。
    - **書かない形（本契約）: 0（通す）。** 床の定数 FLOOR の注（floor_adr.rs の anchor_note と limits_note）の列の根の字 5 か所と、その写し（design-intent/adr/schema.yaml の生成区間・凍結 anchor tests/fixtures/schema/adr-region.txt・tests/schema.rs の byte 数と要約値）が、便の後に実装より古い字で残る（ADR-29 の帰結の 4 が予告済み）。古くなる 5 か所: ① 根の digest は表の行と一致する（表に無い名の列は落とす）② 浅い写しの項（表に無い名の根は照らせない が無い）③ 列の真偽は索引と digest と根の定数が受け持つ ④ 表に無い名の列の根は digest の全桁を出して凍結しない ⑤ 床が応じるのは列の根の digest の固定まで・床の実装は表の各行の憲法に結び付く。
    - **書く形: 2（まだ分からない・印が古い）。** 上の 5 か所を直す字の当て方（`root233-scripts/apply-164-notes.py`・6 置き換え）と写しの組み直し（`notes-data-164.py`）は模擬済み: 生成区間 27124 → 28081 byte、workspace の nextest 994 / 994・clippy 0。write-set は 11 本（floor_adr.rs・design-intent/adr/schema.yaml・adr-region.txt・tests/schema.rs を足す）で便 162 と 4 本重なる。
-   - **起草役の推奨は書かない形**で、注の字は便 162 の着地の後に 1 本の S の便（字の 6 置き換えと写しの組み直し・席が行 id を振る）か、台帳 f2-648.239 の注の字の一括に束ねる。書く形を選ぶなら、便 162 の着地の後の main で数え直して本契約を改訂する。
+   - **起草役の推奨は書かない形**で、注の字は便 162 の着地の後に 2 便目 **便 167（行 fn・歯の接頭辞 f167_・S）**で運ぶ（字の 6 置き換えと写しの組み直し・生成区間を書くので印が古いあいだ門は 2）か、台帳 f2-648.239 の注の字の一括に束ねる。書く形を選ぶなら、便 162 の着地の後の main で数え直して本契約を改訂する。
 2. **受付の順。** 一括 30 → 便 162 → 一括 31（ADR-29 の発効と FR23 の規範文）→ 本便。本便を一括 31 より先に着地させると、実装が今の FR23 の規範文（表に無い名は落とす）と食い違う（P-18.1）。
 3. **write-set の重なり。**
    - 便 162（行 fi）: adr.rs が重なるが箇所は別（162 は check_approval と non_empty の近く、本便は root_digest の近くと単体の歯の末尾）。162 は本便の歯が読む fixture root-digest-drift の adr/schema.yaml も書き換える。本便の差分は main にも 162 の後にも当たり、どちらの上でも workspace の nextest が緑（main + 本便 990 / 990・162 の後 + 本便 994 / 994）。
@@ -151,7 +151,7 @@
 
 - 外部 crate と新しい dir は無い。前提の着地は一括 31（ADR-29 の発効と FR23 の規範文）。
 - 起草の記録: `.local/share/folio2/handoff-2026-09-27/root233-draft.md` と root233-scripts/（c164.patch = 差分の全部・r164-teeth.patch = 歯だけ・apply-164*.py = 当て方・accept-164.sh = 受け入れの物差し・mut-164.py = 変異）。
-- 着地の後に席が見ること: 本流の target/debug/folio を組み直す。台帳 f2-648.233 を閉じ、(g) の 1 の注の字の便を起こすか .239 の一括に束ねる。次の世代の置き場の表の行は ADR-29 決定 (4) のとおり ADR-21 の合流の後に外す（本便の外）。
+- 着地の後に席が見ること: 本流の target/debug/folio を組み直す。台帳 f2-648.233 を閉じ、(g) の 1 の注の字の便 167（行 fn）を起こすか .239 の一括に束ねる。次の世代の置き場の表の行は ADR-29 決定 (4) のとおり ADR-21 の合流の後に外す（本便の外）。
 
 <!-- contracts:begin -->
 schema = 1
