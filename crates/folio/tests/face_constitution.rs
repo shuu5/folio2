@@ -171,10 +171,9 @@ fn fold(cell: &str) -> Option<(String, String)> {
     Some((label, body))
 }
 
-/// 正本 rules.yaml の行 `id` の（ruling, ruled_at）を直に読む。
-fn source_ruling(id: &str) -> (String, String) {
-    let text = fs::read_to_string(design_intent().join("rules.yaml")).unwrap();
-    let doc: Yaml = YamlLoader::load_from_str(&text).unwrap().remove(0);
+/// 規則の表の字 `text` の行 `id` の（ruling, ruled_at）を直に読む。
+fn source_ruling(text: &str, id: &str) -> (String, String) {
+    let doc: Yaml = YamlLoader::load_from_str(text).unwrap().remove(0);
     for table in ["thresholds", "discipline"] {
         for row in doc[table].as_vec().unwrap() {
             if row["id"].as_str() == Some(id) {
@@ -188,9 +187,9 @@ fn source_ruling(id: &str) -> (String, String) {
     panic!("正本に行 {id} が無い")
 }
 
-/// 正本の裁定の欄の過去の裁定の件数（区切りの出現数）。
-fn source_previous(id: &str) -> usize {
-    source_ruling(id).0.matches("）・前の裁定 = ").count()
+/// 裁定の欄の過去の裁定の件数（区切りの出現数）。
+fn source_previous(text: &str, id: &str) -> usize {
+    source_ruling(text, id).0.matches("）・前の裁定 = ").count()
 }
 
 // ── (a) 値の枡の小見出し ──
@@ -238,10 +237,9 @@ fn f79_rules_value_cell_leaves_scalars_alone() {
 
 // ── (b) 裁定の枡の折りたたみ ──
 
-/// 正本 rules.yaml の全部の行（閾値の表と規律の表・正本の順）の id。
-fn source_row_ids() -> Vec<String> {
-    let text = fs::read_to_string(design_intent().join("rules.yaml")).unwrap();
-    let doc: Yaml = YamlLoader::load_from_str(&text).unwrap().remove(0);
+/// 規則の表の字 `text` の全部の行（閾値の表と規律の表・正本の順）の id。
+fn source_row_ids(text: &str) -> Vec<String> {
+    let doc: Yaml = YamlLoader::load_from_str(text).unwrap().remove(0);
     ["thresholds", "discipline"]
         .iter()
         .flat_map(|t| doc[*t].as_vec().unwrap().clone())
@@ -249,35 +247,68 @@ fn source_row_ids() -> Vec<String> {
         .collect()
 }
 
-/// 正本の裁定の欄を（最新の 1 件, 過去の裁定の字の並び）に分ける（歯の側の数え・区切りは「）・前の裁定 = 」）。
-fn source_split(id: &str) -> (String, Vec<String>) {
-    let (ruling, _) = source_ruling(id);
+/// 裁定の欄を（最新の 1 件, 過去の裁定の字の並び）に分ける（歯の側の数え・区切りは「）・前の裁定 = 」）。
+fn source_split(text: &str, id: &str) -> (String, Vec<String>) {
+    let (ruling, _) = source_ruling(text, id);
     let mut pieces = ruling.split("）・前の裁定 = ").map(str::to_string);
     let latest = pieces.next().unwrap();
     (latest, pieces.collect())
 }
 
-/// 前の裁定を畳んだ行（裁定の欄に「前の裁定 = 」を持つ行）と持たない行に、正本の全行を分ける。
+/// 前の裁定を畳んだ行（裁定の欄に「前の裁定 = 」を持つ行）と持たない行に、規則の表の字 `text` の全行を分ける。
 /// どちらの側も 1 行以上在ることを確かめる（片側が空なら、その側の性質を当てる歯が黙って空回りする）。
-fn source_rows_by_previous() -> (Vec<String>, Vec<String>) {
-    let (folded, plain): (Vec<String>, Vec<String>) =
-        source_row_ids().into_iter().partition(|id| source_previous(id) > 0);
-    assert!(!folded.is_empty(), "正本に前の裁定を持つ行が 1 つも無い");
-    assert!(!plain.is_empty(), "正本に前の裁定を持たない行が 1 つも無い");
+fn source_rows_by_previous(text: &str) -> (Vec<String>, Vec<String>) {
+    let (folded, plain): (Vec<String>, Vec<String>) = source_row_ids(text)
+        .into_iter()
+        .partition(|id| source_previous(text, id) > 0);
+    assert!(!folded.is_empty(), "規則の表に前の裁定を持つ行が 1 つも無い");
+    assert!(!plain.is_empty(), "規則の表に前の裁定を持たない行が 1 つも無い");
     (folded, plain)
+}
+
+/// 変異: 行 R-5 の裁定の欄の最新の裁定の後ろに、前の裁定を 2 件足す。
+/// 行 D-18（裁定の欄は最新の 1 つ）の刈り込み（一括 30）の後の正本は前の裁定を持つ行を持たないので、
+/// 畳む側の性質は、この変異を当てた写しで当てる（外の置き場の規則の表は前の裁定を持ちうる）。
+fn add_previous(t: &str) -> String {
+    let mut out = String::new();
+    for line in t.split_inclusive('\n') {
+        if !line.starts_with("  - {id: R-5,") {
+            out.push_str(line);
+            continue;
+        }
+        let at = line.find(", ruled_at:").expect("行 R-5 に ruled_at が無い");
+        let (head, tail) = line.split_at(at);
+        let (head, quote) = match head.strip_suffix('"') {
+            Some(h) => (h, "\""),
+            None => (head, ""),
+        };
+        assert!(head.ends_with('）'), "行 R-5 の最新の裁定が「）」で終わらない: {head}");
+        out.push_str(&format!(
+            "{head}・前の裁定 = 歯の変異の前の裁定 1（2026-09-01）・前の裁定 = 歯の変異の前の裁定 2（2026-09-02）{quote}{tail}"
+        ));
+    }
+    out
+}
+
+/// 変異 add_previous を当てた写しの（規則の表の字, 面の本文）。
+fn previous_html(case: &str) -> (String, String) {
+    let text = add_previous(&fs::read_to_string(design_intent().join("rules.yaml")).unwrap());
+    let (run, html) = face_with(case, Some(add_previous));
+    assert_eq!(code(&run, "folio face --write"), 0, "{}", stderr(&run));
+    (text, unlink_adr(&html))
 }
 
 #[test]
 fn f79_rules_ruling_shows_only_the_latest() {
     // 前の裁定を持つ行の全部で、小窓より前に見える字は最新の裁定と ruled_at だけ（行の id と数は正本から読む）。
-    let html = unlink_adr(&real_html("latest"));
-    let (folded, _) = source_rows_by_previous();
+    let (text, html) = previous_html("latest");
+    let (folded, _) = source_rows_by_previous(&text);
     for id in &folded {
         let c = cell(&html, id, "裁定");
         let seen = visible(&c);
         assert!(!seen.contains("前の裁定 = "), "{id}: 過去の裁定が見えている: {seen}");
-        let (latest, _) = source_split(id);
-        let (_, at) = source_ruling(id);
+        let (latest, _) = source_split(&text, id);
+        let (_, at) = source_ruling(&text, id);
         assert!(seen.starts_with(&esc(&latest)), "{id}: 最新の裁定で始まらない: {seen}");
         assert!(seen.contains(&format!("（{}）", esc(&at))), "{id}: ruled_at が無い: {seen}");
     }
@@ -287,15 +318,15 @@ fn f79_rules_ruling_shows_only_the_latest() {
 fn f79_rules_ruling_folds_the_previous_ones() {
     // 前の裁定を持つ行の全部で、小窓の名札の件数と本体の「前の裁定 = 」の数が、歯の側で正本を直に数えた数と一致し、
     // 過去の裁定の字が 1 件ずつ本体に在る（生成器の数えを写さない）。
-    let html = unlink_adr(&real_html("folds"));
-    let (folded, _) = source_rows_by_previous();
+    let (text, html) = previous_html("folds");
+    let (folded, _) = source_rows_by_previous(&text);
     for id in &folded {
-        let n = source_previous(id);
+        let n = source_previous(&text, id);
         let (label, body) = fold(&cell(&html, id, "裁定"))
             .unwrap_or_else(|| panic!("{id} に小窓が無い"));
         assert_eq!(label, format!("前の裁定 {n} 件"), "{id}");
         assert_eq!(body.matches("前の裁定 = ").count(), n, "{id}: {body}");
-        let (_, previous) = source_split(id);
+        let (_, previous) = source_split(&text, id);
         assert_eq!(previous.len(), n, "{id}");
         for p in &previous {
             assert!(body.contains(&esc(p)), "{id}: 小窓に過去の裁定「{p}」が無い: {body}");
@@ -306,10 +337,10 @@ fn f79_rules_ruling_folds_the_previous_ones() {
 #[test]
 fn f79_rules_ruling_without_previous_is_unchanged() {
     // 前の裁定を持たない行の全部で、裁定の枡に小窓が無く、字面が「{ruling}（{ruled_at}）」のまま（歯の側で正本から組む）。
-    let html = unlink_adr(&real_html("unchanged"));
-    let (_, plain) = source_rows_by_previous();
+    let (text, html) = previous_html("unchanged");
+    let (_, plain) = source_rows_by_previous(&text);
     for id in &plain {
-        let (ruling, at) = source_ruling(id);
+        let (ruling, at) = source_ruling(&text, id);
         let c = cell(&html, id, "裁定");
         assert!(fold(&c).is_none(), "{id}: 前の裁定の無い行に小窓が在る: {c}");
         assert_eq!(c, format!("{}（{}）", esc(&ruling), esc(&at)), "{id}");

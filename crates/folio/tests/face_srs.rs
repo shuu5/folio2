@@ -219,19 +219,39 @@ fn f81_approval_lead_is_only_the_summary() {
     assert!(!lead.contains("v1.0 = "), "lead に来歴が在る");
 }
 
+/// 面の承認欄の帯の本文（折りたたみと承認の枡の前まで）。
+fn approval_body(html: &str) -> &str {
+    let tail = &html[html.find("<section id=\"approval\"").expect("承認欄が無い")..];
+    span(tail, "<div class=\"chapbody\">", "data-component=\"approval-block\"")
+}
+
 #[test]
 fn f81_approval_history_is_folded() {
-    let html = real_srs("f81-fold");
-    let (_, history) = split_note(&srs());
-    assert!(!history.is_empty(), "正本の来歴が空");
-    let tail = &html[html.find("<section id=\"approval\"").expect("承認欄が無い")..];
-    let body = span(tail, "<div class=\"chapbody\">", "data-component=\"approval-block\"");
+    // 行 D-18 の刈り込み（一括 30）の後の正本の status_note は要旨の 1 文だけで来歴を持たない（来歴は承認欄の行と版管理の履歴）。
+    // 折りたたみの性質は、面の fixture の status_note に来歴を足した写しで当て、実の正本では来歴の有無と折りたたみの有無が揃うことを当てる。
     let open = "<details class=\"note\"><summary>版ごとの来歴</summary><div><p>";
+    let history = "v0.2 = 2026-09-01 発効。v0.1 = 2026-08-30 発効。";
+    let (run, html, _) = fixture_srs("f81-fold", |s| {
+        let after = s.replacen(
+            "  status_note: v0.3 = 2026-09-05 発効\n",
+            &format!("  status_note: v0.3 = 2026-09-05 発効。{history}\n"),
+            1,
+        );
+        assert_ne!(s, after, "変異が当たっていない");
+        after
+    });
+    ok(&run);
+    let body = approval_body(&html);
     assert_eq!(body.matches(open).count(), 1, "来歴の折りたたみが 1 つでない");
     let inner = span(body, open, "</p></div></details>")
         .strip_prefix(open)
         .unwrap();
-    assert_eq!(unlink_adr(inner), esc(&history), "折りたたみの中が来歴の逐語でない");
+    assert_eq!(unlink_adr(inner), esc(history), "折りたたみの中が来歴の逐語でない");
+
+    let real = real_srs("f81-fold-real");
+    let (_, real_history) = split_note(&srs());
+    let want = usize::from(!real_history.is_empty());
+    assert_eq!(approval_body(&real).matches(open).count(), want, "実の正本の来歴と折りたたみの有無が揃わない");
 }
 
 // ── 便 84: 用語集の欄の名前の節（docs/design/delivery-84.md §1 (c)） ──
