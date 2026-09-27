@@ -4,7 +4,7 @@
 - 条: P-5.6（実装の定数の写しを設計文書へ導出する）/ P-6.3（値域を 1 つの定数に）/ P-12.1・P-12.2（承認の通り道と記帳）。
 - 根拠: 行 D-11 と行 D-17（ADR-26 決定 (4)・f2-648 notes 2026-09-27 00:40 JST）。出所は便 158・159・161 の検証（台帳 **f2-648.239**）と天井の 49・51 周目（台帳 **f2-648.230**）。
 - 承認: 行 D-17 の注により、実装の定数を変えて生成区間の規則を変える本便は「規則の表の行の変更」に入る。**持ち主の承認（一括 30 と同じ 1 回）の後に受け付ける。**承認が要る変更の一覧は §1 (i) の 1。
-- 置き場: 契約表は末尾。審査の材料は行 `fi` が指す §1 だけ。write-set 38 本・新しい file も dir も無い。
+- 置き場: 契約表は末尾。審査の材料は行 `fi` が指す §1 だけ。write-set 39 本・新しい file も dir も無い。
 - 門: **まだ分からない（2・印が古い〔引き金の要約値が違う〕）**。design-intent の 3 file の生成区間を書く便なので、区切りの周 52 の印の後に受け付ける（想定どおり）。
 - 前の便: **base = main 8472b5c（便 161 の着地の後）。数は base の写しの実測（参考値・行 D-13）**で、受付の時点の main が違えば数え直す（手順は控え `.local/share/folio2/handoff-2026-09-27/d162-draft.md`）。
 
@@ -59,7 +59,7 @@
 
 1. **落ちる既存の歯は 0 本**（本便の全部を当てた写し）。workspace の nextest 988 / 988・clippy 0 警告・床 4 本 rc 0。rustfmt --check の差の塊は、変えた 11 本とも base と同じ数。src だけを変えて data を当てないと 49 本が落ちる＝data は write-set に要る。
 2. **RED。** 歯だけを base に当てると f162_ の 3 本だけが落ち、tests/note.rs と tests/link.rs のほかの 42 本は緑。
-3. **突然変異。** 写しの src だけを 1 通りずつ変え、verify の歯の束（--test note・link・schema・schema_docs と --bin folio の floor_）を撃った。**M1〜M10 は全部落ちる。**
+3. **突然変異。** 写しの src だけを 1 通りずつ変え、verify の歯の束（--test note・link・schema・schema_docs と --bin folio の floor_ を含む単体の歯）を撃った。**M1〜M10 は全部落ちる。**
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -74,7 +74,7 @@
 
 ### (f) 大きさ・余地・verify と done
 
-1. **write-set 38 本**（どれも印なし＝書き換えるだけ）: src 6・tests 6（tests/floor_cases.rs は verify の scope で本文不変）・design-intent 3・fixture 23。
+1. **write-set 39 本**（どれも印なし＝書き換えるだけ）: src 7・tests 6（src の note.rs は verify の単体の歯の名で、tests/floor_cases.rs は verify の scope で、どちらも本文不変）・design-intent 3・fixture 23。
 2. **余地（CapHeadroom）。** 各行 ceil(字数 / 120)・空行は 1。python と awk の 2 実装で一致。
 
 | file | base（参考値） | 余地 | 模擬の後 | 便の後の余地 |
@@ -85,9 +85,10 @@
 | adr.rs | 1049 | 451 | 1049（±0） | 451 |
 | link.rs | 669 | 831 | 669（±0） | 831 |
 | schema.rs | 182 | 1318 | 183（+1） | 1317 |
+| note.rs | 940 | 560 | 940（本文不変） | 560 |
 
-3. **size は M。** src は小さいが、file 38 本と生成区間 3 本と凍結 anchor 4 本を同時に動かす。最小の余地は adr.rs の 451（≥ 300）。
-4. **verify は 10 行**で、done の 10 の塊と 1 対 1: f162_ の 2 行（(c) の 1・2 と 3）・--test note・--test link・--test schema・--test schema_docs・--bin folio の floor_（床の木の導出と anchor の byte 一致・値域の針）・--test graph の f99_・--test floor_cases・clippy。base では f162_ の 2 行が 0 件で終了コード 4、ほかは緑。
+3. **size は M。** src は小さいが、file 39 本と生成区間 3 本と凍結 anchor 4 本を同時に動かす。最小の余地は adr.rs の 451（≥ 300）。
+4. **verify は 10 行**で、done の 10 の塊と 1 対 1: f162_ の 2 行（(c) の 1・2 と 3）・--test note・--test link・--test schema・--test schema_docs・--bin folio の単体の歯 4 本（床の木の導出と anchor 3 本の byte 一致・値域の針）・--test graph の f99_・--test floor_cases・clippy。base では f162_ の 2 行が 0 件で終了コード 4、ほかは緑。
 
 ### (g) 受付・並行の便
 
@@ -147,8 +148,8 @@ id = "fi"
 title = "台帳 f2-648.239 と f2-648.230: 便 158・159・161 が実装の定数に足した判定（雛形の印 未記入 と空と見る欄・anchor の承認一覧の日付の形と確かめの順・inject --check の区間の外の数えと folio2 の置き場の判じ方）を欄の決まりの生成区間へ写し（行 D-11・P-5.6）、対話面の値域・設計ノートの発効の注・種別 deny の意味を行 D-17 に揃える。floor_adr.rs は SURFACE を R-8 と D-17 に、UNFILLED を adr.rs から降ろして承認欄の欄 unfilled_marker に写し、注 5 か所を直す。floor_note.rs は SURFACE を引き注 2 つを直す。rules.rs の deny に席が数える上限を足す。link.rs は規則の表に R-8 の行だけを求める（D-17 は承認欄が使うときだけ既存の id の参照の網が求める）。schema.rs の頭の注を直す。3 file の生成区間は folio schema --write で書き、写し 18 本・凍結 anchor 4 本・定数・case を合わせる。判定の振る舞いは変えない。持ち主の承認（行 D-17）と区切りの周 52 の印の後に受け付ける。歯は f162_ 3 本。base = main 8472b5c"
 req = ["FR19", "FR5"]
 section = "1"
-write-set = ["crates/folio/src/floor_adr.rs", "crates/folio/src/floor_note.rs", "crates/folio/src/rules.rs", "crates/folio/src/adr.rs", "crates/folio/src/link.rs", "crates/folio/src/schema.rs", "crates/folio/tests/note.rs", "crates/folio/tests/link.rs", "crates/folio/tests/schema.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/floor_cases.rs", "design-intent/adr/schema.yaml", "design-intent/design-note/schema.yaml", "design-intent/rules.yaml", "tests/fixtures/schema/adr-region.txt", "tests/fixtures/schema/note-region.txt", "tests/fixtures/schema/rules-region.txt", "tests/fixtures/schema/node-digest-anchor.txt", "tests/fixtures/floor_base/design-intent/adr/schema.yaml", "tests/fixtures/floor_base/design-intent/design-note/schema.yaml", "tests/floor_cases.yaml", "tests/fixtures/adr/effective-no-approval/adr/schema.yaml", "tests/fixtures/adr/schema-drift/adr/schema.yaml", "tests/fixtures/adr/two-adopted/adr/schema.yaml", "tests/fixtures/anchor/no-anchor/adr/schema.yaml", "tests/fixtures/anchor/root-digest-drift/adr/schema.yaml", "tests/fixtures/check/dup-key/adr/schema.yaml", "tests/fixtures/check/empty-field/adr/schema.yaml", "tests/fixtures/check/unknown-section/adr/schema.yaml", "tests/fixtures/link/adr-id-missing/adr/schema.yaml", "tests/fixtures/link/amended-by-orphan/adr/schema.yaml", "tests/fixtures/link/retreat-kind-drift/adr/schema.yaml", "tests/fixtures/refs/bad-counts/adr/schema.yaml", "tests/fixtures/refs/dangling-id/adr/schema.yaml", "tests/fixtures/refs/orphan-rule/adr/schema.yaml", "tests/fixtures/vocab/exemptions/adr/schema.yaml", "tests/fixtures/vocab/unknown-word/adr/schema.yaml"]
-verify = ["cargo nextest run -p folio --test note f162_", "cargo nextest run -p folio --test link f162_", "cargo nextest run -p folio --test note", "cargo nextest run -p folio --test link", "cargo nextest run -p folio --test schema", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio floor_", "cargo nextest run -p folio --test graph f99_", "cargo nextest run -p folio --test floor_cases", "cargo clippy --workspace --all-targets -- -D warnings"]
+write-set = ["crates/folio/src/floor_adr.rs", "crates/folio/src/floor_note.rs", "crates/folio/src/rules.rs", "crates/folio/src/adr.rs", "crates/folio/src/link.rs", "crates/folio/src/schema.rs", "crates/folio/src/note.rs", "crates/folio/tests/note.rs", "crates/folio/tests/link.rs", "crates/folio/tests/schema.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/floor_cases.rs", "design-intent/adr/schema.yaml", "design-intent/design-note/schema.yaml", "design-intent/rules.yaml", "tests/fixtures/schema/adr-region.txt", "tests/fixtures/schema/note-region.txt", "tests/fixtures/schema/rules-region.txt", "tests/fixtures/schema/node-digest-anchor.txt", "tests/fixtures/floor_base/design-intent/adr/schema.yaml", "tests/fixtures/floor_base/design-intent/design-note/schema.yaml", "tests/floor_cases.yaml", "tests/fixtures/adr/effective-no-approval/adr/schema.yaml", "tests/fixtures/adr/schema-drift/adr/schema.yaml", "tests/fixtures/adr/two-adopted/adr/schema.yaml", "tests/fixtures/anchor/no-anchor/adr/schema.yaml", "tests/fixtures/anchor/root-digest-drift/adr/schema.yaml", "tests/fixtures/check/dup-key/adr/schema.yaml", "tests/fixtures/check/empty-field/adr/schema.yaml", "tests/fixtures/check/unknown-section/adr/schema.yaml", "tests/fixtures/link/adr-id-missing/adr/schema.yaml", "tests/fixtures/link/amended-by-orphan/adr/schema.yaml", "tests/fixtures/link/retreat-kind-drift/adr/schema.yaml", "tests/fixtures/refs/bad-counts/adr/schema.yaml", "tests/fixtures/refs/dangling-id/adr/schema.yaml", "tests/fixtures/refs/orphan-rule/adr/schema.yaml", "tests/fixtures/vocab/exemptions/adr/schema.yaml", "tests/fixtures/vocab/unknown-word/adr/schema.yaml"]
+verify = ["cargo nextest run -p folio --test note f162_", "cargo nextest run -p folio --test link f162_", "cargo nextest run -p folio --test note", "cargo nextest run -p folio --test link", "cargo nextest run -p folio --test schema", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio adr_floor_derives_the_frozen_anchor_byte_for_byte note_floor_derives_the_frozen_anchor_byte_for_byte rules_floor_derives_the_frozen_anchor_byte_for_byte floor_constants_are_read_through_the_floor", "cargo nextest run -p folio --test graph f99_", "cargo nextest run -p folio --test floor_cases", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "tests/note.rs の f162_ の 2 本（§1 (c) の 1・2）と tests/link.rs の f162_ の 1 本（§1 (c) の 3）が緑、tests/note.rs・tests/link.rs・tests/schema.rs・tests/schema_docs.rs の歯の全部（生成区間の行数・byte 数・要約値と凍結 anchor の byte 一致・tests/schema.rs の上限を含む）が緑、--bin folio の floor_ の歯（床の木の導出と凍結 anchor 3 本の byte 一致・値域の針）が緑、tests/graph.rs の f99_ の歯と tests/floor_cases.rs の歯の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と比べて constitution.html の種別 deny の説明のほかは変わらない"
+done = "tests/note.rs の f162_ の 2 本（§1 (c) の 1・2）と tests/link.rs の f162_ の 1 本（§1 (c) の 3）が緑、tests/note.rs・tests/link.rs・tests/schema.rs・tests/schema_docs.rs の歯の全部（生成区間の行数・byte 数・要約値と凍結 anchor の byte 一致・tests/schema.rs の上限を含む）が緑、--bin folio の単体の歯 4 本（床の木の導出と凍結 anchor 3 本の byte 一致・値域の針）が緑、tests/graph.rs の f99_ の歯と tests/floor_cases.rs の歯の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と比べて constitution.html の種別 deny の説明のほかは変わらない"
 <!-- contracts:end -->
