@@ -13,7 +13,8 @@ json.dumps で書く。引数の置き場の正本 4 種（constitution.yaml・r
 - line: 所属 file の中で、その行の id の値が書かれた行（1 始まり）
 - title: 題の欄の字の空白の連なりを 1 つに畳み、前後を落とし、字で 36 に切る（無ければ空の字）
 - plain: 行の欄 plain の字（無いか空の値なら null）
-- eng: 行の欄 shall・text・what・decision のうち最初に字を持つものの字（条はその最初の規範文の行で見る・無ければ null）
+- eng: 行の欄 shall・text・what・decision のうち最初に字を持つものの字（条はその最初の規範文の行で見る・受入基準は
+  題の欄の全文〔畳まず切らない〕・無ければ null）
 """
 
 import json
@@ -84,7 +85,7 @@ def main():
     dir_ = sys.argv[1]
     nodes = {}
 
-    def add(row, kind, file, title_key, eng_row):
+    def add(row, kind, file, title_key, eng_text):
         id_node = get(row, "id")
         id_ = text(id_node)
         if id_ is None or id_ in nodes:
@@ -96,27 +97,28 @@ def main():
             "line": id_node.start_mark.line + 1,
             "title": fold(text(get(row, title_key))),
             "plain": text(get(row, "plain")),
-            "eng": eng(eng_row) if eng_row is not None else None,
+            "eng": eng_text,
         }
 
     root = compose(os.path.join(dir_, "constitution.yaml"))
     for article in rows(root, "articles"):
         statements = [st for st in rows(article, "statements") if text(get(st, "id")) is not None]
-        add(article, "条", "constitution.yaml", "title", statements[0] if statements else None)
+        add(article, "条", "constitution.yaml", "title", eng(statements[0]) if statements else None)
         for st in statements:
-            add(st, "規範文", "constitution.yaml", "text", st)
+            add(st, "規範文", "constitution.yaml", "text", eng(st))
     root = compose(os.path.join(dir_, "rules.yaml"))
     for section in ["thresholds", "discipline"]:
         for row in rows(root, section):
-            add(row, "規則行", "rules.yaml", "what", row)
+            add(row, "規則行", "rules.yaml", "what", eng(row))
     root = compose(os.path.join(dir_, "srs.yaml"))
     for section, kind, title_key in SRS:
         for row in rows(root, section):
-            add(row, kind, "srs.yaml", title_key, row)
+            full = text(get(row, title_key)) if kind == "受入基準" else eng(row)
+            add(row, kind, "srs.yaml", title_key, full)
     names = sorted(n for n in os.listdir(os.path.join(dir_, "adr")) if n.startswith("ADR-") and n.endswith(".yaml"))
     for name in names:
         root = compose(os.path.join(dir_, "adr", name))
-        add(root, "判断の記録", f"adr/{name}", "title", root)
+        add(root, "判断の記録", f"adr/{name}", "title", eng(root))
     out = sys.stdout
     for id_ in sorted(nodes, key=lambda s: s.encode("utf-8")):
         out.write(json.dumps(nodes[id_], ensure_ascii=False, separators=(",", ":")) + "\n")

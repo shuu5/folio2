@@ -1,9 +1,10 @@
 //! `folio graph --print --summary`（便 180・docs/design/delivery-180.md §1 (c)・要件 FR14 第 1.52 版）の歯。folio は
 //! 実行 file の crate なので命令を撃つ。
 //! 1. 実の正本で、節点の表の各行に 1 行ずつ同じ順・同じ id・種類・file・題で出て、line の行にその id が書かれている。
-//! 2. 凍結した土台の写しの 7 節点の行が、歯の側に手で書いた字（凍結 anchor・P-10.1）と一致する。
+//! 2. 凍結した土台の写しの 8 節点の行が、歯の側に手で書いた字（凍結 anchor・P-10.1）と一致する（受入基準の技術の要約は
+//!    題の全文）。
 //! 3. タブ・改行・引用符・逆斜線・制御の字を持つ欄が JSON の escape で 1 行に収まり、技術の要約の欄の順（空の値は
-//!    飛ばす）と条の「最初の規範文」が守られる。
+//!    飛ばす）と条の「最初の規範文」と受入基準の題の全文（畳まず切らない）が守られる。
 //! 4. 独立の実装 tests/fixtures/schema/node-summary.py（PyYAML と json）の出力と byte で一致する（python3 か PyYAML が
 //!    無ければ まだ分からない として理由を出し、落とさない・P-10.3）。
 //! 5. 組めない置き場では 1 行も出さずに まだ分からない（終了コード 2）。--summary は --print と一緒のときだけ。
@@ -183,7 +184,8 @@ fn f180_the_frozen_base_lines_are_the_hand_written_ones() {
         r#"{"id":"P-6.2","kind":"規範文","file":"constitution.yaml","line":201,"title":"生成物を手で直さない。","plain":null,"eng":"生成物を手で直さない。"}"#,
         r#"{"id":"R-5","kind":"規則行","file":"rules.yaml","line":33,"title":"密度 profile と図の型の数","plain":null,"eng":"密度 profile と図の型の数"}"#,
         r#"{"id":"FR8","kind":"要件","file":"srs.yaml","line":195,"title":"途中で足す窓口","plain":"あとから「やっぱりこの文書も」となっても、最初からやり直さず、差分だけ相談します。","eng":"folio は差分だけを対象に intake を再実行し、支度表を更新する。"}"#,
-        r#"{"id":"AC12","kind":"受入基準","file":"srs.yaml","line":409,"title":"検査を通らない図は生成されず、前の生成物が残る","plain":"わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。","eng":null}"#,
+        r#"{"id":"AC12","kind":"受入基準","file":"srs.yaml","line":409,"title":"検査を通らない図は生成されず、前の生成物が残る","plain":"わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。","eng":"検査を通らない図は生成されず、前の生成物が残る"}"#,
+        r#"{"id":"AC11","kind":"受入基準","file":"srs.yaml","line":406,"title":"印の無い commit の契約は「まだ分からない」と出て「未着地」と出な","plain":"便が入ったかを示す印が無いとき、「まだ分からない」と表示され「入っていない」とは表示されないことを見せる。","eng":"印の無い commit の契約は「まだ分からない」と出て「未着地」と出ない"}"#,
         r#"{"id":"folio-v2","kind":"登場人物","file":"srs.yaml","line":92,"title":"folio v2","plain":null,"eng":null}"#,
     ] {
         let id = want.split('"').nth(3).unwrap();
@@ -214,6 +216,11 @@ fn f180_text_fields_are_escaped_into_one_json_line() {
         "      - {id: N-3.1, ",
         "      - {pattern: unwanted, text: id の無い行は規範文でない}\n      - {id: N-3.1, ",
     );
+    work.replace(
+        "srs.yaml",
+        "  - {id: AC12, title: 検査を通らない図は生成されず、前の生成物が残る, ",
+        "  - {id: AC12, title: \"検査を通らない図は  生成されず、\\n前の生成物が残る（題を 36 字で切らず、空白も畳まない全文）\", ",
+    );
     let text = summary(&work.dir());
     let print = passed(graph(&work.dir(), &["--print"]));
     let rows = print.lines().skip(1).take_while(|l| *l != EDGES_HEAD).count();
@@ -230,6 +237,10 @@ fn f180_text_fields_are_escaped_into_one_json_line() {
     assert!(
         line_of(&text, "N-3").ends_with(r#","eng":"変更が規則の例外機構（無効化の旗・「今回だけ」の口）を足すなら、それを拒む。"}"#),
         "条の技術の要約が最初の規範文でない"
+    );
+    assert!(
+        line_of(&text, "AC12").ends_with(r#","title":"検査を通らない図は 生成されず、 前の生成物が残る（題を 36 字で切ら","plain":"わざと崩れた図の記述を入れて走らせ、図が作られず前の図がそのまま残ることを見せる。","eng":"検査を通らない図は  生成されず、\n前の生成物が残る（題を 36 字で切らず、空白も畳まない全文）"}"#),
+        "受入基準の技術の要約が題の全文でない"
     );
     if let Some(want) = independent(&work.dir()) {
         assert!(text == want, "独立の実装の出力と違う");

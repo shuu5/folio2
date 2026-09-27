@@ -3,7 +3,7 @@
 //! 索引は導出物で repo へは書かない（ADR-13 決定 (4)・P-6.3）。組めなければ表を出さずに「まだ分からない」（P-4.2）。
 //! 節点の種類と辺の型の閉じた一覧の正本はこの file の定数（P-5.1・ADR-13 決定 (1)(2)）。欄の値を読み、散文は走査しない。
 //! 便 180（docs/design/delivery-180.md §1・要件 FR14 第 1.52 版）: `--print --summary` は表の代わりに、節点ごとに
-//! 所属 file の中の id の行の番号・平易文の欄の字・技術の要約の字を添えた 1 行の JSON（JSON Lines）を出す。
+//! 所属 file の中の id の行の番号・平易文の欄の字・技術の要約の字（受入基準は題の全文）を添えた 1 行の JSON（JSON Lines）を出す。
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -144,7 +144,8 @@ const TYPES_HEAD: &str =
 const FILES_HEAD: &str = "# file ごとの節点（1 行 = file / 数・タブ区切り・file の名の byte 順）";
 const NEXT_LINE: &str = "# 索引そのもの（節点と辺の全行）は folio graph --print";
 
-/// 技術の要約の欄（規範文・本文・what・決定）。節点の行にこの順で最初に在る字を採る（条はその最初の規範文の字・便 180）。
+/// 技術の要約の欄（規範文・本文・what・決定）。節点の行にこの順で最初に在る字を採る（条はその最初の規範文の字・
+/// 受入基準は題の全文・便 180）。
 const ENG_FIELDS: [&str; 4] = ["shall", "text", "what", "decision"];
 
 /// 規則の表の 2 節。
@@ -196,9 +197,8 @@ impl Index {
             .or_insert((NODE_KINDS[kind], file.to_string(), title));
     }
 
-    /// 節点の平易文（行の欄 plain）と技術の要約（`eng` の行の ENG_FIELDS のうち最初に在る字）を覚える。
-    fn texts(&mut self, id: &str, row: &Node, eng: Option<&Node>) {
-        let eng = eng.and_then(|e| ENG_FIELDS.iter().find_map(|k| e.get(k).and_then(Node::as_str)));
+    /// 節点の平易文（行の欄 plain）と技術の要約 `eng` の字を覚える。
+    fn texts(&mut self, id: &str, row: &Node, eng: Option<&str>) {
         let plain = row.get("plain").and_then(Node::as_str).map(str::to_string);
         self.texts
             .entry(id.to_string())
@@ -305,6 +305,11 @@ impl Index {
     }
 }
 
+/// 行の技術の要約: ENG_FIELDS のうち最初に字の値を持つ欄の字（空の値の欄は飛ばす）。
+fn eng(row: &Node) -> Option<&str> {
+    ENG_FIELDS.iter().find_map(|k| row.get(k).and_then(Node::as_str))
+}
+
 /// 題を 1 行にする: 空白の連なりを 1 つに畳み、前後を落とし、Unicode の字で上限に切る。
 fn fold(text: &str) -> String {
     text.split_whitespace()
@@ -354,11 +359,11 @@ fn constitution(index: &mut Index, root: &Node) {
         };
         index.node(aid, 0, file, article.get("title"));
         let first = section(article, "statements").iter().find(|st| id_of(st).is_some());
-        index.texts(aid, article, first);
+        index.texts(aid, article, first.and_then(eng));
         for st in section(article, "statements") {
             if let Some(sid) = id_of(st) {
                 index.node(sid, 1, file, st.get("text"));
-                index.texts(sid, st, Some(st));
+                index.texts(sid, st, eng(st));
                 index.edge(aid, sid, 0);
                 index.edge(sid, aid, 0);
             }
@@ -380,7 +385,7 @@ fn rules(index: &mut Index, root: &Node) {
                 continue;
             };
             index.node(rid, 2, "rules.yaml", row.get("what"));
-            index.texts(rid, row, Some(row));
+            index.texts(rid, row, eng(row));
             index.field(rid, row.get("article"), 6);
             index.field(rid, row.get("refs"), 7);
         }
@@ -395,7 +400,9 @@ fn srs(index: &mut Index, root: &Node) {
                 continue;
             };
             index.node(id, kind, "srs.yaml", row.get(title));
-            index.texts(id, row, Some(row));
+            // 受入基準（種類 6）は 4 つの欄を持たないので、技術の要約は題の全文（表の 36 字で切らない字）
+            let text = if kind == 6 { row.get(title).and_then(Node::as_str) } else { eng(row) };
+            index.texts(id, row, text);
             for (key, ty) in SRS_FIELDS {
                 index.field(id, row.get(key), ty);
             }
@@ -414,7 +421,7 @@ fn adr(index: &mut Index, dir: &Path) -> Result<(), String> {
         };
         let file = format!("adr/{name}");
         index.node(id, 10, &file, root.get("title"));
-        index.texts(id, &root, Some(&root));
+        index.texts(id, &root, eng(&root));
         index.field(id, root.get("basis"), 8);
         index.field(id, root.get("produced"), 15);
         index.field(id, root.get("figures"), 14);
