@@ -288,7 +288,8 @@ mod tests {
 
     const RECORD: &str = "id: ADR-1\ntitle: 封\nstatus: accepted\ndate: 2026-09-27\nsuperseded_by: ADR-2\nbasis: [P-1]\n";
 
-    /// 要約値は status と superseded_by だけを除いた木の正規化の sha256（便 170 §1 (c)8）。字の json は手で写した凍結の字。
+    /// 要約値は status と superseded_by だけを除いた木の正規化の sha256（便 170 §1 (c)8）。字の json は手で写した凍結の字
+    /// （Python の json.dumps(sort_keys・区切り「,」「:」・ensure_ascii なし) と同じ形）で、要約値はその字の sha256 の全桁。
     #[test]
     fn f170_the_body_sum_skips_only_status_and_superseded_by() {
         assert_eq!(SEAL_OUTSIDE, ["status", "superseded_by"]);
@@ -298,7 +299,7 @@ mod tests {
         assert_eq!(sum, sha256::hex(json.as_bytes()));
         assert_eq!(
             sum,
-            "8d8c16d2a8a9d50ec4c64e7d7c5d0d2c6a1e0f4c3b1d6c4a3b2e7d9f5a6c1b0e"
+            "78ab3bb977dfaa34806a4d070662d8ea625677c95186ae537c63013118227db2"
         );
         let retired = RECORD
             .replace("status: accepted", "status: retired")
