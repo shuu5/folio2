@@ -188,7 +188,7 @@ articles:
       - {id: P-5.4, pattern: ubiquitous, strength: must-not, text: 台帳（bd）はタスクと裁定の記帳先であり、規則を置かない。}
       - {id: P-5.5, pattern: ubiquitous, strength: must, text: 原則と裁定の正本は設計文書、機械が執行する規則の正本は型付きデータとし、置き場をこの 2 面に限る。}
       - {id: P-5.6, pattern: state, strength: must, text: 実装の型付きの定数を規則の正本とするあいだ、その写しを人が読める型付きデータとして設計文書の置き場へ決定的に導出する。}
-    plain: 「こうしてね」と文章に書いただけでは、AI は守り続けられません。守らせたい規則は表に載せ、番号で呼びます。文書の種類ごとの違いも、種類ごとに検査を分けず、どの種類にも同じ 1 つの検査（汎用の検査）と、見せ方の設定の表（密度 profile）で表します。台帳（タスクと持ち主の決めごとの帳簿）には規則を書きません。原則と裁定は設計文書に、機械が守らせる規則は表に、置き場はこの 2 つだけです。道具の中に型を付けて書いた決まりも表の 1 つに数えますが、それを元にしているあいだは、人が読める表（型付きデータ）の形の写しを、機械が何度やっても同じ結果になる形で作って、設計文書の置き場に置き続けます。
+    plain: 「こうしてね」と文章に書いただけでは、AI は守り続けられません。守らせたい規則は表に載せ、番号で呼びます。文書の種類ごとの違いも、種類ごとに検査を分けず、どの種類にも同じ 1 つの検査（汎用の検査）と、見せ方の設定の表（密度 profile）で表します。台帳（タスクと、持ち主と席の決めごとの帳簿）には規則を書きません。原則と裁定は設計文書に、機械が守らせる規則は表に、置き場はこの 2 つだけです。道具の中に型を付けて書いた決まりも表の 1 つに数えますが、それを元にしているあいだは、人が読める表（型付きデータ）の形の写しを、機械が何度やっても同じ結果になる形で作って、設計文書の置き場に置き続けます。
     rationale:
       - {kind: scribe2-article, ref: "C1（規則はデータ）・C14（規律は文書とデータの 2 面）・C15 / C15.2（台帳はタスク専用・id 参照）。C1 の「値は 1 file」は G14=A により folio2 では憲法 / rules / 語彙 / 要件書の 4 file に分ける（意図的な逸脱）"}
       - {kind: v1-incident, ref: "folio/CLAUDE.md:18「本 hook は tier-2 shaping であって guarantee ではない」＝規則が散文にしか無い・rules.html 248KB の散文"}
@@ -277,7 +277,7 @@ articles:
     rationale:
       - {kind: scribe2-article, ref: "C7 / C7.2（対話面は 1 つ・逐語で記帳）"}
       - {kind: folio2-ruling, ref: "G8=A（C7 を足す）・運用実績（G1〜G16・P1〜P5 の裁定はすべて bd notes の逐語）・受入 (c)"}
-    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: 承認欄（approval）の逐語・日付・裁定 id・対話面の欄充足を schema で検査する。数えるのは、判断の記録と設計ノートの承認欄（欄 who・date・ruling・verbatim・surface の欄充足）と、憲法の meta.approval（凍結 anchor の写しとの一致）である。要件書・入口・天井の正本・相談窓口・索引の欄の決まりの正本の meta.approval の行（欄 role・who・when・stamp・verbatim・version）は裁定 id と対話面の欄を持たず、床はその欄充足をまだ数えない（後続・台帳の控え）。支度表は設計文書の正本に数えない（語彙の設計文書の項）。その行の逐語と、stamp の字に書く裁定 id と対話面は人が確かめる。「どの面を通ったか」の同定は人が見る。day-1 は bd notes の逐語を人が確かめる。}
+    mechanism: {kind: build-check, live: now, stage: post, polarity: fail-closed, note: 承認欄（approval）を床で数える。判断の記録と設計ノートの承認欄は、欄 who・date・ruling・verbatim・surface の欄充足に加えて、承認者の値域・日付の形（年-月-日）・裁定 id が台帳 id の形を持つこと・対話面の値域（行 R-8）・逐語が雛形の印「未記入」でないことを数える（判断の記録は crates/folio/src/adr.rs の check_approval、設計ノートは便 161 から crates/folio/src/note.rs の check_meta が同じ定数と判定で数える）。憲法の meta.approval は凍結 anchor の写しとの一致を数え、凍結 anchor の承認一覧は裁定 id の形・印「未記入」・日付の形を数える（便 158・crates/folio/src/anchor.rs の check_approvals）。始まりの凍結は meta.approval を同じ確かめに掛けてから書く（便 155）。要件書・入口・天井の正本・相談窓口・索引の欄の決まりの正本の meta.approval の行（欄 role・who・when・stamp・verbatim・version）は裁定 id と対話面の欄を持たず、床はその欄充足をまだ数えない（後続・台帳の控え）。支度表は設計文書の正本に数えない（語彙の設計文書の項）。その行の逐語と、stamp の字に書く裁定 id と対話面は人が確かめる。「どの面を通ったか」の同定は人が見る。day-1 は bd notes の逐語を人が確かめる。}
     relations: {rules: [R-8, D-10, D-14, D-17], sections: [§6]}
 
   - id: P-13

@@ -7,7 +7,7 @@ meta:
   status: example
   generated: 2026-09-17
   profile: design-note
-  note: 見本（status example）は承認欄を持たない（欄の決まりの「承認欄が要る条件」＝ approval_required_when）。発効した設計ノートでは持ち主の逐語が入る。
+  note: 見本（status example）は承認欄を持たない（欄の決まりの「承認欄が要る条件」＝ approval_required_when）。発効した設計ノートの承認欄には、持ち主の逐語か席の裁定の字が入る（誰の承認が要るかは規則の表の開発規律の行が定める）。
 
 sections:
   - n: 1
