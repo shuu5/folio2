@@ -16,7 +16,7 @@
 3. **改訂の欄は欄の決まりに在る。** `floor_adr.rs` の REVISES（optional の欄）・REVISE_KIND・REVISES_ENTRY・床の木の revise_kind・revises_entry・revises_note。`adr.rs` の check_revises が形・target・同じ決定の二重を見る。生成区間 `design-intent/adr/schema.yaml`（140 行）と凍結 anchor `tests/fixtures/schema/adr-region.txt` が同じ字を持つ。本流の記録 28 本は行 0。
 4. **面が改訂の欄を描く。** `face_adr.rs` は表紙の札「判断の記録の改訂 n 件」・章 05 の行・受けた改訂の逆向きの行と札（便 148）・機械の面の `<dt>revises</dt>` を出す。
 5. **封は在る（便 172）。** 発効した記録の本文を変えると封の違反が立つ。便 101 の歯 7 本（`tests/adr.rs`）は写しの ADR-13 に行を植え、ADR-13 の封の違反 1 行を確かめて外した残りを見ている。
-6. **base の歯。** nextest 1008 / 1008・clippy 0 警告・床 4 本 rc 0・`folio build --write` 35 file。`git grep -n f173_ -- crates` 0 件・行 id `ft` 0 件。
+6. **base の歯。** nextest 1008 / 1008・clippy 0 警告・床 4 本 rc 0・`folio build --write` 35 file。`git grep -n f173_ -- crates` 0 件・行 id `ft` 0 件。数は封の一覧を持つ枝（run の枝・impl/f2-648.254-run1・impl/d172・impl/d173）を参照に持つ写しで取った（便 172 の後は本流が封の一覧を持つので、便 172 の §1 (a) の 5 の違反は出ない・参照が 1 本の写しでも床 4 本 rc 0）。
 
 ### (b) 直す先
 
