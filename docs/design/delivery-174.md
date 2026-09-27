@@ -6,8 +6,11 @@
 - 置き場: 審査の材料は行 `fu` の §1 だけ。write-set 12 本（src 5・歯の file 7〔中身の変わらない 5 本は verify の --test の scope〕）。新しい dir・新しい file・消す file は無い。設計文書の正本（design-intent/）は書き換えない。
 - 門: **対象外・0（通す）**（本流 1ca1ae1 の binary・write-set 12 本・`通す（設計文書の正本を書き換えない便）`）。
 - base = 本流 1ca1ae1（数はその写しの実測・参考値・行 D-13）。
+- 実装の見本: origin の枝 `impl/d174`（commit 3af6ade・親は 1ca1ae1）が本便の後の中身（差分 49,012 byte・7 file）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 3af6ade -- <write-set の file>`）。write-set の外は変えない。
 
 ## 1. 設計
+
+実装の見本は origin の枝 `impl/d174`（commit 3af6ade・親は 1ca1ae1）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 3af6ade -- <write-set の file>`）。write-set の外は変えない。
 
 ### (a) いま起きていること（参考値・1ca1ae1）
 
@@ -119,7 +122,7 @@ schema = 1
 
 [[contract]]
 id = "fu"
-title = "生成区間を外の置き場へ書くとき folio2 の番号を名指さない（判断の記録 ADR-16 決定 (2)(オ)・tsuzuri の天井の整合の所見 F-4 止める と F-14 直す）: floor.rs に folio2 の置き場の名 HOME と外の置き場の規則 7 を足し、外の置き場では文字列の値から folio2 の番号の印（予約の行 R-8・R-16 のほかの id・決定の番号・台帳の id・便）を持つ括弧の片と文を落とし（注で何も残らなければ欄ごと書かない）、新しい欄の型 Home（folio2 の置き場にだけ在る欄）を書かない。derive_for と floor_diff_for が同じ規則を通る。floor_note.rs の値が folio2 の規則の表の行を名指す 5 欄を Home で包み、schema.rs は 9 本とも置き場の名で導き、note.rs は設計ノートの写しを名つきで突き合わせ、骨格の ids_in を init.rs から床へ降ろす。folio2 自身の 9 本の生成区間と凍結 anchor は 1 byte も変えない。base = 本流 1ca1ae1"
+title = "生成区間を外の置き場へ書くとき folio2 の番号を名指さない（判断の記録 ADR-16 決定 (2)(オ)・tsuzuri の天井の整合の所見 F-4 止める と F-14 直す）: floor.rs に folio2 の置き場の名 HOME と外の置き場の規則 7 を足し、外の置き場では文字列の値から folio2 の番号の印（予約の行 R-8・R-16 のほかの id・決定の番号・台帳の id・便）を持つ括弧の片と文を落とし（注で何も残らなければ欄ごと書かない）、新しい欄の型 Home（folio2 の置き場にだけ在る欄）を書かない。derive_for と floor_diff_for が同じ規則を通る。floor_note.rs の値が folio2 の規則の表の行を名指す 5 欄を Home で包み、schema.rs は 9 本とも置き場の名で導き、note.rs は設計ノートの写しを名つきで突き合わせ、骨格の ids_in を init.rs から床へ降ろす。folio2 自身の 9 本の生成区間と凍結 anchor は 1 byte も変えない。実装の見本は origin の枝 impl/d174 の commit 3af6ade（親 1ca1ae1）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 1ca1ae1"
 req = ["FR19", "FR22"]
 section = "1"
 write-set = ["crates/folio/src/floor.rs", "crates/folio/src/floor_note.rs", "-crates/folio/src/init.rs", "crates/folio/src/note.rs", "crates/folio/src/schema.rs", "crates/folio/tests/place_name.rs", "crates/folio/tests/freeze_root.rs", "crates/folio/tests/schema.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/note.rs", "crates/folio/tests/init.rs", "crates/folio/tests/modules.rs"]
