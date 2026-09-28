@@ -107,7 +107,8 @@ fn build(dir: &Path, answers_path: Option<&Path>, mode: Mode) -> R<Outcome> {
             })
         }
         Mode::Write => {
-            let documents = map_documents(&intake.questions, &answers, &intake.values, &intake.targets)?;
+            let documents =
+                map_documents(&intake.questions, &answers, &intake.values, &intake.targets)?;
             // 置き場の名（憲法の meta.id から・導けなければ名を出さない・便 154）
             let name = adr::name_of(dir);
             let header = format!("# {}", adr::named(name.as_deref(), " ", HEADER));
