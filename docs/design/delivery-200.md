@@ -5,14 +5,14 @@
 - 出所: 判断の記録 ADR-33（accepted・持ち主の承認 2026-09-28 22:08 JST・本流 08a64bc で発効）の決定 (5)(7)。決定 (7) の「便 200（行 gu）が極性一覧の口と下限の数え・読む口の名の欄（key）の値域・床の定数の仕掛けの一覧の欄を運ぶ（in_loop は空のまま・行 R-13 に key が無いので下限は数えずに 1 行出す）」。
 - 承認: 欄 key の閉じた一覧に in-loop-min を足すのは ADR-33 決定 (5) の字（「その欄の閉じた一覧に同じ値を足す」）で、規則の表の行は足しも変えもしない＝行 D-17 の 4 つに当たらない。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gu` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 10 本（src 4〔新 1〕・歯の file 4〔新 1・本文を変える 3〕・凍結 anchor 1・設計文書の生成区間 1）。縮む file・消す file・新しい dir は無い。
-- 門: **0（通す）**。本流 49c4779 の組み立ての binary に write-set を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（`folio ceiling: 通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・…）`・起草の記録の `gate-19x.log`）。
-- 前提: **base = 本流 49c4779**（便 198 の着地 ca8640a と行 R-20 の着地の後）。この契約の数はすべて 49c4779 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d200`（commit **11e8587**・本流 49c4779 の上の 1 commit）。`git diff 49c4779 11e8587` が便の全体の差分（10 file・+484 −14・43,472 byte）。**作業者は write-set の file をこの枝の中身にしてよい**（`git checkout impl/d200 -- <write-set の file>`）。
-- 並行の便との重なり: §1 (g) の表。**便 196 と `crates/folio/src/check.rs`・`crates/folio/tests/schema_docs.rs` が重なる**（git merge-tree で衝突なし）。便 196 が先に着地したら、本便は余地と歯の数を数え直してから受け付ける。
+- 門: **0（通す）**。本流 5b8aa9a の組み立ての binary に write-set を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（`folio ceiling: 通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・…）`・起草の記録の `gate-19x.log`）。
+- 前提: **base = 本流 5b8aa9a**（便 198 の着地 ca8640a・行 R-20・便 196 の着地の後）。この契約の数はすべて 5b8aa9a の写しの実測（参考値・規則の表の行 D-13）。
+- 実装の見本: origin の枝 `impl/d200`（commit **237cc58**・本流 49c4779 の上の 11e8587 に本流 5b8aa9a〔便 196 の着地〕を取り込んだ merge・衝突なし）。`git diff 5b8aa9a 237cc58` が便の全体の差分（10 file・+484 −14・43,472 byte）。**作業者は write-set の file をこの枝の中身にしてよい**（`git checkout impl/d200 -- <write-set の file>`）。
+- 並行の便との重なり: §1 (g) の表。便 196（`crates/folio/src/check.rs`・`crates/folio/tests/schema_docs.rs` が重なる）は本流 5b8aa9a に着地済みで、本契約の数は 196 の後の実測（見本へ取り込んだ merge は衝突なし）。本便の write-set の file を書き換える便がほかに先に着地したら、本便は余地と歯の数を数え直してから受け付ける。
 
 ## 1. 設計
 
-### (a) いま起きていること（base 49c4779 の実測・参考値）
+### (a) いま起きていること（base 5b8aa9a の実測・参考値）
 
 1. **極性一覧を出す口が無い。** base の binary の `folio check --polarity` は clap が断る（`error: unexpected argument '--polarity' found`・終了 2）。条 P-18 の機構は live が M1 で、素の床は P-18 を機構がまだ無い条の 1 行に出す（`# 機構がまだ無い条（…）: P-11（M1）・P-13（M1）・P-15（M1）・P-17（M1）・P-18（M1）・A-3（M1）`）。
 2. **下限の行を読む口が無い。** 規則の表の行 R-13（条 P-18・what = 編集の時点で止める guard の本数の下限・値 1 本以上・種別 deny・段 post）は欄 key を持たず、欄 key の閉じた一覧（`crates/folio/src/rules.rs` の定数 KEYS）は note-chapters と plan-note の 2 つ。規則の表の生成区間（`design-intent/rules.yaml` の schema 節の enums.key と key_note）も 2 つ。
@@ -45,7 +45,7 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 4. **f200_a_bound_value_out_of_form_is_unknown。** 行 R-13 に欄 key を付け、値を 0 本以上・3 本・いくつか 本以上 の 3 通りにした写しで、素の床はどれも終了 2・違反 0・まだ分からない の行がちょうど `# まだ分からない: rules.yaml: 行 R-13 の value「<値>」が「<正の整数> 本以上」の形でない` の 1 行・知らせの行は無い。`--polarity` はどれも終了 2。
 5. **f200_no_bound_row_prints_one_line_and_does_not_count（AC32 の 4 つ目）。** 土台そのままの写しで、素の床は終了 0・違反 0・まだ分からない 0・標準エラーに知らせ（定数 OFF の字）がちょうど 1 行。同じ置き場で、行 R-13 に欄 key と値 99 本以上を付けた規則の表を `--proposed rules.yaml` に渡すと終了 1 で、標準出力に `行 R-13 の下限 99 本以上を割る` を含む止める行が在り、口の標準エラーに知らせの行は無い（口も同じ床の関数で数える）。
 6. **既存の歯の期待の直し。** `crates/folio/tests/mechanism_live.rs`: 土台と骨格は下限の行を持たないので、知らせの行が行 R-17 の知らせの次に出る。手書きの定数 IN_LOOP_OFF（新しい名・定数 OFF と同じ字）を足し、f131_floor_base_lists_the_articles_before_the_summary の 2 か所（素の床と `--emit-amends`）・f131_no_line_when_no_article_waits_for_its_mechanism・f156_a_place_without_r17_says_the_mentions_are_not_counted（末尾の 2 行が行 R-17 の知らせと IN_LOOP_OFF）の標準エラーの期待に 1 行足す。`crates/folio/tests/schema_docs.rs`: 定数 RULES_REGION_BYTES を 3842・RULES_REGION_SHA256 を上の値にする（行数 32 は同じ・注 1 行）。`crates/folio/tests/modules.rs`: 層の割り当ての表に区切り polarity を層 2 として 1 行（読む相手は verdict〔0〕・constitution_enums と floor と floor_note と yaml〔1〕・rules〔2〕、名指す側は check〔2〕と main〔5〕）。
-7. **RED の実測。** 歯の file だけ（`r200-teeth.patch`＝`tests/polarity.rs`・`tests/mechanism_live.rs`・`tests/modules.rs`・`tests/schema_docs.rs`・`tests/fixtures/schema/rules-region.txt` の差分）を base に当てると、f200_ の 5 本とも落ちる（clap が旗を断る・欄 key の値域の外は便 179 の違反・知らせの行が無い）・`tests/mechanism_live.rs` の 3 本が落ちる（知らせの行が無い）・`tests/schema_docs.rs` の f85_rules_region_matches_the_new_anchor が落ちる（生成区間 3512 byte）・`tests/modules.rs` の 2 本（p106_layers_cover_every_module・p106_edges_point_down）が落ちる（表に区切り polarity が在るのに src に file が無い）。log は起草の記録の `red-200.log`。
+7. **RED の実測。** 歯の file だけ（`r200-teeth.patch`＝`tests/polarity.rs`・`tests/mechanism_live.rs`・`tests/modules.rs`・`tests/schema_docs.rs`・`tests/fixtures/schema/rules-region.txt` の差分）を base に当てると、f200_ の 5 本とも落ちる（clap が旗を断る・欄 key の値域の外は便 179 の違反・知らせの行が無い）・`tests/mechanism_live.rs` の 3 本が落ちる（知らせの行が無い）・`tests/schema_docs.rs` の f85_rules_region_matches_the_new_anchor が落ちる（生成区間 3512 byte）・`tests/modules.rs` の 2 本（p106_layers_cover_every_module・p106_edges_point_down）が落ちる（表に区切り polarity が在るのに src に file が無い）。log は起草の記録の `red-200c.log`。
 
 ### (d) 採らなかった形
 
@@ -56,11 +56,11 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 本便の差分を base に当てた写し（見本 11e8587）の数は次の表（参考値・起草の記録の `verify-200-summary.txt`・`CARGO_BUILD_JOBS=4`・`--test-threads 2`）。字の期待を直した既存の歯は (c) の 6 の 5 本と単体の 1 本（rules.rs の f179_key_is_a_closed_list_and_one_threshold_row_per_key）。
+1. **既存の歯。** 本便の差分を base に当てた写し（見本 237cc58）の数は次の表（参考値・起草の記録の `verify-200c-summary.txt`・`CARGO_BUILD_JOBS=4`・`--test-threads 2`）。字の期待を直した既存の歯は (c) の 6 の 5 本と単体の 1 本（rules.rs の f179_key_is_a_closed_list_and_one_threshold_row_per_key）。
 
-| 数え | base 49c4779 | 見本 11e8587 |
+| 数え | base 5b8aa9a | 見本 237cc58 |
 | --- | ---: | ---: |
-| workspace の nextest（全部合格） | 1128 | 1133（+5 の歯） |
+| workspace の nextest（全部合格） | 1131 | 1136（+5 の歯） |
 | clippy の警告 | 0 | 0 |
 | 床 4 本（check・inject --check・schema --check・derive --check） | 4 本とも rc 0 | 4 本とも rc 0 |
 | `folio build --write` の file 数 | 39 | 39（base と全 file が byte で同じ） |
@@ -89,23 +89,23 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 | M18 --polarity が読めない正本で 0 を返す | 3・4 |
 | M19 集計の足りる / 足りないを逆にする | 2 |
 
-   19 通りとも落ちる（生き残り 0・`mut-200.log`・直列。見本の src は 11e8587 と同じで、変異を撃った commit 18e9fbe との違いは歯の file の注 1 行の置き場だけ）。
+   19 通りとも落ちる（生き残り 0・`mut-200c.log`・直列・237cc58）。
 
-3. **外の置き場（tsuzuri の写し f71082f・参考値・`tz-19x.log`）。** 見本の binary の素の床は終了 0・合格のままで、標準エラーに知らせの 1 行が増える（tsuzuri の規則の表は欄 key が in-loop-min の行を持たない）。`--polarity` は仕掛け 64（in-loop 7 = 憲法の条 4・規則の表の行 3）。見本の binary の `folio schema --write` は規則の表の生成区間の enums.key と key_note を書き直す（ほかの生成区間の差は便 190・195・197 の着地の分で、base の binary でも tsuzuri の `schema --check` はすでに 1）。その後の素の床も終了 0。
+3. **外の置き場（tsuzuri の写し f71082f・参考値・`tz-19x.log`）。** 見本の binary の素の床は base の binary と同じ判定（便 196 の着地の後の base では、tsuzuri の設計ノートの欄の決まりの写しが古いので違反 1〔known_values の欠落〕で終了 1）で、標準エラーに知らせの 1 行が増える（tsuzuri の規則の表は欄 key が in-loop-min の行を持たない）。`--polarity` は仕掛け 64（in-loop 7 = 憲法の条 4・規則の表の行 3）。見本の binary の `folio schema --write` は規則の表の生成区間の enums.key と key_note を書き直す（ほかの生成区間の差は便 190・195・196・197 の着地の分で、base の binary でも tsuzuri の `schema --check` はすでに 1）。その後の素の床は終了 0（知らせの 1 行は残る）・`schema --check` は 0。
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は `+crates/folio/src/polarity.rs` と `+crates/folio/tests/polarity.rs`。差分 43,472 byte（`git diff 49c4779 11e8587 | wc -c`・10 file・+484 −14）。
-2. **余地（CapHeadroom）。** 測るのは write-set の src の 4 本（python と awk の 2 実装で一致・`cap-19x.sh`・`cap-200.log`）。
+1. **write-set の印。** 新しい file は `+crates/folio/src/polarity.rs` と `+crates/folio/tests/polarity.rs`。差分 43,472 byte（`git diff 5b8aa9a 237cc58 | wc -c`・10 file・+484 −14）。
+2. **余地（CapHeadroom）。** 測るのは write-set の src の 4 本（python と awk の 2 実装で一致・`cap-19x.sh`・`cap-200c.log`）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
-| `crates/folio/src/check.rs` | 1121 | 379 | 1128（+7） | 372 |
+| `crates/folio/src/check.rs` | 1144 | 356 | 1151（+7） | 349 |
 | `crates/folio/src/main.rs` | 758 | 742 | 778（+20） | 722 |
 | `crates/folio/src/rules.rs` | 475 | 1025 | 498（+23） | 1002 |
 | `crates/folio/src/polarity.rs` | 0（新） | 1500 | 125（+125） | 1375 |
 
-3. **size は M。** src の増分は +175 で S の見積 100 を超え、M の見積 300 の内。余地の最小（check.rs の base 379）は M の 300 を超える。便 196 の見本（8c8f9ed）を重ねた check.rs は 1151（余地 349・M の 300 以上）。
+3. **size は M。** src の増分は +175 で S の見積 100 を超え、M の見積 300 の内。余地の最小（check.rs の base 356・本便の後 349）は M の 300 を超える。
 4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の写しで 6 行とも rc 0。
    1. `cargo nextest run -p folio --test polarity` = (c) の 1〜5（5 本）。
    2. `cargo nextest run -p folio --test mechanism_live` = 知らせの行の順（(c) の 6・6 本）。
@@ -119,12 +119,12 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 
 1. **門。** 冒頭のとおり 0（通す）。
 2. **受付。** 受付の先撃ち（precheck）は、枝 docs/guard2 の本契約で 契約に起因する断り 0（起草の記録の `precheck-200.log`）。ADR-33 と要件書 第 1.55 版は発効済み（req の FR29 は本流に在る）。
-3. **重なり（2026-09-29 02:4x の実測・origin の各レーンの見本の枝と本便の見本 11e8587 を git merge-tree で重ねた）。**
+3. **重なり（2026-09-29 02:4x と 03:0x の実測・origin の各レーンの見本の枝と本便の見本を git merge-tree で重ねた）。**
 
 | レーン（便・見本） | 重なる file | 扱い |
 | --- | --- | --- |
-| 写しの負債（196・impl/d196 8c8f9ed・本流 49c4779 を取り込み済み） | `crates/folio/src/check.rs`・`crates/folio/tests/schema_docs.rs` | 自動で重なる（衝突なし）。check.rs は 196 の後 1144 → 本便を重ねて 1151（余地 349）。schema_docs.rs は重ねて 1177 行（歯の file の上限 1200 の内）。本便の注 1 行は定数 RULES_REGION_* の上に置き、196 と同じ頭の注の列の末尾には足さない（頭の注の列の末尾に足した初めの形は 196 と衝突した）。**196 が先に着地したら、本便は本流の上で余地・nextest の本数・RED を数え直してから受け付ける。** |
-| 便 199（impl/d199 c8048e0） | 無し | 無し（衝突なし・どちらが先でも数は変わらない） |
+| 写しの負債（196・本流 5b8aa9a） | `crates/folio/src/check.rs`・`crates/folio/tests/schema_docs.rs` | 着地済み。見本へ取り込んだ merge で自動で合わさった（衝突なし）。check.rs は base 1144 → 本便の後 1151（余地 349）。schema_docs.rs は本便の後 1177 行（器の式で 1178・歯の file の上限 1200 の内・歯 f89_schema_teeth_are_split_and_under_the_cap）。本便の注 1 行は定数 RULES_REGION_* の上に置き、196 と同じ頭の注の列の末尾には足さない（頭の注の列の末尾に足した初めの形は 196 と衝突した）。生成区間は 196 の要件書の ids_anchor（srs.yaml 1771 byte）と設計ノートの欄の決まり（20312 byte）と並び、見本の binary の `folio schema --check` は 9 本とも一致。数は 196 の後の本流の上で数え直した（この節の表と (e)(f)）。 |
+| 便 199（impl/d199 5328526） | 無し | 無し（衝突なし・どちらが先でも数は変わらない） |
 | 便 201（impl/d201 8dbdd4d） | `crates/folio/src/main.rs` | 自動で重なる（衝突なし） |
 
 4. **着地の後（席へ）。** (1) tsuzuri へ: 本便の binary では素の床の標準エラーに知らせの 1 行が増える（判定と終了は同じ）。`folio schema --write` で規則の表の生成区間（enums.key と key_note）が変わる（ほかの着地の分と 1 回にまとめてよい）。設計ノートの欄の決まりの guards の生成区間は本便では変わらない（in_loop は空のまま・ADR-33 の帰結の〔guards〕は in_loop に名を置く後の便で起きる）。下限は、tsuzuri が下限の行に欄 key を付けるまで数えない。(2) 器の席へ: 口は `--polarity` の一覧で器の行（design-check · in-loop）を数えない（器の極性一覧は器が持つ）。
@@ -133,18 +133,18 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-28/guard-draft.md`、script と log は同じ dir の `guard-scripts/`。
 
-1. 模擬: 見本 impl/d200 の 11e8587（`git diff 49c4779 11e8587` = `c200.patch`・歯だけ = `r200-teeth.patch`）。`verify-198.sh <見本> <base> <log>`。
+1. 模擬: 見本 impl/d200 の 237cc58（`git diff 5b8aa9a 237cc58` = `c200.patch`・歯だけ = `r200-teeth.patch`）。`verify-198.sh <見本> <base> <log>`。
 2. RED: `red-19x.sh <base> r200-teeth.patch <log> polarity - mechanism_live - schema_docs f85_ modules -`。突然変異: `mut-200.py`（M1〜M19・直列）。余地: `cap-19x.sh <base> <見本> polarity.rs rules.rs check.rs main.rs`。資源は `CARGO_BUILD_JOBS=4`・nextest `--test-threads 2`。
 3. 外の置き場: `tz-19x.sh`（tsuzuri の `.git` だけを写して clone・remote を外した写し）。
 
 ### (i) 本便が運ばないもの・読み・席へ返すこと・撤退条件
 
-1. **運ばないもの。** (b) の 7 のとおり。器の hook の行と器の極性一覧（器の判断の記録と便）。
-2. **読み（起草の記録の N5 (iii)）。** 条 P-18.3 の「その一覧（極性一覧）を生成時に出す」は、`folio check --polarity` が求められたときに正本の型付きのデータ（憲法の機構・規則の表の行・床の定数）から一覧をその場で組んで出すことで満たすと読む（手で書く一覧を持たない・`folio build` の面には出さない）。ADR-33 決定 (5) はすでに発効し封が在るので、この読みは本契約に置き、席が判断の記録に要るかを決める。
+1. **運ばないもの。** (b) の 7 のとおり。器の hook の行と器の極性一覧（器の判断の記録と便）。条 P-18 の機構の注と行 R-13 の注（どちらも「（2026-09-20 時点）」と日付の付いた事実の字）は本便では変えない。直すのは後の B4 の便で、R-13 の欄 key・in_loop の名・live と一緒に、行の変更の裁定 id と持ち主の承認（行 D-17）を取って直す（席の裁定・台帳 f2-648.275.2 の notes）。
+2. **読み（起草の記録の N5 (iii)）。** 条 P-18.3 の「その一覧（極性一覧）を生成時に出す」は、`folio check --polarity` が求められたときに正本の型付きのデータ（憲法の機構・規則の表の行・床の定数）から一覧をその場で組んで出すことで満たすと読む（手で書く一覧を持たない・`folio build` の面には出さない）。ADR-33 決定 (5) はすでに発効し封が在るので、この読みは本契約に置く（席の裁定: 承認済みの決定 (5) の範囲内の読みで、新しい判断の記録は起こさない・台帳 f2-648.275.2 の notes）。
 3. **後の便の縛り（起草の記録の N5 (ii)）。** 行 R-13 に欄 key in-loop-min を付ける後の便は、規則の表の行の変更なので、行に裁定 id と時刻を付け（条 P-17.1・行 D-17 の持ち主の承認）、R-13 の注の「極性一覧を出す口も本数を数える口も未実装」の字と、この行が床の判定に数えられない旨の字を同じ便で書き換える。
-4. **席へ返すこと。** 本便の着地の後、条 P-18 の機構の注（「極性一覧を出す口と R-13 を数える口は未実装」）と行 R-13 の注（「極性一覧を出す口も本数を数える口も未実装」）は、一覧を出す口については事実と違う字になる。本便は憲法と規則の行を変えない（B4・変えてはいけないもの）ので、注を後の便（in_loop の名・R-13 の欄 key・live と一緒）で直すか、先に注だけを直すかは席が決める。
+4. **注の字（席の裁定）。** 条 P-18 の機構の注（「極性一覧を出す口と R-13 を数える口は未実装である（2026-09-20 時点・…）」）と行 R-13 の注は日付の付いた事実の字なので、本便の着地の後も字の上では偽にならない。直すのは後の B4 の便（1 の末尾）。
 5. **言えないこと。** (1) 一覧の段の札は、仕掛けが設計文書の編集を止めるかを言わない（tsuzuri の in-loop 7 は serve の接続先や席の停止の条と行で、設計文書を書く時点の止めではない）。(2) 下限の違反は条 P-18 の機構の live に依らず数える（live が M1 のまま欄 key の行を置けば数える）。folio2 は R-13 に欄 key を付けるときに live を一緒に改める（ADR-33 決定 (7)）。(3) 床の定数の仕掛けの極性は一律 fail-closed（ADR-33 決定 (5)）で、仕掛けごとの測れない周の倒し方は数えない。
-6. **撤退条件。** (1) 本便が要件書 FR29 か ADR-33 の字か憲法の条文か規則の表の行を変えないと書けないと分かったら、止めて席へ返す。(2) 受付の時点で本流の関数 check_dir の規則の表の床の撃ち方か素の床の標準エラーの行の順が base（49c4779）と違えば、止めて席へ返す（数え直してから運ぶ）。(3) 口（`--proposed`）が下限の違反を止めた中身を、同じ中身を書いた置き場の素の床が合格にする周が見つかったら、止めて席へ返す。
+6. **撤退条件。** (1) 本便が要件書 FR29 か ADR-33 の字か憲法の条文か規則の表の行を変えないと書けないと分かったら、止めて席へ返す。(2) 受付の時点で本流の関数 check_dir の規則の表の床の撃ち方か素の床の標準エラーの行の順が base（5b8aa9a）と違えば、止めて席へ返す（数え直してから運ぶ）。(3) 口（`--proposed`）が下限の違反を止めた中身を、同じ中身を書いた置き場の素の床が合格にする周が見つかったら、止めて席へ返す。
 
 ## 2. 範囲
 
@@ -168,7 +168,7 @@ binary 経由の歯は `crates/folio/tests/polarity.rs`（新）。どれも床�
 ## 5. 依存
 
 - 外部 crate も外部ライブラリも増やさない。新しい dir は無い。
-- 前提の着地: 本流 49c4779（便 198 の着地 ca8640a の後）。ADR-33 と要件書 第 1.55 版は発効済み。
+- 前提の着地: 本流 5b8aa9a（便 198 の着地 ca8640a と便 196 の着地の後）。ADR-33 と要件書 第 1.55 版は発効済み。
 - 本便の着地の後に席が見ること: 台帳の本便の件を閉じる。本流の `target/debug/folio` を組み直す。tsuzuri へ §1 (g) の 4 を返す。§1 (i) の 2〜4 を決める。
 
 <!-- contracts:begin -->
@@ -176,7 +176,7 @@ schema = 1
 
 [[contract]]
 id = "gu"
-title = "極性一覧の口 folio check --polarity と編集時の止めの本数の下限の数え（判断の記録 ADR-33 の便 3・決定 (5)(7)・要件書 第 1.55 版の FR29 と AC32）: crates/folio/src/polarity.rs（新）が憲法の条の機構（種別 reject と build-check）・規則の表の閾値の行（極性は行の条の機構）・床の定数の仕掛けの一覧（floor_note の guards・極性 fail-closed）の順に 1 仕掛け 1 行の極性一覧を組み、--polarity は末尾に集計の 1 行を出す（読めなければ まだ分からない 2）。crates/folio/src/rules.rs の欄 key の閉じた一覧に in-loop-min を足し（関数 in_loop_min・key_note の 1 文・規則の表の生成区間と凍結 anchor rules-region.txt）、crates/folio/src/check.rs の check_dir が欄 key が in-loop-min の行が 1 本在れば段が in-loop の本数を下限と比べて割れば違反 1、無ければ数えずに素の床の標準エラーへ 1 行、2 本以上か値の形の誤りは まだ分からない。in_loop の名・行 R-13 の欄 key・条 P-15 と P-18 の機構の live は運ばない（base = 本流 49c4779・見本 impl/d200 11e8587）"
+title = "極性一覧の口 folio check --polarity と編集時の止めの本数の下限の数え（判断の記録 ADR-33 の便 3・決定 (5)(7)・要件書 第 1.55 版の FR29 と AC32）: crates/folio/src/polarity.rs（新）が憲法の条の機構（種別 reject と build-check）・規則の表の閾値の行（極性は行の条の機構）・床の定数の仕掛けの一覧（floor_note の guards・極性 fail-closed）の順に 1 仕掛け 1 行の極性一覧を組み、--polarity は末尾に集計の 1 行を出す（読めなければ まだ分からない 2）。crates/folio/src/rules.rs の欄 key の閉じた一覧に in-loop-min を足し（関数 in_loop_min・key_note の 1 文・規則の表の生成区間と凍結 anchor rules-region.txt）、crates/folio/src/check.rs の check_dir が欄 key が in-loop-min の行が 1 本在れば段が in-loop の本数を下限と比べて割れば違反 1、無ければ数えずに素の床の標準エラーへ 1 行、2 本以上か値の形の誤りは まだ分からない。in_loop の名・行 R-13 の欄 key・条 P-15 と P-18 の機構の live は運ばない（base = 本流 5b8aa9a・見本 impl/d200 237cc58）"
 req = ["FR29"]
 section = "1"
 write-set = ["+crates/folio/src/polarity.rs", "crates/folio/src/rules.rs", "crates/folio/src/check.rs", "crates/folio/src/main.rs", "+crates/folio/tests/polarity.rs", "crates/folio/tests/mechanism_live.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/modules.rs", "tests/fixtures/schema/rules-region.txt", "design-intent/rules.yaml"]
