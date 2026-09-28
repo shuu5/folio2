@@ -23,8 +23,8 @@ fn copy_tree(src: &Path, dst: &Path) {
     }
 }
 
-/// git を呼ぶ。環境変数 GIT_* は継承しない（外の repo へ照合先をすげ替えない）。
-fn git(cwd: &Path, args: &[&str]) {
+/// git を呼ぶ。環境変数 GIT_* は継承しない（外の repo へ照合先をすげ替えない）。標準出力の前後の空白を除いて返す。
+fn git(cwd: &Path, args: &[&str]) -> String {
     let mut cmd = Command::new("git");
     for (key, _) in std::env::vars_os() {
         if key.to_string_lossy().starts_with("GIT_") {
@@ -49,6 +49,7 @@ fn git(cwd: &Path, args: &[&str]) {
         "git {args:?}: {}",
         String::from_utf8_lossy(&out.stderr)
     );
+    String::from_utf8_lossy(&out.stdout).trim().to_string()
 }
 
 /// 写しを作る（`commit` なら版管理の根で git init + add + 1 commit）。一時 dir の根を返す。
@@ -67,13 +68,18 @@ fn copy_fixture(case: &str, fixture: &str, commit: bool) -> PathBuf {
     td
 }
 
-fn folio_check(td: &Path) -> Output {
-    let out = Command::new(env!("CARGO_BIN_EXE_folio"))
+/// 床を撃つ（写しは残す）。
+fn run_check(td: &Path) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_folio"))
         .arg("check")
         .arg("--dir")
         .arg(td.join("design-intent"))
         .output()
-        .expect("folio を起動できない");
+        .expect("folio を起動できない")
+}
+
+fn folio_check(td: &Path) -> Output {
+    let out = run_check(td);
     let _ = fs::remove_dir_all(td);
     out
 }
@@ -344,4 +350,43 @@ fn f190_schema_notes_name_the_counted_history() {
     for gone in ["全ての参照（--all）の履歴を見る", "全ての参照の照合"] {
         assert!(!text.contains(gone), "{gone}");
     }
+}
+
+#[test]
+fn f190_side_refreeze_fails_once_merged_into_head() {
+    let td = copy_fixture("f190-side-refreeze", "root-digest-drift", true);
+    // 共通の祖先を持つ枝 w で v1.0 を消す commit の後に、中身の違う v1.0 を凍結し直す commit を置く
+    git(&td, &["checkout", "-q", "-b", "w"]);
+    git(&td, &["rm", "-q", V10]);
+    git(&td, &["commit", "-q", "-m", "drop"]);
+    git(&td, &["checkout", "-q", "HEAD~1", "--", V10]);
+    rewrite_v10(&td);
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "refreeze"]);
+    git(&td, &["checkout", "-q", "-"]);
+    // 取り込む前の本流の床に w の履歴は出ない（土台の違反 1 行だけ）
+    let before = run_check(&td);
+    assert_eq!(violations(&before).len(), 1, "{:?}", violations(&before));
+    // 取り込むと w の commit は先頭の祖先になり、本流の元の v1.0 と中身が違う
+    git(&td, &["merge", "-q", "--no-ff", "--no-edit", "w"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, SWAPPED), 1, "{v:?}");
+    assert_eq!(count(&out, LOST), 0, "{v:?}");
+}
+
+#[test]
+fn f190_foreign_rootless_ref_is_not_a_violation() {
+    let td = copy_fixture("f190-foreign-ref", "root-digest-drift", true);
+    // 台帳の置き場のような git 以外の用途の ref（refs/dolt/data）: anchors/ を触らない根の無い 2 commit
+    let empty = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+    let c1 = git(&td, &["commit-tree", empty, "-m", "dolt 1"]);
+    let c2 = git(&td, &["commit-tree", empty, "-p", &c1, "-m", "dolt 2"]);
+    git(&td, &["update-ref", "refs/dolt/data", &c2]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    // 土台の違反（列の根が床の定数の表に無い）だけ
+    assert_eq!(v.len(), 1, "{v:?}");
+    assert!(v[0].contains("列の根の表に無い"), "{v:?}");
 }
