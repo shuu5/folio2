@@ -5,7 +5,8 @@
 //! - 導出できない 6 つ（どれも 2・支度表は出来ない／変わらない）・出力先の親 dir が無い・旗の使い方の誤り
 //! - 便 160（docs/design/delivery-160.md §1 (c)）: 別の process の同じ歯が、この process の写しを消さない
 //! - 便 197（docs/design/delivery-197.md §1 (c)）: 回答の値は intake.yaml の answers の values から読む（1 つ目 = yes・2 つ目 = no・
-//!   2 つでなければ支度表を書かない）・実の生成区間はその写しを持つ・src は回答の値の字を持たない
+//!   2 つでなければ支度表を書かない）・実の生成区間はその写しを持つ・src は回答の値の字を持たない。
+//!   同乗（台帳 f2-648.227）: 実の rules.yaml の生成区間の除外は人の作業の時間と AI の費用だけ（歯を置く file を増やさないためここに置く）
 //!
 //! 入力は版管理の `design-intent/` を丸ごと一時 dir へ写したもの（支度表は写しの中にだけ生まれる）。
 
@@ -412,25 +413,33 @@ fn f197_values_other_than_two_make_no_sheet() {
     }
 }
 
+/// 生成区間の印の間の字（実の正本の file から）。
+fn f197_region(file: &str) -> String {
+    let text = fs::read_to_string(repo_root().join("design-intent").join(file)).unwrap();
+    text.lines()
+        .skip_while(|l| !l.starts_with("# folio:schema:begin"))
+        .skip(1)
+        .take_while(|l| !l.starts_with("# folio:schema:end"))
+        .map(|l| format!("{l}\n"))
+        .collect()
+}
+
+/// 字の一覧（一覧でない・字でない項は落とす）。
+fn f197_strs(y: &yaml_rust2::Yaml) -> Vec<String> {
+    y.as_vec()
+        .map(|v| v.iter().filter_map(|x| x.as_str()).map(str::to_string).collect())
+        .unwrap_or_default()
+}
+
 /// 歯 3: 実の intake.yaml の生成区間は、回答の値の読み方（値の数・行き先の欄の順・default の固定の値）と行き先の固定の値の
 /// 写しを持ち、人が書く欄（values の数・default・各質問の行の欄）と食い違わない。期待の値は歯の中の手書き。
 #[test]
 fn f197_real_region_copies_the_answer_rule() {
     let text = fs::read_to_string(repo_root().join("design-intent/intake.yaml")).unwrap();
-    let region: String = text
-        .lines()
-        .skip_while(|l| !l.starts_with("# folio:schema:begin"))
-        .skip(1)
-        .take_while(|l| !l.starts_with("# folio:schema:end"))
-        .map(|l| format!("{l}\n"))
-        .collect();
+    let region = f197_region("intake.yaml");
     let docs = YamlLoader::load_from_str(&region).unwrap();
     let schema = &docs[0]["schema"];
-    let strs = |y: &yaml_rust2::Yaml| -> Vec<String> {
-        y.as_vec()
-            .map(|v| v.iter().filter_map(|x| x.as_str()).map(str::to_string).collect())
-            .unwrap_or_default()
-    };
+    let strs = f197_strs;
     let answers = &schema["answers"];
     assert_eq!(answers["values_count"].as_i64(), Some(2), "{region}");
     assert_eq!(strs(&answers["branches"]), ["yes", "no"], "{region}");
@@ -477,4 +486,21 @@ fn f197_no_source_file_spells_the_answer_words() {
     }
     assert!(scanned.iter().any(|n| n == "sheet.rs"), "{scanned:?}");
     assert!(hits.is_empty(), "回答の値の字を持つ: {hits:?}");
+}
+
+/// 歯 5（便 197 に同乗・台帳 f2-648.227）: 実の rules.yaml の生成区間の除外（excluded）は、what が人の作業の時間と AI の費用の
+/// 2 語で、why が道具の測れる機械の待ち時間を除外に入れない字を持つ。期待は歯の中の手書き。
+#[test]
+fn f197_rules_excluded_names_only_human_time_and_ai_cost() {
+    let region = f197_region("rules.yaml");
+    let docs = YamlLoader::load_from_str(&region).unwrap();
+    let excluded = &docs[0]["schema"]["excluded"];
+    assert_eq!(
+        f197_strs(&excluded["what"]),
+        ["人の作業の時間（「60 分以内」）", "AI の費用（「300k token 以下」）"],
+        "{region}"
+    );
+    let why = excluded["why"].as_str().unwrap_or_default();
+    assert!(why.starts_with("人の作業の時間と AI の費用は測る仕組みが別"), "{why}");
+    assert!(why.contains("機械の待ち時間は除外に当たらず"), "{why}");
 }
