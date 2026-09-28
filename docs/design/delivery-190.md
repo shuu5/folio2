@@ -4,9 +4,9 @@
 - 条: P-3.1（決まった答えの出る検査は床に置く）・P-4.1 と P-4.2（読めない版管理は「まだ分からない」のまま）・P-10.1（期待の字は歯の側の手書き・凍結 anchor を測り直す）・P-10.3（anchor 0 本は「まだ分からない」）。
 - 出所: 判断の記録 ADR-34（proposed・持ち主の承認の前・枝 docs/trust）。台帳 f2-648.258・f2-648.177。**本便は ADR-34 の発効の後に受け付ける。**
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gk` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 7 本（src 2・設計文書の正本の生成区間 1・凍結 anchor 1・歯の file 3〔本文不変 1〕）。新しい file・縮む file・消す file・新しい dir は無い。
-- 門: `folio ceiling --gate --dir design-intent --write-set …`（本流 6467915 の binary・write-set 7 本）は **0（通す・印の周 2026-09-27-round51〔判定 合格〕に書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）**。
-- 前提: **base = 本流 6467915（便 185 の着地の後）+ ADR-34 の枝 docs/trust 478545d**。この契約の数はすべてその写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d190`（commit **d01d8dd**・親 478545d。080d9f7〔実装と歯 9 本〕→ e8165af〔席の裁定 (a) の歯 2 本〕→ c5d8a01 と d01d8dd〔改訂 a = 独立の検証 trust-verify.md の B1 と非 blocking 1・--full-history と refs/stash の除外・歯 4 本と単体の兄弟の行・注 2 つ〕）。`git diff 478545d d01d8dd` が便の全体の差分（6 file・+389 −19・47,301 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout d01d8dd -- <write-set の file>`）。ADR-34 の字は見本の後に直した（write-set の外）。write-set の外は変えない。
+- 門: `folio ceiling --gate --dir design-intent --write-set …`（本流 44c14ac の binary・write-set 7 本）は **0（通す・印の周 2026-09-27-round51〔判定 合格〕に書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）**。
+- 前提: **base = 本流 44c14ac（便 185 と 192〜194 の着地の後）+ ADR-34 の枝 docs/trust 178e9c8**（本流を merge で積んだ枝）。この契約の数はすべてその写しの実測（参考値・規則の表の行 D-13）。
+- 実装の見本: origin の枝 `impl/d190`（commit **83f049d**。080d9f7〔実装と歯 9 本〕→ e8165af〔席の裁定 (a) の歯 2 本〕→ c5d8a01 と d01d8dd〔改訂 a = 独立の検証 trust-verify.md の B1 と非 blocking 1・--full-history と refs/stash の除外・歯 4 本と単体の兄弟の行・注 2 つ〕→ 45a3060〔docs/trust 178e9c8 = 本流 44c14ac を merge で積む・force なし〕→ 83f049d〔limits_note の括弧を 1 文にし、便 194 の外の置き場へ写す字で判断の記録の番号の項だけが落ちる形にする〕）。`git diff 178e9c8 83f049d` が便の全体の差分（6 file・+389 −19・47,364 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 83f049d -- <write-set の file>`）。ADR-34 の字は見本の後に直した（write-set の外）。write-set の外は変えない。
 - 並行の便との重なり: (f) の 5。
 
 ## 1. 設計
@@ -34,16 +34,16 @@
 3. **本物の違反（同じ binary で落ちる・本便の後も同じ数で落とす）。** 本物 1: 今の枝で anchor の削除を commit → 違反 1。本物 2: 根の無い枝（orphan）へ切って anchors/ を外す → 違反 2（元の枝の履歴）。本物 3: 今の枝で anchor の書き換えを commit → 違反「中身が違う」1。
 4. **実の例。** 台帳 .177（2026-09-24・取り込んでいない枝 docs/adr17 の constitution-v1.3.yaml で本流 628c547 の床が違反 1）と .258（2026-09-27・止めた便 170 の枝と控えの枝 impl/f2-648.254-run1 の adr-seals.yaml で本流の根の床が違反 1・本物の design-intent を撃つ歯 5 本も手元で落ちた）。folio2 の写しで、封の一覧が入る前の本流 b0f09d4 に控えの枝の参照を持たせると、本流の binary は `[anchor] anchors/adr-seals.yaml は版管理の履歴に在ったが作業ツリーに無い` を出す。CI は浅い写しで落ちない。
 5. **判断の記録。** ADR-2 決定 (3) の字「全ての参照（ref）の履歴を見て…」の字どおりの帰結で、ADR-34（proposed）がこの範囲を狭める（ADR-2 の本文は変えない・ADR-30 決定 (1)）。今の規範の字は `design-intent/adr/schema.yaml` の生成区間の注 anchor_note（「全ての参照（--all）の履歴を見る」）と limits_note（「全ての参照の照合」）が持つ（床の定数 `crates/folio/src/floor_adr.rs` の写し）。
-6. **base の歯（参考値）。** workspace の nextest 1050 / 1050・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 38 file。`git grep -n f190_ -- crates` は 0 件・行 id `gk` は 0 件。
+6. **base の歯（参考値）。** workspace の nextest 1070 / 1070（docs/trust 178e9c8 の写し）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 38 file。`git grep -n f190_ -- crates` は 0 件・行 id `gk` は 0 件。
 7. **取り込みの簡約の穴（base から在る・独立の検証の d6 と b5）。** 履歴の一覧の命令 `git log -- <anchors/>` は既定で履歴を簡約し、取り込みの commit の anchors/ が片方の親と同じなら、その親だけを辿る。anchor の無い頃の commit から切った枝で中身の違う同じ版を置き直し、衝突を枝の側で解いて本流へ取り込むと、本流の側の親（元の anchor を足した commit）を辿らず、base の本流の床は「中身が違う」を出さない（repro.sh の t5b・base で 0）。`--full-history` で簡約を切ると出る。
 
 ### (b) 直す先
 
 1. **`crates/folio/src/gitcheck.rs` の `check_git`。** 履歴の一覧の命令を `log --exclude=refs/stash --all --full-history --format=%H --name-status -- <anchors/>` にし（作業の一時置き場を数えない・取り込みの commit で本流の側の親を落とさない＝(a) 7）、命令を 1 本足す: `rev-list --parents --exclude=refs/stash --all --not HEAD`（先頭から辿れない commit と、その親の一覧）。`ls-tree`・`log` と同じく、起動できない・待ち上限を超えたは「版管理（git）が無いか読めない」、失敗（rc が 0 でない）は「版管理を読めない（ls-tree / log / rev-list が失敗）」の「まだ分からない」で終える。`log` の行を読むとき、commit が次の関数 `aside` の集合に在れば、その commit の状態の行を `ever` にも `hist` にも入れない（commit を `None` にする）。
 2. **関数 `aside`（新・同じ file）。** 上の命令の出力から、先頭から辿れず祖先に先頭から辿れる commit を持つ commit（取り込んでいない枝）の集合を返す。組み方: 出力の commit の集合を「外」とし、親が「外」に無い commit（親が先頭から辿れる）から始めて、「外」の中の子へ（兄弟の枝も全部）辿って拾う。どの祖先も先頭から辿れない commit（根の無い枝）は拾わない＝今までどおり数える。
-3. **`crates/folio/src/floor_adr.rs` の注 2 つ。** anchor_note の版管理の項の「全ての参照（--all）の履歴を見る。」を「全ての参照（--all・作業の一時置き場 refs/stash を除く）を読み、照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・取り込みの commit では両方の親の履歴を辿る〔--full-history〕・判断の記録 ADR-34）。」に、limits_note の「全ての参照の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで。」を「根の無い枝の履歴の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない＝anchor の前の commit から切り直した枝の上で anchor を置き直す細工はその枝の床では数えず、本流へ取り込んだ時点で本流の床が落とす。本流の床を通さない参照の付け替えは床の外・判断の記録 ADR-34）。」にする。注なので床（folio check）は数えない。
+3. **`crates/folio/src/floor_adr.rs` の注 2 つ。** anchor_note の版管理の項の「全ての参照（--all）の履歴を見る。」を「全ての参照（--all・作業の一時置き場 refs/stash を除く）を読み、照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・取り込みの commit では両方の親の履歴を辿る〔--full-history〕・判断の記録 ADR-34）。」に、limits_note の「全ての参照の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで。」を「根の無い枝の履歴の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない＝anchor の前の commit から切り直した枝の上で anchor を置き直す細工はその枝の床では数えず、本流へ取り込んだ時点で本流の床が落とし、本流の床を通さない参照の付け替えは床の外・判断の記録 ADR-34）。」にする（括弧の中を 1 文にする＝便 194 の外の置き場へ写す字〔`floor.rs` の `text_for`〕が判断の記録の番号の項だけを落とし、ほかの句は tsuzuri の写しにも残る）。注なので床（folio check）は数えない。
 4. **`design-intent/adr/schema.yaml`。** `folio schema --dir design-intent --write` で生成区間を書き直す（上の 2 行だけが変わる・28,247 → 28,979 byte）。手では書かない。
-5. **凍結 anchor。** `tests/fixtures/schema/adr-region.txt` を新しい生成区間（begin と end の行を除く）に測り直し、`crates/folio/tests/schema.rs` の定数 3 つ（REGION_LINES 151 のまま・REGION_BYTES 28247 → 28979・REGION_SHA256 → 35c4a158…3f23）を直す。値は folio と独立の数え（python の hashlib・起草の記録の anchors-190.py）。
+5. **凍結 anchor。** `tests/fixtures/schema/adr-region.txt` を新しい生成区間（begin と end の行を除く）に測り直し、`crates/folio/tests/schema.rs` の定数 3 つ（REGION_LINES 151 のまま・REGION_BYTES 28247 → 28979・REGION_SHA256 → daf05362…2613）を直す。値は folio と独立の数え（python の hashlib・起草の記録の anchors-190.py）。`tests/schema.rs` は便 194 の着地の後、器の式（幅 120 正規化・空行 1・歯 f89〔`tests/schema_docs.rs` の f89_schema_teeth_are_split_and_under_the_cap〕）で **700 行＝上限 700 ちょうど（余地 0・wc -l では 699）**。本便は定数 2 行の値を書き換えるだけで、どちらの行も 120 字の内＝器の式の行数は 700 のまま（見本 83f049d で python と awk の 2 実装が 700・歯 f89 が緑）。**作業者は `tests/schema.rs` に行を足さない**（足すと f89 が落ちる・共通の検証の workspace の nextest が撃つ）。
 6. **変えないもの。** 違反と「まだ分からない」の字（「読めない」の括弧の中の命令の名だけ rev-list を足す）・先頭の木との照合・除外・未追跡・版管理の根・浅い写し・環境変数の遮断・列の根の digest・凍結の命令の振る舞い（`seen` は同じ範囲の `ever` から組む）・`toplevel`・憲法と要件書と判断の記録の字・生成区間の注 2 つの外・床の fixture（`tests/floor_cases.yaml`）の字・`folio build` の出力（38 file・base と byte で同じ）・folio2 自身の床 4 本の結果。
 
 ### (c) 歯（f190_・base で 0 件）
@@ -76,8 +76,8 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本 d01d8dd の写しで workspace の nextest **1065 / 1065**（base + f190_ の 15 本・`--test-threads 2`）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0・schema --check 一致）・`folio build --write` 38 file（base と全 file が byte で同じ・要約 01115b672f11ccc2）。字の期待を直した既存の歯は `tests/schema.rs` の凍結 anchor の定数 2 つだけ（(b) 5）。
-2. **突然変異（見本 d01d8dd の写しの src だけを 1 通りずつ変え、f190_ の 15 本を撃つ・M2・M3・M11 は tests/floor_cases と tests/schema も撃つ）。** 16 通りとも落ちる（生き残り 0・mut-190.log・M14〜M16 は独立の検証の V5・V7・V8 で、改訂 a の前は生き残った）。
+1. **既存の歯。** 見本 83f049d の写しで workspace の nextest **1085 / 1085**（base 1070 + f190_ の 15 本・`--test-threads 2`）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0・schema --check 一致）・`folio build --write` 38 file（base と全 file が byte で同じ・要約 f0dd78844514bdfb）。字の期待を直した既存の歯は `tests/schema.rs` の凍結 anchor の定数 2 つだけ（(b) 5）。
+2. **突然変異（見本 83f049d の写しの src だけを 1 通りずつ変え、f190_ の 15 本を撃つ・M2・M3・M11 は tests/floor_cases と tests/schema も撃つ）。** 16 通りとも落ちる（生き残り 0・mut-190.log・M14〜M16 は独立の検証の V5・V7・V8 で、改訂 a の前は生き残った）。
 
 | 変異 | 落ちる歯（番号は (c)・ほか） |
 | --- | --- |
@@ -98,14 +98,14 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 | M15 rev-list の失敗を見ない（検証の V7） | 12 |
 | M16 rev-list の `--all` を `--branches` にする（検証の V8） | 11 |
 
-3. **外の置き場（tsuzuri の写し・参考値）。** HEAD a618238（枝 154 本・先頭の外の commit 146・anchors/ に触れる commit 6 はどれも先頭の祖先）と、改訂 a の見本で撃ち直した HEAD 7d633b6（参照 160 本・先頭の外の commit 151・写しは clone --no-checkout の後に core.hooksPath が無く hook が sample だけなことを確かめてから checkout）で、base と見本の binary の床の出力が byte で同じ（合格 違反 0・まだ分からない 0）。取り込むと `folio schema --check` が判断の記録の欄の決まりの注 2 つで落ちる（床は注を数えないので落ちない）＝着地の後に `folio schema --write` を 1 回。
+3. **外の置き場（tsuzuri の写し・参考値）。** HEAD a618238（枝 154 本・先頭の外の commit 146・anchors/ に触れる commit 6 はどれも先頭の祖先）と、改訂 a の見本で撃ち直した HEAD 7d633b6（参照 160 本・先頭の外の commit 151・写しは clone --no-checkout の後に core.hooksPath が無く hook が sample だけなことを確かめてから checkout）で、base と見本の binary の床の出力が byte で同じ（合格 違反 0・まだ分からない 0・本流 44c14ac の上の base 178e9c8 と見本 83f049d の binary で HEAD 7d633b6 を撃ち直しても同じ）。取り込むと `folio schema --check` が判断の記録の欄の決まりの注 2 つで落ちる（床は注を数えないので落ちない）＝着地の後に `folio schema --write` を 1 回。
 4. **実の例の写し。** folio2 の本流 b0f09d4 の写し（控えの枝の参照つき）で、base の違反「anchors/adr-seals.yaml は版管理の履歴に在ったが作業ツリーに無い」1 が見本で 0。folio2 の今の写し（参照 428 本）では base・見本とも床 4 本 rc 0・合格。
 5. **命令の時間。** 増える `rev-list` は folio2 の写し（参照 400 本余り・commit 1,432）で 0.02 秒（独立の検証の写し〔参照 750 本〕で 0.03 秒）。
 6. **独立の検証（trust-verify.md）の 39 場面。** 改訂 a の形（`--full-history` と `--exclude=refs/stash`）で、d6・d6b・b5 だけが本流で終了コード 1（中身が違う 1）に変わり、ほかの 36 場面と folio2・tsuzuri の写しの床の出力は変わらない（検証役の実測・起草役は repro.sh の t5a・t5b・t6 で d6 の形を撃ち直した）。
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は無い。`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分 47,301 byte（`git diff 478545d d01d8dd | wc -c`・6 file・+389 −19）。
+1. **write-set の印。** 新しい file は無い。`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分 47,364 byte（`git diff 178e9c8 83f049d | wc -c`・6 file・+389 −19）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 2 本（python と awk の 2 実装で一致・cap-190.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
@@ -114,7 +114,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 | `crates/folio/src/floor_adr.rs` | 511 | 989 | 514（+3） | 986 |
 
 3. **size は S。** src の増分は +65 で S の見積 100 の内。余地の最小（floor_adr.rs の base 989）は S の 100 を超える。
-4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の写しで 6 行とも rc 0。
+4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本 83f049d の写しで 6 行とも rc 0（1 行目 14 本・2 行目 1 本・3 行目 18 本・4 行目 21 本・5 行目 12 本・clippy 0 警告・起草の記録の verify-impl6.log）。
    1. `cargo nextest run -p folio --test gitcheck f190_` = (c) の 1〜14（14 本）。
    2. `cargo nextest run -p folio --bin folio f190_` = (c) の 15（1 本）。
    3. `cargo nextest run -p folio --test gitcheck` = 便 8 の版管理の照合の歯 4 本と (c) の 14 本（今の違反の字と数が同じ）。
@@ -122,15 +122,17 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
    5. `cargo nextest run -p folio --test floor_cases` = 床の fixture（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む）。
    6. `cargo clippy --workspace --all-targets -- -D warnings` = 0 警告。
 5. **verify の歯の file と write-set。** `--test` で名指す歯の file（gitcheck・schema・floor_cases）は全部 write-set に在る。`--bin folio` の歯の在り処（gitcheck.rs）も write-set に在る。
-6. **並行の便との重なり（2026-09-28 17:3x の時点・origin の impl/d187 94ee033 と impl/d195 56567e9 を読んだ）。** 着地の順は 185 → 床の穴（187 の 1 本）→ 本便 → 小さな直し（192〜194）→ 写しの負債（195〜197）→ 編集時の止め（198〜）。
+6. **並行の便との重なり（2026-09-28 20:1x の時点・origin の impl/d187 14bca08・impl/d195 80aec6c・impl/d196 1a7c4c7・impl/d197 8a0abe9・impl/d198 15b235a と各契約の write-set を読み、見本 83f049d との `git merge-tree` を撃った＝5 本とも字の衝突 0）。** 着地の順は 185 → 小さな直し（192〜194・着地済み）→ 床の穴（187）→ 本便 → 写しの負債（195〜197）→ 編集時の止め（198〜）。
 
 | 並行の便 | 重なりうる file | 扱い |
 | --- | --- | --- |
 | 185（着地済み 6467915） | 無し | base に含む |
-| 床の穴 187（impl/d187 0d4de9f・起草役の知らせ） | `tests/floor_cases.rs` だけ（両便とも本文を変えない verify の scope・字はぶつからない）。ほかは cursor.rs・face_note.rs・figure.rs・main.rs・site.rs・新 tests/floor_faces.rs と本文不変の tests 5 本 | 順は 187 が先・数え直し不要（受付の先撃ちで live な run との重なり 1 件が出たら順序どおり） |
-| 写しの負債 195（impl/d195） | 無し（graph.rs・link.rs・mentions.rs・note.rs・prose.rs・refs.rs・tests/modules.rs・tests/schema_docs.rs・graph.yaml・graph-region.txt） | 本便が先 |
-| 写しの負債 196・197（見本は未 push） | 判断の記録の欄の決まりの生成区間を書くなら同上 | 本便が先。写しの負債の便が数え直す |
-| 編集時の止め 198〜 | `gitcheck.rs`（置き場の横断の検査を編集時に撃つなら） | 本便が先 |
+| 192〜194（着地済み 44c14ac・小さな直し） | 無し（194 は `floor.rs` の外の置き場へ写す字と `tests/schema.rs` の外の歯を書いた＝本便は merge で積み、注の括弧を 1 文にした。`tests/schema.rs` は積んだ後 器の式で 700 行＝上限ちょうど・本便は定数 2 行の値だけ（(b) 5）） | base に含む |
+| 床の穴 187（impl/d187 14bca08） | write-set の `tests/floor_cases.rs` だけ（両便とも本文を変えない verify の scope・字はぶつからない）。ほかは cursor.rs・face_note.rs・figure.rs・main.rs・site.rs・新 tests/floor_faces.rs と本文不変の tests 4 本 | 順は 187 が先・数え直し不要（受付の先撃ちで live な run との重なり 1 件が出たら順序どおり） |
+| 写しの負債 195（impl/d195 80aec6c） | 無し（graph.rs・link.rs・mentions.rs・note.rs・prose.rs・refs.rs・tests/graph.rs・tests/modules.rs・tests/schema_docs.rs・graph.yaml・graph-region.txt） | 本便が先 |
+| 写しの負債 196（impl/d196 1a7c4c7） | `tests/schema.rs`（196 は設計ノートの生成区間の定数 NOTE_REGION_ の 3 行、本便は判断の記録の REGION_ の 2 行＝別の行で、merge-tree の衝突 0・取り込んだ後も器の式で 700 行）と write-set の `tests/floor_cases.rs`（両便とも本文不変）。判断の記録の生成区間には触れない | 本便が先。196 は本便の着地の後に取り込んで数え直す |
+| 写しの負債 197（impl/d197 8a0abe9） | 無し（intake.rs・rules.rs・sheet.rs・tests/schema_docs.rs・tests/sheet.rs・intake.yaml・rules.yaml と区間 2 つ） | 本便が先 |
+| 編集時の止め 198（impl/d198 15b235a） | `gitcheck.rs`（198 は子の git に版管理を探す天井を渡す `ceil_at` と `NO_GIT` の可視性・本便は `check_git` と `aside`＝別の場所で merge-tree の衝突 0・取り込んだ後 477 行・余地 1023） | 本便が先。198 は本便の着地の後に取り込んで数え直す |
 
 ### (g) 門と受付
 
@@ -142,10 +144,10 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-28/trust-draft.md`、script と log は同じ dir の trust-scripts。
 
-1. 模擬: 見本 d01d8dd（c190.patch・歯だけ = r190-teeth.patch）。run-190.sh（組み立て・nextest〔`--test-threads 2`〕・clippy）・floor4.sh（床 4 本と build）・chain-190.sh（base と 080d9f7）・chain-190b.sh（e8165af）・chain-190c.sh（改訂 a の d01d8dd の数・RED・変異 16 通り・余地）。
+1. 模擬: 見本 83f049d（c190.patch = `git diff 178e9c8 83f049d`・歯だけ = r190-teeth.patch）。chain-190d.sh（本流 44c14ac の上の数）。run-190.sh（組み立て・nextest〔`--test-threads 2`〕・clippy）・floor4.sh（床 4 本と build）・chain-190.sh（base と 080d9f7）・chain-190b.sh（e8165af）・chain-190c.sh（改訂 a の d01d8dd の数・RED・変異 16 通り・余地）。
 2. 最小の写し: repro.sh（偽 3 形・本物 3 形・範囲の外 1 形を base と見本の binary で撃つ）。
 3. 凍結 anchor: anchors-190.py（生成区間を写し、定数を hashlib で測る・冪等）。
-4. RED: red-190.sh。突然変異: mut-190.py（11 通り）。余地: cap-190.sh（lines.py と lines.awk）。
+4. RED: red-190.sh。突然変異: mut-190.py（16 通り）。余地: cap-190.sh（lines.py と lines.awk）。
 5. 外の置き場: tz-190b.sh（tsuzuri の .git だけを写し、その写しの中では git を撃たず、clone --no-checkout の後に core.hooksPath が無く hook が sample だけなことを確かめてから checkout し、枝を局所の枝にしてから remote を外す・前の版の tz-190.sh は checkout を先にしていた）。
 
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
@@ -176,7 +178,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 ## 5. 依存
 
 - 外部 crate も外部ライブラリも増やさない。新しい dir は無い。
-- 前提の着地: 便 185（本流 6467915）と ADR-34 の発効（枝 docs/trust）。
+- 前提の着地: 便 185 と 192〜194（本流 44c14ac）と ADR-34 の発効（枝 docs/trust）。
 - 本便の着地の後に席が見ること: 台帳 f2-648.258 と f2-648.177 を閉じる。本流の `target/debug/folio` を組み直す。tsuzuri へ `folio schema --write` の 1 回を返す。
 
 <!-- contracts:begin -->
