@@ -28,7 +28,7 @@
 
 1. **floor_note::tests::f196_the_note_region_copies_the_known_values。** 実の design-note/schema.yaml の external_schema で value_domains の次が known_values、鍵が need・shape の順、値が定数と同じ、注に古い字「値域の変更は器の版上げで足り」が無く known_values を名指す。**base では欄が無い＝RED。**
 2. **ids::tests::f196_the_srs_region_copies_the_ids_anchor。** 実の srs.yaml の schema.ids_anchor の鍵が kind・sections の順、kind = IDS_KIND、sections が SECTIONS の順と字のまま、注が `crates/folio/src/ids.rs` と P-5.6 を名指す。**base では欄が無い＝RED。**
-3. **ids::tests::f196_only_the_owner_spells_the_copied_constants（1 枚の歯）。** src の各 file の最初の `#[cfg(test)]` より前で、`"ids-anchor"` は ids.rs に 1 回・`&["shall", "title"]` は ids.rs に 2 回・need と shape の一覧の字は floor_note.rs に 1 回ずつだけ在る（床の木が字で写すと落ちる）。守りの歯＝base でも緑。
+3. **ids::tests::f196_only_the_owner_spells_the_copied_constants（1 枚の歯）。** src の各 file の最初の `#[cfg(test)]` より前で、引用符付きの ids-anchor の字は ids.rs に 1 回・shall と title の一覧の字は ids.rs に 2 回・need と shape の一覧の字は floor_note.rs に 1 回ずつだけ在る（床の木が字で写すと落ちる）。守りの歯＝base でも緑。
 - 層の歯に掛からないよう、単体の歯は層 1 の `crate::yaml` だけで file 全体を読む。歯だけを base に当てると単体 165 本のうち 1・2 だけが落ち、歯の data（anchor と値）も当てると anchor に繋がる 11 本が落ちる。
 
 ### (d) 採らなかった形
