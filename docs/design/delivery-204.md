@@ -6,7 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gy` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 23 本（src 3・歯の file 2・凍結 anchor 1・設計文書の生成区間 1・床の歯の fixture 16）。新しい file・縮む file・消す file・新しい dir は無い。
 - 門: **0（通す）**。本流の binary（main root の `target/debug/folio`・1c7f927 の組み立て）に write-set の 23 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え「folio ceiling: 通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）」（起草の記録の gate.log）。
 - 前提: **base = 本流 1c7f927**（便 202 の着地）。この契約の数はすべて 1c7f927 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d204`（親 1c7f927・2 commit: 6635999 が最初の形・25d6460 が層の決まりと便 203 との重なりに合わせて時刻の形を rules.rs へ移し、床の関数を分け、fixture 16 本に時刻を足した形）。`git diff 1c7f927 impl/d204` が便の全体の差分。**作業者は write-set の file をこの枝の先端の中身にしてよい**。write-set の外は変えない。`design-intent/rules.yaml` は手で書かず、見本の binary の `folio schema --dir design-intent --write` で書く。
+- 実装の見本: origin の枝 `impl/d204`（親 1c7f927・2 commit: 6635999 が最初の形・25d6460 が層の決まりと便 203 との重なりに合わせて時刻の形を rules.rs へ移し、床の関数を分け、fixture 16 本に時刻を足した形）。`git diff 1c7f927 impl/d204` が便の全体の差分。**作業者は write-set の file をこの枝の先端 25d6460 の中身にしてよい**。write-set の外は変えない。`design-intent/rules.yaml` は手で書かず、見本の binary の `folio schema --dir design-intent --write` で書く。
 - 並行の便との重なり: §1 (g) の表（便 203 と `crates/folio/src/check.rs`・`crates/folio/src/rules.rs` が重なる・見本どうしの `git merge-tree` は衝突 0）。
 
 ## 1. 設計
