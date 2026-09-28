@@ -14,8 +14,9 @@
 //!    行が無ければ {}、在れば flow の 1 行が W 以内なら flow、超えれば block（欄名の行と「<字下げ + 2><名>: <値>」の行）。
 //! 7. 外の置き場（名が folio2 の置き場の名 `HOME` でない・便 174・ADR-16 決定 (2)(オ)）: 文字列の値は `text_for` を通し
 //!    （folio2 の番号の印を持つ全角の括弧の項と文を落とす・注の欄で何も残らなければ欄ごと書かない）、`Floor::Home` の欄は書かない。
-//!    落とした跡の字の壊れは残さない（便 194）: 括弧ごと落として英数字と和字が接したら空白を 1 つ置き、落とした文の直後の
-//!    前の文を指す語（`POINTERS`）で始まる文も続けて落とし、同じ括弧の中で台帳の id の項を落としたら「持ち主の裁定」の項も落とす。
+//!    落とした跡の字の壊れは残さない（便 194）: 括弧ごと落として英数字と和字が接したら空白を 1 つ置き、落とした文の直後の文が
+//!    前の文を指す語で始まれば、語が文の主なら（`POINTERS`）文も続けて落とし、抜いても文が立つ語なら（`POINTER_ADVERBS`）語だけを
+//!    落とし、同じ括弧の中で台帳の id の項を落としたら「持ち主の裁定」の項も落とす。
 //!    folio2 の置き場と名の無い口は定数の字のまま（folio2 の生成区間は変わらない）。突き合わせ（`floor_diff_for`）も同じ規則で比べる。
 
 use std::borrow::Cow;
@@ -120,8 +121,11 @@ fn marked(t: &str) -> bool {
         || has_ruling(t)
 }
 
-/// 落とした文の直後で、続けて落とす文の頭の語（前の文を指す・便 194）。
-const POINTERS: [&str; 3] = ["どちらも", "これ", "その"];
+/// 落とした文の直後で、続けて落とす文の頭の語（前の文を指す語が文の主で、語だけは抜けない・便 194）。
+const POINTERS: [&str; 2] = ["これ", "その"];
+
+/// 落とした文の直後の文の頭で、語だけを落とす指す語（抜いても文が立つ＝文の中身は残す・便 194）。
+const POINTER_ADVERBS: [&str; 1] = ["どちらも"];
 
 /// 出所の台帳の id を落とした括弧で、一緒に落とす項の字（出所の無い裁定の名指しを残さない・便 194）。
 const OWNER_RULING: &str = "持ち主の裁定";
@@ -214,16 +218,21 @@ fn drop_marked_items(c: &[char]) -> String {
 }
 
 /// 外の置き場へ写す字（便 174）: 括弧の項を落とした後、なお印を持つ文（深さ 0 の「。」まで）を落とす。落とした文の直後の文が
-/// `POINTERS` で始まれば、それも続けて落とす（便 194）。何も残らなければ None。
+/// `POINTERS` で始まれば、それも続けて落とし、`POINTER_ADVERBS` で始まれば、その語だけを落とす（便 194）。何も残らなければ None。
 pub(crate) fn text_for(v: &str) -> Option<String> {
     let c: Vec<char> = v.chars().collect();
     let kept: Vec<char> = drop_marked_items(&c).chars().collect();
     let mut dropped = false;
     let out: String = split_after(&kept, '。')
         .into_iter()
-        .filter(|s| {
-            dropped = marked(s) || (dropped && POINTERS.iter().any(|p| s.trim_start().starts_with(p)));
-            !dropped
+        .filter_map(|s| {
+            let (after, head) = (dropped, s.trim_start());
+            dropped = marked(&s) || (after && POINTERS.iter().any(|p| head.starts_with(p)));
+            match POINTER_ADVERBS.iter().find_map(|p| head.strip_prefix(p)) {
+                _ if dropped => None,
+                Some(rest) if after => Some(rest.to_string()),
+                _ => Some(s),
+            }
         })
         .collect();
     let out = out.trim();
@@ -741,8 +750,11 @@ mod tests {
             ("4 桁（ADR-0047）は前の版", Some("4 桁は前の版")),
             ("id（ADR-1）、次", Some("id、次")),
             ("id（ADR-1）・次", Some("id・次")),
-            ("口は便 119 で入った。どちらも面を呼ばない。値は字。", Some("値は字。")),
+            ("口は便 119 で入った。どちらも面を呼ばない。値は字。", Some("面を呼ばない。値は字。")),
+            ("口は便 119 で入った。 どちらも面を呼ばない。 これも同じ。", Some("面を呼ばない。 これも同じ。")),
+            ("口は便 119 で入った。これも同じ。どちらも面を呼ばない。", Some("面を呼ばない。")),
             ("口は便 119 で入った。そのため足す。これも同じ。値は字。", Some("値は字。")),
+            ("口は便 119 で入った。 その値は字。値は字。", Some("値は字。")),
             ("値は字。どちらも面を呼ばない。", Some("値は字。どちらも面を呼ばない。")),
             ("口は便 119 で入った。値は字。どちらも同じ。", Some("値は字。どちらも同じ。")),
             ("図の対（持ち主の裁定 2026-09-19・f2-648 notes）＝図", Some("図の対＝図")),
@@ -751,7 +763,8 @@ mod tests {
         ] {
             assert_eq!(text_for(from).as_deref(), to, "{from}");
         }
-        assert_eq!(POINTERS, ["どちらも", "これ", "その"]);
+        assert_eq!(POINTERS, ["これ", "その"]);
+        assert_eq!(POINTER_ADVERBS, ["どちらも"]);
         assert_eq!(OWNER_RULING, "持ち主の裁定");
         assert!(abroad(Some("folio2x-constitution")) && abroad(Some("folio2")) && !abroad(Some(HOME)));
     }

@@ -534,9 +534,12 @@ fn f194_abroad_regions_leave_no_broken_joins() {
     // 注で何も残らない欄は欄ごと書かない（便 174 の検証の V7）
     assert!(!adr.contains("grill_note:"), "{adr}");
     let note = f174_region(&fs::read_to_string(w.place().join("design-note/schema.yaml")).unwrap());
-    // 落とした文を指す「どちらも」の文は続けて落ち、出所の台帳の id を落とした括弧は「持ち主の裁定」ごと落ちる
+    // 落とした文を指す「どちらも」は語だけが落ちて文の中身は残り、出所の台帳の id を落とした括弧は「持ち主の裁定」ごと落ちる
     assert!(!note.contains("どちらも"), "{note}");
-    assert!(note.contains("のはそのため。値に二重引用符"), "{note}");
+    assert!(
+        note.contains("のはそのため。面の生成器も様式の file も呼ばず、導出物の置き場（--out）は消費側が宣言する（既定なし）。値に二重引用符"),
+        "{note}"
+    );
     assert!(note.contains("図の対＝設計ノートの図は"), "{note}");
     assert!(!note.contains("（持ち主の裁定 2026-09-19）"), "{note}");
 }
