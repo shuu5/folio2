@@ -5,8 +5,8 @@
 - 出所: 判断の記録 ADR-31（持ち主の承認 2026-09-28 10:29 JST・対話面 R-8・逐語「全部承認する」・台帳 f2-648.267）の決定 (5)（便 B は面の描き方を含み、差分が審査の上限を超えるなら型・床・書く命令の便と面の便に割る）と (7)（3 つの節の型の面の描き方は M3 の外で FR9 の範囲）。前半は便 183（行 gd・docs/design/delivery-183.md）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `ge` が指す §1 だけ。write-set は 2 本（src 1・歯の file 1）。新しい file・縮む file・消す file・新しい dir は無い。
 - 門: 対象外・0（設計文書の正本を書き換えない便・本流 c2e59c3 の組み立てで `folio ceiling --gate --dir design-intent --write-set crates/folio/src/face_note.rs crates/folio/tests/face_note.rs` は 0「通す（設計文書の正本を書き換えない便）」）。
-- 前提: **base = 便 183（行 gd）が本流 c2e59c3 の上に着地した後の main**（見本 1f8ea15 と同じ中身）。この契約の数は 1f8ea15 の写しの実測（参考値・規則の表の行 D-13）。便 183 が見本と違う中身で着地したら、その main で数え直す。
-- 実装の見本: origin の枝 `impl/d184`（commit **eaa6152**・親 1f8ea15）。`git diff 1f8ea15 eaa6152` が便の全体の差分（2 file・+99 −7・9,429 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout eaa6152 -- <write-set の file>`）。write-set の外は変えない。
+- 前提: **base = 便 183（行 gd）が本流 c2e59c3 の上に着地した後の main**（便 183 の見本 366f96f〔改訂 a〕と同じ中身）。この契約の数は 1f8ea15 と 366f96f の写しの実測（参考値・規則の表の行 D-13）。便 183 が見本と違う中身で着地したら、その main で数え直す。
+- 実装の見本: origin の枝 `impl/d184`（commit **3398d0b** = 見本 eaa6152〔親 1f8ea15〕に便 183 の改訂 a〔366f96f〕を取り込んだ merge）。`git diff 366f96f 3398d0b` が便の全体の差分（2 file・+99 −7・9,429 byte・`git diff 1f8ea15 eaa6152` と同じ）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 3398d0b -- <write-set の file>`）。write-set の外は変えない。
 - 並行の便との重なり: 便 183 とは write-set が重ならないが、便 183 の節の型の定数が無いと歯の写しの床の前提が違うので、便 183 の着地の後に受け付ける。
 
 ## 1. 設計
@@ -20,7 +20,7 @@
 ### (b) 直す先 — `crates/folio/src/face_note.rs`
 
 1. **名札の表 TYPES を 9 つに**（行の索引・計画だけの行・判断の表・並びは欄の決まりの type_enum と同じ）と、型ごとの節の数 by_type を 9 つに。
-2. **table_chapter。** 行の索引の rows が印だけ（YAML では null）なら 0 行で描く（ほかの型は今のまま rows を求める）。行の索引の行は所属の設計ノートの面へ（`<a class="xref" href="note-<文書 id>.html"><文書 id></a>`）。計画だけの行は what を題に・size を pill に・depends を hint「依存」（「・」で繋ぐ）・files を hint「書く file」（`<code>` を `<br>` で繋ぐ）・ruling を hint「拠る」・note を hint「注」に。判断の表の行は text を題に・ruling を「裁定」の欄に。値は escape して逐語（α）。
+2. **table_chapter。** 行の索引の rows が印だけ（YAML では null）なら 0 行で描く（ほかの型は今のまま rows を求める）。行の索引の行は所属の設計ノートの面へ（class xref の a 要素で、行き先は note-<文書 id>.html・字は文書 id）。計画だけの行は what を題に・size を pill に・depends を hint「依存」（「・」で繋ぐ）・files を hint「書く file」（`<code>` を `<br>` で繋ぐ）・ruling を hint「拠る」・note を hint「注」に。判断の表の行は text を題に・ruling を「裁定」の欄に。値は escape して逐語（α）。
 3. **頭の注**に 1 項。
 4. **変えないもの。** ほかの 6 つの型の描き方・部品の一覧（新しい class を足さない）・床・書く命令・folio2 自身の面。
 
@@ -35,9 +35,9 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **既存の歯。** 本便の差分を 1f8ea15 に当てた写しで workspace の nextest **1036 / 1036**・clippy 0・床 4 本 rc 0・`folio build --write` 36 file（base と byte で同じ）。落ちる既存の歯は 0（直した既存の歯も 0）。
+1. **既存の歯。** 本便の差分を 1f8ea15 に当てた写しで workspace の nextest **1036 / 1036**・clippy 0・床 4 本 rc 0・`folio build --write` 36 file（base と byte で同じ）。落ちる既存の歯は 0（直した既存の歯も 0）。便 183 の改訂 a を取り込んだ 3398d0b では clippy 0 と `--test face_note --test plan` の 41 / 41 を撃った（workspace は便 183 の改訂 a の 1036 に本便の 1 本を足した 1037 の見込み）。
 2. **突然変異（mut-183.log の M12・M13）。** 判断の表の裁定の字を出さない・索引の行を面へ結ばない、はどちらも f184_ が落ちる（生き残り 0）。
-3. **外の置き場（tsuzuri の写し c43cae0・参考値）。** 便 183 の (e) の 3 の移行を当てた写しで、本便の binary の `folio build --write` は 0・36 file・surface-plan の面の §8 行の索引 121 行・§9 計画だけの行 53 行・§10 判断の表 29 行。
+3. **外の置き場（tsuzuri の写し 1eb50a7・参考値）。** 便 183 の (e) の 3 の手順（tz-run.sh）で移行した写しで、本便の binary の `folio build --write` は 0・37 file・surface-plan の面の §8 行の索引 126 行・§9 計画だけの行 62 行・§10 判断の表 30 行。
 
 ### (f) 大きさ・余地・verify と done の対応
 
@@ -52,7 +52,7 @@
 ### (g) 門と受付
 
 1. **門。** 冒頭のとおり対象外・0。
-2. **受付。** 便 183 の着地の後に受け付ける。precheck は本流 c2e59c3 の上の枝 docs/d183 で契約に起因する断り 0（起草の記録の precheck-184.log）。着地の後、席は tsuzuri へ「移行（名札の行と surface-plan の 3 つの節の型）は本便の binary から撃てる」を返す。
+2. **受付。** 便 183 の着地の後に受け付ける。precheck は本流 c2e59c3 の上の枝 docs/d183 で契約に起因する断り 0（起草の記録の precheck-184.log）。着地の後、席は tsuzuri へ「移行（名札の行と surface-plan の 3 つの節の型）は本便の binary から撃てる・手順は tz-run.sh と tz-migrate.py（今の HEAD で撃ち直す）」を返す。
 
 ### (h) 数え直す手順
 
@@ -85,14 +85,14 @@
 
 - 外部 crate も外部ライブラリも増やさない。新しい dir は無い。
 - 前提の着地: 便 183（行 gd）。
-- 本便の着地の後に席が見ること: 台帳の本便の件を閉じる。tsuzuri へ移行の見本（起草の記録の tz-migration.patch）と 1 行を返す。
+- 本便の着地の後に席が見ること: 台帳の本便の件を閉じる。tsuzuri へ移行の手順（起草の記録の tz-run.sh と tz-migrate.py）と 1 行を返す。
 
 <!-- contracts:begin -->
 schema = 1
 
 [[contract]]
 id = "ge"
-title = "設計ノートの面に計画の設計ノートの節の型 3 つを描く（判断の記録 ADR-31 の便 B の後半・決定 (5)(7)・要件書 FR9 と FR27・便 183 の後）: crates/folio/src/face_note.rs の節の型の名札の表 TYPES と型ごとの節の数を 9 つにし、table_chapter で行の索引の行を所属の設計ノートの面へ結び（rows が印だけの null なら 0 行）、計画だけの行の what・size・depends・files・ruling・note と、判断の表の行の text と ruling を escape して逐語で描く。部品の一覧は変えない。歯は f184_ の 1 本（crates/folio/tests/face_note.rs）。実装の見本は origin の枝 impl/d184 の commit eaa6152（親 1f8ea15）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 便 183（行 gd）が本流 c2e59c3 の上に着地した後の main"
+title = "設計ノートの面に計画の設計ノートの節の型 3 つを描く（判断の記録 ADR-31 の便 B の後半・決定 (5)(7)・要件書 FR9 と FR27・便 183 の後）: crates/folio/src/face_note.rs の節の型の名札の表 TYPES と型ごとの節の数を 9 つにし、table_chapter で行の索引の行を所属の設計ノートの面へ結び（rows が印だけの null なら 0 行）、計画だけの行の what・size・depends・files・ruling・note と、判断の表の行の text と ruling を escape して逐語で描く。部品の一覧は変えない。歯は f184_ の 1 本（crates/folio/tests/face_note.rs）。実装の見本は origin の枝 impl/d184 の commit 3398d0b（見本 eaa6152 に便 183 の改訂 a を取り込んだ merge）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 便 183（行 gd）が本流 c2e59c3 の上に着地した後の main"
 req = ["FR9", "FR27"]
 section = "1"
 write-set = ["crates/folio/src/face_note.rs", "crates/folio/tests/face_note.rs"]
