@@ -51,6 +51,26 @@ pub const ROW_REFS: &str = "refs";
 /// 値は `KEYS` の閉じた一覧の 1 つで、同じ値の閾値の行は置き場に 1 本まで（床は `key_violations`）。
 pub const ROW_KEY: &str = "key";
 
+/// 行の欄 ruled_at の字（便 204・条 P-17.1）。行の裁定の時刻で、形は `TIME_FORMAT`（床は `check.rs` の `check_times`）。
+pub const ROW_TIME: &str = "ruled_at";
+
+/// 裁定の時刻の形の写し（人が読む字面・床は `is_time` の字の走査で判定する）。年-月-日か、UTC の分（年-月-日T時:分Z）。
+pub const TIME_FORMAT: &str = r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$";
+
+/// 裁定の時刻の形か（`TIME_FORMAT`・便 204）。年-月-日は判断の記録の日付と同じ `adr::is_date`、UTC の分はその後ろに「T」時 2 桁
+/// 「:」分 2 桁「Z」。暦に在る日かは見ない。
+pub fn is_time(s: &str) -> bool {
+    let Some(date) = s.get(..10) else {
+        return false;
+    };
+    crate::adr::is_date(date)
+        && match &s.as_bytes()[10..] {
+            [] => true,
+            [b'T', h1, h2, b':', m1, m2, b'Z'] => [h1, h2, m1, m2].iter().all(|c| c.is_ascii_digit()),
+            _ => false,
+        }
+}
+
 /// 閾値の行が持ってよい欄。
 pub const THRESHOLD_OPTIONAL: [&str; 7] = [
     "basis",
@@ -333,7 +353,7 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
             "その行の散文が依っている、article の条以外の id の一覧（ほかの行・要件書の id・判断の記録・別の条と規範文）。各項は id の形（P-5.2）で、その行自身の id と article の値は書かない。未解決は行 R-4 の 1 つ目の数えが拾い、判断の記録の未実在は A-2 の網が拾う（R-4 の what と値と母集団は変えない）",
         ),
     ),
-    ("ruled_at_format", Floor::Val(crate::ruling::TIME_FORMAT)),
+    ("ruled_at_format", Floor::Val(TIME_FORMAT)),
     (
         "ruled_at_note",
         Floor::Val(
@@ -506,6 +526,25 @@ mod tests {
         assert!(plan_note(&two).unwrap_err().contains("2 本ある"));
         let discipline = "thresholds: []\ndiscipline:\n  - {id: D-1, value: surface-plan, key: plan-note}\n";
         assert_eq!(plan_note(&crate::yaml::parse(discipline).unwrap().root), Ok(None));
+    }
+
+    /// 便 204 (c): 裁定の時刻は年-月-日か UTC の分だけを通し、字面の写しと欄の名は手書きの字と同じ（ASCII でない字の位置でも
+    /// 止まらない）。
+    #[test]
+    fn f204_the_time_is_the_date_or_the_utc_minute() {
+        assert_eq!(TIME_FORMAT, r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$");
+        assert_eq!(ROW_TIME, "ruled_at");
+        for ok in ["2026-09-28", "2026-09-24T22:39Z", "0000-00-00T00:00Z"] {
+            assert!(is_time(ok), "{ok}");
+        }
+        let bad = [
+            "", "2026/09/28", "2026-9-28", "2026-09-28 07:18 JST", "2026-09-28T22:39", "2026-09-28T2:39Z", "2026-09-28T22:39:00Z",
+            "2026-09-28T22:39Zx", "2026-09-28t22:39z", "2026-09-28Tab:39Z", "2026-09-28T22:cdZ", " 2026-09-28", "2026-09-28 ",
+            "未記入", "２０２６-09-28", "2026-09-2８", "2026-09-28T22:3９Z",
+        ];
+        for s in bad {
+            assert!(!is_time(s), "{s}");
+        }
     }
 
     /// 便 204 (c): 閾値の行の種別は kind_map_to_constitution の左辺（deny・build-check・detect）だけを通し、human-review の閾値の
