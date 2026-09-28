@@ -62,6 +62,9 @@
 //! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 17 行が外れ、索引の欄の決まりの注から周の引き金の
 //! 2 文が外れた（CEILING_REGION_*・F95_GRAPH_* を、前の anchor を行と字で直した写しを sha256sum で測り直した値に）。
 //! 便 177（delivery-177.md §1 (b)(c)）: 索引の欄の決まりの注 digest_note から印の 1 文が外れた（F95_GRAPH_* を同じ手順で測り直した値に）。
+//! 便 195（行 gp）: 索引の欄の決まりの生成区間の末尾に ids・mentions と 2 つの注を足した（F95_GRAPH_* を測り直した値に・写しの字の歯は tests/graph.rs）。
+//! 便 197（delivery-197.md §1 (b)(d)）: 相談窓口の生成区間に回答の値の読み方と行き先の固定の値の写し 4 行（F77_REGIONS の intake.yaml を、
+//! 前の anchor に 4 行を手で足した写しを sha256sum で測り直した 7 行・1644 byte と要約値に）。規則の表の除外の 2 行の字（RULES_REGION_* を 3512 byte と要約値に）。
 //! 便 196: 要件書の生成区間の末尾に id の一覧の anchor の定数の写し ids_anchor の 7 行と注 1 行（F77_REGIONS の srs.yaml を測り直した値に）。
 
 use std::fs;
@@ -79,9 +82,9 @@ const CEILING_REGION_SHA256: &str =
 
 /// 便 53 (b) 凍結 anchor: rules.yaml の生成区間（設計判断の席が独立の実装で組んだ・tests/fixtures/schema/rules-region.txt と同じ byte）。
 const RULES_REGION_LINES: usize = 32;
-const RULES_REGION_BYTES: usize = 3334;
+const RULES_REGION_BYTES: usize = 3512;
 const RULES_REGION_SHA256: &str =
-    "ec1b8eb313fc6f6be4226c832fe1aa9932563182da04fdc4f40ab9deb107b8e5";
+    "098f7e633596c2f16a13e93c680bf49b3d44c025d76e47b9a3c0b494584418c2";
 
 /// 便 76 (b) 凍結 anchor: index.yaml の生成区間（設計判断の席が独立に組んだ・tests/fixtures/schema/index-region.txt と同じ byte）。
 const INDEX_REGION_LINES: usize = 9;
@@ -108,9 +111,9 @@ const F77_REGIONS: [(&str, &str, usize, usize, &str); 3] = [
     (
         "intake.yaml",
         "tests/fixtures/schema/intake-region.txt",
-        3,
-        256,
-        "0f6a498f0c308603740e02debfc79fbfbde72d69ea1a6ca101c8a7b320eecd97",
+        7,
+        1644,
+        "e800ebde8734bc5ec9cba3bd904a7adb1f2dfb06ace61ed33124974921be32fa",
     ),
 ];
 
@@ -1054,9 +1057,10 @@ fn f89_schema_teeth_are_split_and_under_the_cap() {
 const F95_GRAPH_ANCHOR: &str = "tests/fixtures/schema/graph-region.txt";
 /// 便 99 で node の digest と edge_fields・edge_fields_note・digest_note を足した値（docs/design/delivery-99.md §1 (f)）。
 /// 便 185 で node_note・node_kinds・edge_types・edge_fields・edge_fields_note・digest_note に設計ノートの行を足した値（anchor は字面の置き換えで作った）。
-const F95_GRAPH_LINES: usize = 38;
-const F95_GRAPH_BYTES: usize = 3909;
-const F95_GRAPH_SHA256: &str = "4180685ff024c8c3d0ea5d3294a7e5c00e4e58db826a588036611c28f9e8ea80";
+/// 便 195 で末尾に ids・mentions と 2 つの注の 62 行を足した値（anchor は導出を使わない独立の script が組み、wc と sha256sum で測った）。
+const F95_GRAPH_LINES: usize = 100;
+const F95_GRAPH_BYTES: usize = 7372;
+const F95_GRAPH_SHA256: &str = "459a0d588fcd1bba634dab87586014a2a66c31b52c9e3a50d70c1a68c09f0691";
 
 /// 生成区間の変異（node_kinds の行の最後の種類の末尾の 1 字・便 185 で最後の種類が 設計ノートの行 に）。
 const F95_DRIFT_FROM: &str = ", 設計ノートの行]\n";
