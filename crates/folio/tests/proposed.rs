@@ -445,8 +445,8 @@ fn f198_stdin_not_utf8_is_unknown() {
     assert_eq!(r.out[1], REFUSED);
 }
 
-/// 便 198 (c) 16（改訂 b）: 口の一時の作業場所の置き場（TMPDIR）が別の版管理の作業ツリーの中でも、写しの床はその版管理を見ない
-/// （子の git に一時の作業場所の親を天井に渡す）。器の導出 file の無い別の版管理を読むと契約表の行の欄を数えずに通していた。
+/// 便 198 (c) 16（改訂 b・c）: 口の一時の作業場所の置き場（TMPDIR）が別の版管理の作業ツリーの中でも根そのものでも、写しの床は
+/// その版管理を見ない（子の git に一時の作業場所の親を天井に渡す）。器の導出 file の無い別の版管理を読むと契約表の行の欄を数えずに通していた。
 #[test]
 fn f198_tmpdir_in_another_work_tree_is_not_read() {
     let w = Work::new("ceiling");
@@ -463,16 +463,20 @@ fn f198_tmpdir_in_another_work_tree_is_not_read() {
         "      - {id: a, title:",
         "      - {id: a, bogus: x, title:",
     );
-    let r = w.folio_in(&["--proposed", "design-note/example.yaml"], text.as_bytes(), &tmp);
-    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
-    assert_eq!(
-        r.out,
-        [
-            CONTRACT.to_string(),
-            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
-        ]
-    );
+    for at in [&tmp, &other] {
+        let r = w.folio_in(&["--proposed", "design-note/example.yaml"], text.as_bytes(), at);
+        assert_eq!(r.code, 1, "{at:?}: {:?} {:?}", r.out, r.err);
+        assert_eq!(
+            r.out,
+            [
+                CONTRACT.to_string(),
+                "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+            ]
+        );
+    }
     assert_eq!(fs::read_dir(&tmp).unwrap().count(), 0);
+    let left = fs::read_dir(&other).unwrap().filter(|e| e.as_ref().unwrap().file_name().to_string_lossy().starts_with("folio-proposed-"));
+    assert_eq!(left.count(), 0);
 }
 
 /// 便 198 (c) 17（改訂 b）: 写しの中で版管理の根が解ける置き場（置き場の dir そのものが版管理の根）は数えず まだ分からない（2）。
