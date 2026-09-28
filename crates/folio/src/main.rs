@@ -302,7 +302,7 @@ enum Command {
         /// 全体像の短い出力（種類ごとの節点・型ごとの辺・file ごとの節点の数）を標準出力へ書く
         #[arg(long)]
         digest: bool,
-        /// --print の表の代わりに、節点ごとに id の行の番号・平易文・技術の要約を添えた 1 行の JSON（JSON Lines）を書く
+        /// --print の表の代わりに、節点ごとに id の行の番号・平易文・技術の要約・裁定 id の一覧を添えた 1 行の JSON（JSON Lines）を書く
         #[arg(long, conflicts_with = "digest")]
         summary: bool,
     },

@@ -30,7 +30,8 @@ const AMENDMENT: &str = "constitution.yaml articles[].amended_by[].ruling";
 const THRESHOLD: &str = "rules.yaml thresholds[].ruling";
 const DISCIPLINE: &str = "rules.yaml discipline[].ruling";
 const RECORD: &str = "adr/ADR-*.yaml approval.ruling";
-const NOTE: &str = "design-note/*.yaml meta.approval[].ruling";
+/// 設計ノートの承認欄の行の裁定の欄（索引の設計ノートの行はこの欄の裁定 id を継ぐ・便 201）。
+pub(crate) const NOTE: &str = "design-note/*.yaml meta.approval[].ruling";
 /// 判断の表（節の型 decision-table・どの設計ノートにも置ける）の各行の裁定の欄（便 183・ADR-31 決定 (2)(イ)(エ)）。
 const TABLE: &str = "design-note/*.yaml sections[decision-table].rows[].ruling";
 

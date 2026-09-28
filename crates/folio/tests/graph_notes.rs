@@ -131,7 +131,7 @@ fn f185_the_frozen_base_row_is_a_node_with_its_req_edge() {
     let lines: Vec<&str> = summary.lines().filter(|l| l.contains("#a\"")).collect();
     assert_eq!(
         lines,
-        [r#"{"id":"example#a","kind":"設計ノートの行","file":"design-note/example.yaml","line":55,"title":"目的","plain":null,"eng":"図の生成の口 3 つを 1 便で置く"}"#]
+        [r#"{"id":"example#a","kind":"設計ノートの行","file":"design-note/example.yaml","line":55,"title":"目的","plain":null,"eng":"図の生成の口 3 つを 1 便で置く","rulings":[]}"#]
     );
     let digest = passed(folio(&["graph", "--digest"], &dir));
     for want in ["\n設計ノートの行\t1\n", "\nreq\t1\t0\n", "\ndepends\t0\t0\n", "\ndesign-note/example.yaml\t1\n"] {
@@ -219,9 +219,9 @@ fn f185_block_rows_keep_the_meta_id_the_section_title_and_depends() {
     assert_eq!(
         wave,
         [
-            r#"{"id":"wave#p","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":23,"title":"行 p — 一つ目の行の見出し","plain":null,"eng":"一つ目の行の題"}"#,
-            r#"{"id":"wave#q","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":30,"title":"行 q — 二つ目の行の見出しは三十六字を越えるので、索引の表の題では後","plain":null,"eng":"二つ目の行の題は技術の要約として全文が出て、表の題の三十六字では切られないことを見る"}"#,
-            r#"{"id":"wave#r","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":36,"title":"行 p — 一つ目の行の見出し","plain":null,"eng":"三つ目の行は流れの形で id が先頭でない"}"#,
+            r#"{"id":"wave#p","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":23,"title":"行 p — 一つ目の行の見出し","plain":null,"eng":"一つ目の行の題","rulings":[]}"#,
+            r#"{"id":"wave#q","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":30,"title":"行 q — 二つ目の行の見出しは三十六字を越えるので、索引の表の題では後","plain":null,"eng":"二つ目の行の題は技術の要約として全文が出て、表の題の三十六字では切られないことを見る","rulings":[]}"#,
+            r#"{"id":"wave#r","kind":"設計ノートの行","file":"design-note/wave-file.yaml","line":36,"title":"行 p — 一つ目の行の見出し","plain":null,"eng":"三つ目の行は流れの形で id が先頭でない","rulings":[]}"#,
         ]
     );
 }

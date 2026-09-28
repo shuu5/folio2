@@ -7,6 +7,8 @@
 //! 便 185（docs/design/delivery-185.md §1・判断の記録 ADR-32・要件 FR14 第 1.54 版）: 設計ノートの契約表の節の行も節点にする
 //! （種類 設計ノートの行・id は meta の id と行 id を「#」でつないだ字・辺は req と depends）。読み手は床と導出と同じ note.rs の load_notes。
 //! 同じ id の節点を 2 度組んだ索引は、どの口（--print・--summary・--digest・folio hello）も まだ分からない にする（P-4.1）。
+//! 便 201（docs/design/delivery-201.md §1・判断の記録 ADR-35・要件 FR14 第 1.56 版）: `--summary` の各行の末尾に節点の裁定 id の
+//! 一覧（rulings）を足す。切り出すのは裁定 id の書き出し（folio check --emit-rulings）と同じ歩き手と関数（ruling.rs・P-6.3）。
 
 use std::collections::{btree_map::Entry, BTreeMap, BTreeSet};
 use std::fs;
@@ -15,6 +17,7 @@ use std::path::Path;
 use crate::floor::Floor;
 use crate::floor_note::CONTRACT_TABLE;
 use crate::note;
+use crate::ruling;
 use crate::sha256;
 use crate::verdict::{Report, Verdict};
 use crate::yaml::{self, Node, json_str};
@@ -193,7 +196,8 @@ const RELATIONS: [(&str, usize); 4] = [("articles", 1), ("reqs", 2), ("rules", 3
 type Ref = (String, String, &'static str);
 
 /// 索引: 節点（id → 種類・file・題）と、欄が指した参照と、行の逐語から組んだ節点の要約値と id の行の番号（--print
-/// だけが組む）と、節点の平易文と技術の要約の字（無ければ None・便 180）と、2 度組もうとした節点の id（便 185）。
+/// だけが組む）と、節点の平易文と技術の要約の字（無ければ None・便 180）と、2 度組もうとした節点の id（便 185）と、節点の
+/// 裁定 id（切り出した字・形の種類・台帳の id の組・便 201）。
 #[derive(Default)]
 struct Index {
     nodes: BTreeMap<String, (&'static str, String, String)>,
@@ -203,6 +207,7 @@ struct Index {
     texts: BTreeMap<String, (Option<String>, Option<String>)>,
     notes: Vec<String>,
     twice: BTreeSet<String>,
+    rulings: BTreeMap<String, Vec<(String, &'static str, String)>>,
 }
 
 impl Index {
@@ -221,6 +226,35 @@ impl Index {
         self.texts
             .entry(id.to_string())
             .or_insert((plain, eng.map(str::to_string)));
+    }
+
+    /// 節点の裁定 id（便 201・判断の記録 ADR-35）。裁定 id の書き出しと同じ歩き手 `ruling::sites` と関数 `ruling::rulings` で
+    /// 切り出し、欄が節点を持てば（条の改訂来歴・規則の表の行・判断の記録の承認欄）その節点に、設計ノートの承認欄の行なら同じ
+    /// file の設計ノートの行の全部に、欄の順・切り出した順で付ける。ほかの節点を持たない欄（憲法の発効の承認・承認欄の stamp・
+    /// 判断の表の行）は付けない。値が字でない欄は切り出さない（床の違反）。
+    fn ruled(&mut self, tree: &ruling::Tree) {
+        for site in ruling::sites(tree) {
+            let Some(Node::Scalar(s)) = site.value else {
+                continue;
+            };
+            let heirs: Vec<String> = match site.node {
+                Some(id) => vec![id.to_string()],
+                None if site.field == ruling::NOTE => self
+                    .nodes
+                    .iter()
+                    .filter(|(_, (kind, file, _))| *kind == NODE_KINDS[11] && *file == site.file)
+                    .map(|(id, _)| id.clone())
+                    .collect(),
+                None => continue,
+            };
+            let cut: Vec<_> = ruling::rulings(s)
+                .into_iter()
+                .map(|r| (r.text.to_string(), r.form.name(), r.bead.to_string()))
+                .collect();
+            for id in heirs {
+                self.rulings.entry(id).or_default().extend(cut.iter().cloned());
+            }
+        }
     }
 
     fn edge(&mut self, from: &str, to: &str, ty: usize) {
@@ -269,8 +303,9 @@ impl Index {
         out
     }
 
-    /// 節点ごとの 1 行の JSON（--print --summary・便 180）。欄は id・kind・file・line・title・plain・eng の順で空白を
-    /// 挟まない。題は表と同じ字・line は所属 file の中でその id が書かれた行（1 始まり）・plain と eng は無ければ null。
+    /// 節点ごとの 1 行の JSON（--print --summary・便 180）。欄は id・kind・file・line・title・plain・eng・rulings の順で空白を
+    /// 挟まない。題は表と同じ字・line は所属 file の中でその id が書かれた行（1 始まり）・plain と eng は無ければ null・rulings は
+    /// 裁定 id の組（ruling・form・bead の順・書き出しの同じ名の欄と同じ字）の一覧で、無ければ空の一覧（便 201）。
     fn jsonl(&self) -> String {
         let mut out = String::new();
         for (id, (kind, file, title)) in &self.nodes {
@@ -289,7 +324,17 @@ impl Index {
                     None => out.push_str("null"),
                 }
             }
-            out.push_str("}\n");
+            out.push_str(",\"rulings\":[");
+            for (n, (text, form, bead)) in self.rulings.get(id).into_iter().flatten().enumerate() {
+                out.push_str(if n == 0 { "{\"ruling\":" } else { ",{\"ruling\":" });
+                json_str(text, &mut out);
+                for (key, value) in [(",\"form\":", *form), (",\"bead\":", bead.as_str())] {
+                    out.push_str(key);
+                    json_str(value, &mut out);
+                }
+                out.push('}');
+            }
+            out.push_str("]}\n");
         }
         out
     }
@@ -429,9 +474,10 @@ fn srs(index: &mut Index, root: &Node) {
     }
 }
 
-/// 判断の記録: 記録・basis・produced・figures・amends の target（最初の区切りの前まで）。
-fn adr(index: &mut Index, dir: &Path) -> Result<(), String> {
+/// 判断の記録: 記録・basis・produced・figures・amends の target（最初の区切りの前まで）。返りは id を持つ記録の id と木（便 201）。
+fn adr(index: &mut Index, dir: &Path) -> Result<Vec<(String, Node)>, String> {
     let ad = dir.join("adr");
+    let mut records = Vec::new();
     for name in adr_names(dir)? {
         let root = load(&ad.join(&name))?;
         let Some(id) = id_of(&root) else {
@@ -452,17 +498,20 @@ fn adr(index: &mut Index, dir: &Path) -> Result<(), String> {
                 index.edge(id, head, 16);
             }
         }
+        let id = id.to_string();
+        records.push((id, root));
     }
-    Ok(())
+    Ok(records)
 }
 
 /// 設計ノート（便 185・判断の記録 ADR-32）: 契約表の節の行・req・depends。id は meta の id と行 id を「#」でつないだ字、
 /// 題は行の section が指す節の題、技術の要約は行の題の全文。読み手は床と導出と同じ `note::load_notes`（置き場が無ければ
-/// 0 本・dir でない・読めない file が在れば Err＝索引を組まない・P-4.1）。
-fn notes(index: &mut Index, dir: &Path) -> Result<(), String> {
+/// 0 本・dir でない・読めない file が在れば Err＝索引を組まない・P-4.1）。返りは meta の id を持つノートの file と木（便 201）。
+fn notes(index: &mut Index, dir: &Path) -> Result<Vec<(String, Node)>, String> {
     let nd = dir.join(NOTE_DIR);
+    let mut kept = Vec::new();
     if !nd.exists() {
-        return Ok(());
+        return Ok(kept);
     }
     if nd.is_symlink() || !nd.is_dir() {
         return Err(format!("{NOTE_DIR}/ が dir でない"));
@@ -498,8 +547,9 @@ fn notes(index: &mut Index, dir: &Path) -> Result<(), String> {
                 index.edge(&id, &format!("{meta}#{to}"), 18);
             }
         }
+        kept.push((file, doc.root));
     }
-    Ok(())
+    Ok(kept)
 }
 
 /// 判断の記録の file の名（`ADR-` で始まり `.yaml` で終わる・名の byte 順）。欄の決まりの file は節点でない。
@@ -515,17 +565,34 @@ fn adr_names(dir: &Path) -> Result<Vec<String>, String> {
     Ok(names)
 }
 
-/// 正本の置き場から索引を組む。
+/// 正本の置き場から索引を組む。節点の裁定 id は、索引が読んだ木を書き出しと同じ歩き手に渡して付ける（索引が読まない
+/// 3 本の正本は空の木で渡す＝その承認欄の stamp は節点を持たず、付ける先が無い・便 201）。
 fn build(dir: &Path) -> Result<Index, String> {
     let mut index = Index::default();
-    constitution(&mut index, &load(&dir.join("constitution.yaml"))?);
-    rules(&mut index, &load(&dir.join("rules.yaml"))?);
-    srs(&mut index, &load(&dir.join("srs.yaml"))?);
-    adr(&mut index, dir)?;
-    notes(&mut index, dir)?;
+    let c = load(&dir.join("constitution.yaml"))?;
+    constitution(&mut index, &c);
+    let r = load(&dir.join("rules.yaml"))?;
+    rules(&mut index, &r);
+    let s = load(&dir.join("srs.yaml"))?;
+    srs(&mut index, &s);
+    let records = adr(&mut index, dir)?;
+    let docs = notes(&mut index, dir)?;
     if index.nodes.is_empty() {
         return Err("節点が 1 つも無い".to_string());
     }
+    let null = Node::Null;
+    let tree = ruling::Tree {
+        constitution: &c,
+        rules: &r,
+        srs: &s,
+        index: &null,
+        ceiling: &null,
+        intake: &null,
+        graph: None,
+        records: &records,
+        notes: docs.iter().map(|(file, root)| (file.clone(), root)).collect(),
+    };
+    index.ruled(&tree);
     Ok(index)
 }
 
