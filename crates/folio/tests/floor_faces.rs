@@ -240,6 +240,19 @@ const SRS_ROWS: &[Row] = &[
         said: "srs.yaml.rail: 段が 8 で上限 7（部品目録の pipeline-rail の max_nodes）を超える",
     },
     Row {
+        id: "verdicts-5",
+        apply: |d| {
+            edit(
+                d,
+                "srs.yaml",
+                "\nrequirements:\n",
+                "  - {id: v4, name: 4 つ目, tone: ok, cond: 余分。}\n  - {id: v5, name: 5 つ目, tone: ok, cond: 余分。}\n\nrequirements:\n",
+            )
+        },
+        face: "srs",
+        said: "srs.yaml.verdicts: 答えが 5 で上限 4（部品目録の state-strip の max_nodes）を超える",
+    },
+    Row {
         id: "basis-adr",
         apply: |d| {
             edit_after(
@@ -305,6 +318,21 @@ const OTHER_ROWS: &[Row] = &[
         },
         face: "constitution",
         said: "constitution.yaml.amendment: 改訂の段が 8 で上限 7（部品目録の pipeline-rail の max_nodes）を超える",
+    },
+    Row {
+        id: "amend-no-effective-step",
+        apply: |d| {
+            let p = d.join("constitution.yaml");
+            let t = fs::read_to_string(&p).unwrap();
+            let line = t
+                .split_inclusive('\n')
+                .find(|l| l.starts_with("  effective_step: {n: 0,"))
+                .expect("改訂の欄 effective_step が無い")
+                .to_string();
+            fs::write(&p, t.replacen(&line, "", 1)).unwrap();
+        },
+        face: "constitution",
+        said: "constitution.yaml.amendment: 欄 effective_step が無い",
     },
     Row {
         id: "adr-consequence-map",
