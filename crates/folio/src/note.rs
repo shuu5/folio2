@@ -77,6 +77,8 @@ pub fn check_note(
 ) -> Vec<NoteDoc> {
     let nd = dir.join(DIR);
     if !nd.exists() {
+        // 名札の行が在れば計画のノートが無い＝まだ分からない（設計ノートの置き場が無くても黙らない・便 183）
+        plan::check_plan(&nd, &[], rules, report);
         return Vec::new();
     }
     if nd.is_symlink() || !nd.is_dir() {
@@ -89,6 +91,7 @@ pub fn check_note(
     check_schema_copy(&nd, report);
     let notes = load_notes(&nd, report);
     if notes.is_empty() {
+        plan::check_plan(&nd, &notes, rules, report);
         return notes;
     }
     // 器の導出 file は契約表の節を持つ設計ノートが 1 本以上あるときだけ読む
