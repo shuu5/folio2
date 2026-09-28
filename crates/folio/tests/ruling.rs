@@ -216,7 +216,7 @@ const LISTS: &str = "  ruling_forms: [question, notes-time, bead]
     - rules.yaml discipline[].ruling
   ruling_skip_roles: [作成, レビュー]
 ";
-const GRAMMAR: &str = r"(?<![0-9A-Za-z_.-])[a-z]\d-[0-9a-z]+(\.\d+)*(:\d{8}T\d{4}Z-\d+| notes( \d{4}-\d{2}-\d{2}( \d{2}:\d[0-9x])?| \d{2}:\d[0-9x])( JST)?)?";
+const GRAMMAR: &str = r"(?<![0-9A-Za-z_.-])[a-z][0-9]-[0-9a-z]+(\.[0-9]+)*(:[0-9]{8}T[0-9]{4}Z-[0-9]+| notes( [0-9]{4}-[0-9]{2}-[0-9]{2}( [0-9]{2}:[0-9][0-9x])?| [0-9]{2}:[0-9][0-9x])( JST)?)?";
 
 /// 歯 6（便 182）: folio2 の正本と床の土台の欄の決まりが、文法の字面と 4 欄を手書きの字のとおりに持つ。
 #[test]

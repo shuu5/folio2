@@ -4,7 +4,7 @@ schema:
   id_pattern_note: folio2 の他の id（P-1・R-7・FR1）と同じくゼロ詰めしない。4 桁（ADR-0047）は前の版（v1）か scribe2 の記録＝外部の参照で、床は内部 id として数えない。file 名は id と同じ
   date_format: ^\d{4}-\d{2}-\d{2}$
   date_format_note: date・approval.date・grill.when・amended_by.date は年-月-日
-  ruling_pattern: (?<![0-9A-Za-z_.-])[a-z]\d-[0-9a-z]+(\.\d+)*(:\d{8}T\d{4}Z-\d+| notes( \d{4}-\d{2}-\d{2}( \d{2}:\d[0-9x])?| \d{2}:\d[0-9x])( JST)?)?
+  ruling_pattern: (?<![0-9A-Za-z_.-])[a-z][0-9]-[0-9a-z]+(\.[0-9]+)*(:[0-9]{8}T[0-9]{4}Z-[0-9]+| notes( [0-9]{4}-[0-9]{2}-[0-9]{2}( [0-9]{2}:[0-9][0-9x])?| [0-9]{2}:[0-9][0-9x])( JST)?)?
   ruling_pattern_note: 裁定 id の文法（判断の記録 ADR-31 決定 (3)・床と書き出しが同じ関数で使う）。語頭（頭か、前の字が英数字・「_」・「-」・「.」でない位置）の台帳の id（英小字 1・数字 1・「-」・英小字か数字の並びに「.数字」の段を何段でも）を 1 つの裁定 id とし、直後に器の問いの印（「:」年月日 T 時分 Z「-」連番）が続けばそれを含めて問いの形（question）、台帳の notes の日付か時刻（分の 1 桁が x の概数を含む）と任意の日本時刻の印（JST）が続けばそれを含めて日時の形（notes-time）、どちらも無ければ台帳の id だけの形（bead）とする（例 f2-648 notes 2026-09-28 07:18 JST・t3-hub.56:20260927T2259Z-1・s2-07l.149）。欄の中の裁定 id は全部切り出す。実在と本物か・どの形の種類で足りるかは床で決めず、器と人が台帳と突き合わせる（P-12.2）
   ruling_forms: [question, notes-time, bead]
   ruling_fields:
