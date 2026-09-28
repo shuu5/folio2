@@ -4,8 +4,8 @@
 - 条: P-5.6（実装の型付きの定数を規則の正本とするあいだ、その写しを設計文書の置き場へ導出する）・P-6.3（同じ値を 2 か所に持たない）・P-5.1。
 - 出所: 規則の表の行 D-11。判断の記録 ADR-11 決定 (4)⑧（参照 id の形と節の一覧は写しを生成区間へ出し、実装の中の 2 枚以上を 1 枚に寄せる・台帳 **f2-648.76**）と、天井の 31 周目 実態 F-3（行 R-17 の注が名指す写しの後続・台帳 **f2-648.184**）。
 - 承認: 判定の値も式も変えず、既に効いている定数の写しを足すだけ。行 D-17 の「実装の定数を変えて生成区間の規則を変える」には当たらないと読み、席の裁定で受け付ける（読みが割れたら持ち主の承認の 1 回に載せる・字は変わらない）。
-- 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gp` が指す §1 だけ。write-set 13 本（src 6・歯の file 5〔本文不変 2〕・設計文書 1・fixture 1）・新しい file も dir も無い。
-- 門: **0（通す）**。本流 6467915 の組み立てに write-set 13 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（印の周 51 に、書き換える file を場所とする支持された 止める は無い）。
+- 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gp` が指す §1 だけ。write-set 12 本（src 6・歯の file 4〔本文不変 1〕・設計文書 1・fixture 1）・新しい file も dir も無い。
+- 門: **0（通す）**。本流 6467915 の組み立てに write-set 12 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（印の周 51 に、書き換える file を場所とする支持された 止める は無い）。
 - 前の便: **base = 本流 6467915**（便 185 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d195/`（run・red・mut・cap・anchor・tz の script）。
 - 見本: origin の枝 `impl/d195`（**0860ba4**・本流を merge した commit）。`git diff 6467915 0860ba4` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
 
@@ -66,7 +66,7 @@
 
 ### (f) 大きさ・余地・verify と done
 
-1. **write-set 13 本**（印なし＝書き換えるだけ）: src 6・歯の file 5（`tests/check.rs` と `tests/place_name.rs` は verify の scope で本文不変）・`design-intent/graph.yaml`・`tests/fixtures/schema/graph-region.txt`。
+1. **write-set 12 本**（印なし＝書き換えるだけ）: src 6・歯の file 4（`tests/check.rs` は verify の scope で本文不変）・`design-intent/graph.yaml`・`tests/fixtures/schema/graph-region.txt`。
 2. **余地（参考値）。** 各行 ceil(字数 / 120)・空行は 1。python と awk の 2 実装で一致。
 
 | file | base | 便の後 | 便の後の余地 |
@@ -79,7 +79,7 @@
 | refs.rs | 431 | 434 | 1066 |
 
 3. **size は M**（最小の余地は graph.rs の 365 ≥ 300）。
-4. **verify は 7 行**で、done の塊と 1 対 1: `--test graph f195_`・`--test schema_docs f95_ f89_`（写しの anchor と歯の file の上限）・`--test modules`（層と 1 枚の歯）・`--bin folio f195_`（単体の歯 3 本・外の置き場の導出を含む）・`--test check f93_`（行 R-17 の既存の歯）・`--test place_name f174_`（外の置き場の区間）・clippy。base では f195_ の行が 0 件で終了コード 4、ほかは緑。
+4. **verify は 6 行**で、done の塊と 1 対 1: `--test graph f195_`・`--test schema_docs f95_ f89_`（写しの anchor と歯の file の上限）・`--test modules`（層と 1 枚の歯）・`--bin folio f195_`（単体の歯 3 本・外の置き場の導出を含む）・`--test check f93_`（行 R-17 の既存の歯）・clippy。外の置き場の区間の字は単体の歯 3 が見る（`tests/place_name.rs` は小さな直しの便 194 が書くので verify に入れない）。base では f195_ の行が 0 件で終了コード 4、ほかは緑。
 
 ### (g) 受付・並行の便
 
@@ -129,8 +129,8 @@ id = "gp"
 title = "台帳 f2-648.76 の前半と f2-648.184: 参照 id の空間（要件書の id を持つ節・規則の表の節・憲法の relations の名前空間・id の頭）と行 R-17 の読みの 5 つの閉じた一覧（対象の file・型付きの欄・来歴の欄・読まない最上位・数えない語形と、節ごとの行の種類・受け皿の表）を、索引の欄の決まり graph.yaml の生成区間へ写す（行 D-11）。refs.rs の定数を 1 枚の正本にして link・note・prose・mentions・graph の写しを消し、mentions.rs の受け皿の match を種類の名の表 RECEIVES にし、graph.rs の FLOOR に ids と mentions と注 2 つを足して folio schema --write で書く。判定の答えは変えない。歯は f195_ 5 本と F95 の値の直し。base = main 6467915"
 req = ["FR19", "FR5"]
 section = "1"
-write-set = ["crates/folio/src/graph.rs", "crates/folio/src/link.rs", "crates/folio/src/mentions.rs", "crates/folio/src/note.rs", "crates/folio/src/prose.rs", "crates/folio/src/refs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/modules.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/check.rs", "crates/folio/tests/place_name.rs", "design-intent/graph.yaml", "tests/fixtures/schema/graph-region.txt"]
-verify = ["cargo nextest run -p folio --test graph f195_", "cargo nextest run -p folio --test schema_docs f95_ f89_", "cargo nextest run -p folio --test modules", "cargo nextest run -p folio --bin folio f195_", "cargo nextest run -p folio --test check f93_", "cargo nextest run -p folio --test place_name f174_", "cargo clippy --workspace --all-targets -- -D warnings"]
+write-set = ["crates/folio/src/graph.rs", "crates/folio/src/link.rs", "crates/folio/src/mentions.rs", "crates/folio/src/note.rs", "crates/folio/src/prose.rs", "crates/folio/src/refs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/modules.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/check.rs", "design-intent/graph.yaml", "tests/fixtures/schema/graph-region.txt"]
+verify = ["cargo nextest run -p folio --test graph f195_", "cargo nextest run -p folio --test schema_docs f95_ f89_", "cargo nextest run -p folio --test modules", "cargo nextest run -p folio --bin folio f195_", "cargo nextest run -p folio --test check f93_", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "f195_ の binary 経由の 2 本（tests/graph.rs・tests/modules.rs）と単体の 3 本が緑、tests/schema_docs.rs の f95_ と f89_ の歯（graph.yaml の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、tests/modules.rs の層の歯が緑、tests/check.rs の f93_ の歯（行 R-17）と tests/place_name.rs の f174_ の歯が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
+done = "f195_ の binary 経由の 2 本（tests/graph.rs・tests/modules.rs）と単体の 3 本が緑、tests/schema_docs.rs の f95_ と f89_ の歯（graph.yaml の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、tests/modules.rs の層の歯が緑、tests/check.rs の f93_ の歯（行 R-17）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
 <!-- contracts:end -->
