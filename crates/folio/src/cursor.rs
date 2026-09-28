@@ -2,15 +2,45 @@
 //! 正本 1 file を型付きで読む `load`・型付きの木を欄の道つきで辿る `X`・字面の 5 字の逃がし `esc`・id の形 `safe_id` を持つ。
 //! `face.rs`（便 14）から字を変えずに降ろした。正本の byte を型に直して辿るだけで、HTML の骨格も名札も知らない。
 
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::yaml::{self, Value};
 
 pub type R<T> = Result<T, String>;
 
+thread_local! {
+    /// 読んだ正本の写し（`memo` のあいだだけ在る・便 187）。
+    static MEMO: RefCell<Option<HashMap<PathBuf, Value>>> = const { RefCell::new(None) };
+}
+
+/// `f` のあいだ、`load` は同じ file を 2 度目からは読み直さず、1 度目に読めた木の写しを返す（床が面を組むとき、
+/// 面ごとに同じ正本を読み直さない・便 187）。読めなかった file は覚えない。
+pub fn memo<T>(f: impl FnOnce() -> T) -> T {
+    MEMO.with(|m| *m.borrow_mut() = Some(HashMap::new()));
+    let out = f();
+    MEMO.with(|m| *m.borrow_mut() = None);
+    out
+}
+
 /// 正本 1 file を型付きで読む。無い・読めない・UTF-8 でない・重複キー・空の文書は Err（まだ分からない）。
 pub fn load(dir: &Path, name: &str) -> R<Value> {
+    let key = dir.join(name);
+    if let Some(v) = MEMO.with(|m| m.borrow().as_ref().and_then(|m| m.get(&key).cloned())) {
+        return Ok(v);
+    }
+    let v = read(dir, name)?;
+    MEMO.with(|m| {
+        if let Some(m) = m.borrow_mut().as_mut() {
+            m.insert(key, v.clone());
+        }
+    });
+    Ok(v)
+}
+
+fn read(dir: &Path, name: &str) -> R<Value> {
     let bytes = fs::read(dir.join(name)).map_err(|e| format!("{name}: 読めない: {e}"))?;
     let text = String::from_utf8(bytes).map_err(|_| format!("{name}: UTF-8 でない"))?;
     let doc = yaml::parse(&text).map_err(|e| format!("{name}: 読めない: {e}"))?;
