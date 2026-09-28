@@ -3,6 +3,8 @@
 //! 各組の違反はちょうど 1 件で、その種類と文言まで見る（別の理由で落ちた組を緑にしない）。
 //! ただし `amended-by-orphan/` は便 7 の凍結 anchor の列の検査で「anchor が消された」が足されて 2 件。
 //! `retreat-kind-drift/` は便 122 から違反 0・まだ分からない（撤退条件の種類は部分集合で数える）。
+//! 便 203: 写しの憲法の名（fixture-constitution）は folio2 の置き場の名でなく条 N-4 を持たないので、名札は検査の名（改訂の承認）で、
+//! まだ分からない の行の要件の id（FR25）は落ちる。
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -62,7 +64,7 @@ fn link_retreat_kind_drift_is_unknown_and_not_pass() {
     assert!(violations(&out).is_empty(), "{name}: {:?}", violations(&out));
     assert!(
         err.lines().any(|l| l
-            == "# まだ分からない: constitution.yaml: schema.enums.retreat_kind の「drift」が判断の記録の床の撤退条件の種類 [spike, measure, ruling] に無い＝判断の記録の撤退条件を置き場の値域で数えられない（FR25）"),
+            == "# まだ分からない: constitution.yaml: schema.enums.retreat_kind の「drift」が判断の記録の床の撤退条件の種類 [spike, measure, ruling] に無い＝判断の記録の撤退条件を置き場の値域で数えられない"),
         "{name}: {err}"
     );
 }
@@ -92,12 +94,12 @@ fn link_amended_by_orphan_fails() {
     );
     assert!(
         v.iter()
-            .any(|l| l.starts_with("[N-4] ") && l.contains("発効していない")),
+            .any(|l| l.starts_with("[改訂の承認] ") && l.contains("発効していない")),
         "{name}: {v:?}"
     );
     assert!(
         v.iter()
-            .any(|l| l.starts_with("[N-4] ") && l.contains("anchor が消された")),
+            .any(|l| l.starts_with("[改訂の承認] ") && l.contains("anchor が消された")),
         "{name}: {v:?}"
     );
     assert!(stdout(&out).contains("不合格"), "{name}");

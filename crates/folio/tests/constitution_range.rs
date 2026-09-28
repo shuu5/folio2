@@ -575,9 +575,10 @@ fn f157_narrowed_range_is_pending_and_never_pass() {
     let r = w.check();
     assert!(r.n4.is_empty() && r.others.is_empty(), "{}", r.all);
     assert_eq!(r.pendings.len(), base.pendings.len() + 1, "{}", r.all);
+    // 骨格の名は folio2 の置き場の名でないので、字の中の要件の id（FR25）を落とす（便 203）
     assert_eq!(
         range_pendings(&r),
-        [&built_missing("strength", "「should」")],
+        [&built_missing("strength", "「should」").replace("・FR25）", "）")],
         "{}",
         r.all
     );

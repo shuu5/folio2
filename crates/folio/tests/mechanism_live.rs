@@ -10,6 +10,8 @@
 //! 便 200（docs/design/delivery-200.md §1 (d)）: 土台と骨格は欄 key が in-loop-min の行も持たないので、下限を数えなかった知らせが
 //! 行 R-17 の知らせの次に出る（歯は tests/polarity.rs）。
 //! 便 202（docs/design/delivery-202.md §1 (e)）: 骨格（外の置き場）の知らせは folio2 の条の番号の項が落ちた字（IN_LOOP_OFF_ABROAD）。
+//! 便 203（docs/design/delivery-203.md §1 (c)）: 骨格では、違反の名札（素の床・編集時の口・folio parts）が置き場に無い folio2 の id を
+//! 名指さず検査の名になり、まだ分からない の行から folio2 の番号の片が落ちる。同じ中身で名だけ folio2 にした写しは今の字（f203_ の 1 本）。
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -400,4 +402,146 @@ fn f156_labels_name_only_rows_the_place_has() {
     let out = d.check(&[]);
     assert_eq!(out.status.code(), Some(1), "{}", show(&out));
     assert_eq!(violations(&out), ids, "{}", show(&out));
+}
+
+// ── 便 203（delivery-203.md §1 (c)）──
+
+/// 骨格の判断の記録 ADR-1 を発効にした字（承認欄は無いまま）。
+const ADR1_ACCEPTED: &str = "ADR-1: accepted なのに approval（逐語・日付・裁定 id・対話面）が無い";
+/// 骨格の印の行（決定の欄 4 つ・便 181）の頭。
+const MARKED: [&str; 4] = [
+    "constitution.yaml: meta.approval.ruling",
+    "rules.yaml: 行 R-2 の ruling",
+    "rules.yaml: 行 R-8 の ruling",
+    "rules.yaml: 行 R-16 の ruling",
+];
+
+/// 骨格の ADR-1 を発効にする。
+fn accept_adr1(dir: &Path) {
+    edit(&dir.join("adr/ADR-1.yaml"), |s| s.replacen("status: proposed\n", "status: accepted\n", 1));
+}
+
+/// 標準出力と標準エラーの、条と規範文の id の形（P- / N- / A- と数・前の字が英字でない）。骨格の条は P-1 だけで出力には出ない。
+fn article_ids(out: &Output) -> Vec<String> {
+    let all: Vec<char> = show(out).chars().collect();
+    all.iter()
+        .enumerate()
+        .filter(|&(i, c)| {
+            matches!(c, 'P' | 'N' | 'A')
+                && (i == 0 || !all[i - 1].is_ascii_alphabetic())
+                && all.get(i + 1) == Some(&'-')
+                && all.get(i + 2).is_some_and(char::is_ascii_digit)
+        })
+        .map(|(i, _)| all[i..(i + 7).min(all.len())].iter().collect())
+        .collect()
+}
+
+/// まだ分からない の行（床は標準エラーに出し、編集時の口は標準出力に出す）。
+fn unknown_lines(bytes: &[u8]) -> Vec<String> {
+    lines(bytes)
+        .into_iter()
+        .filter_map(|l| l.strip_prefix("# まだ分からない: ").map(str::to_string))
+        .collect()
+}
+
+#[test]
+fn f203_abroad_labels_and_unknowns_name_no_folio2_number() {
+    // (a) 骨格（名は 未記入＝外の置き場）の ADR-1 を発効にした写し: 名札は検査の名、まだ分からない の行は番号の片が落ちる
+    let w = Work::skeleton("f203-accepted");
+    accept_adr1(&w.dir());
+    w.commit();
+    let out = w.check(&[]);
+    assert_eq!(out.status.code(), Some(1), "{}", show(&out));
+    assert_eq!(violations(&out), [format!("[改訂の承認] {ADR1_ACCEPTED}")], "{}", show(&out));
+    let unknowns = unknown_lines(&out.stderr);
+    assert!(
+        unknowns.iter().any(|l| l.starts_with("凍結 anchor が 0 本（")
+            && l.ends_with("）＝差分検査は「まだ分からない」。発効版で --freeze-anchor を実行する")),
+        "{}",
+        show(&out)
+    );
+    assert!(
+        unknowns.contains(&"anchors/adr-seals.yaml（判断の記録の封の一覧）が無い＝発効した判断の記録 1 本の本文の凍結を測れない（folio check --freeze-adrs で封を書き、commit する）".to_string()),
+        "{}",
+        show(&out)
+    );
+    for at in MARKED {
+        assert!(unknowns.contains(&format!("{at} が 未記入（骨格の印）")), "{at}: {}", show(&out));
+    }
+    assert_eq!(article_ids(&out), Vec::<String>::new(), "{}", show(&out));
+
+    // 編集時の口: 発効にした ADR-1 の中身を渡すと、同じ名札の違反と封の まだ分からない が新しく出る
+    let s = Work::skeleton("f203-proposed");
+    let accepted = fs::read_to_string(w.dir().join("adr/ADR-1.yaml")).unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_folio"))
+        .args(["check", "--dir"])
+        .arg(s.dir())
+        .args(["--proposed", "adr/ADR-1.yaml"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("folio を起動できない");
+    std::io::Write::write_all(child.stdin.as_mut().unwrap(), accepted.as_bytes()).unwrap();
+    let proposed = child.wait_with_output().unwrap();
+    assert_eq!(violations(&proposed), [format!("[改訂の承認] {ADR1_ACCEPTED}")], "{}", show(&proposed));
+    assert!(
+        unknown_lines(&proposed.stdout).iter().any(|l| l.ends_with("（folio check --freeze-adrs で封を書き、commit する）")),
+        "{}",
+        show(&proposed)
+    );
+    assert_eq!(article_ids(&proposed), Vec::<String>::new(), "{}", show(&proposed));
+
+    // (b) 撤退条件を空にした写し: 名札は検査の名（字の中の P-8.1 は本便の外）
+    let r = Work::skeleton("f203-retreat");
+    edit(&r.dir().join("adr/ADR-1.yaml"), |t| {
+        t.replacen("retreat: {kind: ruling, condition: 未記入}\n", "retreat: {}\n", 1)
+    });
+    r.commit();
+    let out = r.check(&[]);
+    assert_eq!(
+        violations(&out),
+        [
+            "[撤退条件] ADR-1.retreat: 必須欄が無い: kind・condition",
+            "[撤退条件] ADR-1: retreat.kind が値域外: （無い）",
+            "[撤退条件] ADR-1: 撤退条件が空（P-8.1）",
+        ],
+        "{}",
+        show(&out)
+    );
+
+    // (c) folio parts --check: 部品目録に無い class の名札は、置き場に行 R-3 が無ければ検査の名、在れば R-3（面は 1 度だけ組む）
+    let p = Work::skeleton("f203-parts");
+    let site = p.root.join("site");
+    let built = folio(&["build"], &p.dir(), &["--out", site.to_str().unwrap(), "--write"]);
+    // 骨格の床は まだ分からない（2）でも、面は書く
+    assert!(text(&built.stdout).contains("folio build: 書いた"), "{}", show(&built));
+    edit(&site.join("index.html"), |t| t.replacen("class=\"", "class=\"zz-unknown ", 1));
+    let page = format!("index={}", site.join("index.html").display());
+    let css = site.join("folio.css");
+    let parts = || {
+        let out = folio(&["parts", "--check"], &p.dir(), &["--css", css.to_str().unwrap(), "--page", &page]);
+        assert_eq!(out.status.code(), Some(1), "{}", show(&out));
+        violations(&out)
+    };
+    assert_eq!(parts(), ["[部品目録] index.html: 部品目録に無い class「zz-unknown」"]);
+    add_rows(&p.dir(), "thresholds", &[("R-3", threshold("R-3", "部品目録に無い型の数", "0 件"))]);
+    assert_eq!(parts(), ["[R-3] index.html: 部品目録に無い class「zz-unknown」"]);
+
+    // (d) 同じ中身で名だけ folio2 の置き場の名にした写しは今の字（名札 N-4・A-2 / N-4 と P-10.3・条 P-17.3）
+    let h = Work::skeleton("f203-home");
+    accept_adr1(&h.dir());
+    edit(&h.dir().join("constitution.yaml"), |t| t.replacen("  id: 未記入\n", "  id: folio2-constitution\n", 1));
+    h.commit();
+    let out = h.check(&[]);
+    assert!(violations(&out).contains(&format!("[N-4] {ADR1_ACCEPTED}")), "{}", show(&out));
+    let unknowns = unknown_lines(&out.stderr);
+    assert!(
+        unknowns.iter().any(|l| l.ends_with("）＝A-2 / N-4 の差分検査は「まだ分からない」（P-10.3）。発効版で --freeze-anchor を実行する")),
+        "{}",
+        show(&out)
+    );
+    for at in MARKED {
+        assert!(unknowns.contains(&format!("{at} が 未記入（骨格の印・裁定の前＝条 P-17.3）")), "{at}: {}", show(&out));
+    }
 }
