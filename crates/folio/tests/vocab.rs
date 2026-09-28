@@ -1,7 +1,7 @@
 //! `folio check` の語彙の検査の歯（便 4・docs/design/delivery-4.md §1）。
 //! tests/fixtures/vocab/ の 2 組（最小の手書き 4 file に変異 1 つ）で 不合格 1。
 //! 各組の違反はちょうど 1 件で、名札と語・場所まで見る（別の理由で落ちた組・免除の形を数えた組を緑にしない）。
-//! 2 組の規則の表は行 R-9 を持たないので、名札は検査の名 [語彙]（便 156）。
+//! 2 組の写しの名 fixture-constitution は外の置き場なので、名札は検査の名 [語彙]（便 156・便 203）。
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};

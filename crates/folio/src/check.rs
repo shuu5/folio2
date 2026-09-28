@@ -246,7 +246,7 @@ pub fn check_dir(dir: &Path, flag: Flag) -> (Report, Materials) {
             // 外の置き場の字は置き場の名で決まる（便 202・便 203）
             let name = adr::place_name(dir).ok();
             let range = place_range(&src.constitution, name.as_deref(), &mut report);
-            check_constitution(&src.constitution, &src.rules, &range, &mut report);
+            check_constitution(&src.constitution, &range, &mut report);
             check_rules(&src.rules, &mut report);
             // 極性一覧の編集時（in-loop）の本数の下限（便 200・ADR-33 決定 (5)・条 P-18.4）
             in_loop_min_off = polarity::check_floor(&src.constitution, &src.rules, name.as_deref(), &mut report);
@@ -720,8 +720,7 @@ fn check_mechanism(file: &str, at: &str, holder: Option<&Node>, report: &mut Rep
     closed_fields(file, at, m, &ce::MECHANISM_FIELDS, report);
 }
 
-/// `rules_root` は置き場の規則の表（違反の名札を引くだけ・便 156）。
-fn check_constitution(root: &Node, rules_root: &Node, range: &PlaceRange, report: &mut Report) {
+fn check_constitution(root: &Node, range: &PlaceRange, report: &mut Report) {
     const FILE: &str = "constitution.yaml";
     if let Some(top) = schema_top_level(FILE, root, report) {
         unknown_sections(FILE, root, &top, report);
@@ -764,9 +763,9 @@ fn check_constitution(root: &Node, rules_root: &Node, range: &PlaceRange, report
             &["id", "title", "statements"],
             report,
         );
-        // 条の plain だけは床の字面（名札 R-10・置き場の規則の表に行が無ければ 平易文・便 156）で出す
+        // 条の plain だけは床の字面（種別 R-10・外の置き場の名札は出力の口で 平易文・便 203）で出す
         if article.get("plain").is_none_or(Node::is_blank) {
-            report.violation(rules::label(rules_root, "R-10"), format!("{id}: plain が無い"));
+            report.violation("R-10", format!("{id}: plain が無い"));
         }
         closed_fields(FILE, &format!("条 {id}"), article, &ce::ARTICLE_FIELDS, report);
         check_mechanism(
@@ -782,7 +781,7 @@ fn check_constitution(root: &Node, rules_root: &Node, range: &PlaceRange, report
             closed_fields(FILE, &at, st, &ce::STATEMENT_FIELDS, report);
         }
         check_article_enums(&id, article, &statements, range, report);
-        check_statement_polarity(&id, &statements, rules::label(rules_root, "R-11"), report);
+        check_statement_polarity(&id, &statements, report);
         duplicate_statement_ids(statements, report);
     }
     duplicate_ids(FILE, articles, report);
@@ -861,10 +860,10 @@ fn check_article_enums(
 
 /// 規則の表 R-11（便 59・day-1 の Python の床から戻した式）: 規範文の strength と文末の一致 = must-not ⇔ 文末が「ない。」／
 /// must・should ⇔ それ以外。式は床の定数（憲法の schema.one_polarity は宣言で、床はその値を読まない・規則の表 R-11 の what が正本・
-/// ADR-11 決定 (3)(エ)）。合わない 1 本につき名札 R-11（置き場の規則の表に行が無ければ 強度と文末・便 156）の違反 1 件。名札は `label` で受ける。
+/// ADR-11 決定 (3)(エ)）。合わない 1 本につき種別 R-11 の違反 1 件（外の置き場の名札は出力の口で 強度と文末・便 203）。
 /// strength が組み立てた値域の外（`check_article_enums` が種別 schema で
 /// 数えるか、置き場の値域に在れば `place_range` が「まだ分からない」を出す）・text が字でない（非空の検査が数える）ときは黙る＝二重に出さない。
-fn check_statement_polarity(id: &str, statements: &[&Node], label: &str, report: &mut Report) {
+fn check_statement_polarity(id: &str, statements: &[&Node], report: &mut Report) {
     for st in statements {
         let Some(strength) = st
             .get("strength")
@@ -879,7 +878,7 @@ fn check_statement_polarity(id: &str, statements: &[&Node], label: &str, report:
         let negative = text.trim_end().ends_with("ない。");
         if (strength == ce::Strength::MustNot) != negative {
             report.violation(
-                label,
+                "R-11",
                 format!(
                     "{id}: {}: strength {} と文末が合わない（must-not ⇔ 〜ない。）",
                     row_id(st),

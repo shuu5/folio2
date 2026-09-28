@@ -6,7 +6,7 @@
 //! 1. 土台の 14 本の行と要約の直前と種別の絞り／2. 0 本の写しと骨格で行が無い／3. 断りの道で行が無い／4. folio2 自身の 6 本。
 //!
 //! 便 156（docs/design/delivery-156.md §1 (c)）: 行 R-17 が無い置き場で数えなかった知らせの 1 行と、名札が置き場の規則の表に在る行だけを
-//! 名指すこと（f156_ の 2 本）。土台は行 R-17 を持たないので、f131_ の 2 本の標準エラーにも知らせが機構の行の前に出る。
+//! 名指すこと（f156_ の 2 本）。便 203 で、外の置き場の名札 R-9〜R-11 は行を足しても検査の名、folio2 の置き場は行 id（f156_ の 2 本目）。土台は行 R-17 を持たないので、f131_ の 2 本の標準エラーにも知らせが機構の行の前に出る。
 //! 便 200（docs/design/delivery-200.md §1 (d)）: 土台と骨格は欄 key が in-loop-min の行も持たないので、下限を数えなかった知らせが
 //! 行 R-17 の知らせの次に出る（歯は tests/polarity.rs）。
 //! 便 202（docs/design/delivery-202.md §1 (e)）: 骨格（外の置き場）の知らせは folio2 の条の番号の項が落ちた字（IN_LOOP_OFF_ABROAD）。
@@ -353,8 +353,10 @@ fn break_p1(dir: &Path) {
     });
 }
 
+/// 便 203 で改めた: 外の置き場（骨格・名は 未記入）の名札 R-9〜R-11 は、規則の表に行 R-9〜R-11 を足しても検査の名（床は行の値も
+/// 対象も読まない・tsuzuri の同じ id は別の意味）。同じ中身で名だけ folio2 の置き場の名にした写しは行 id（便 156 と同じ字）。
 #[test]
-fn f156_labels_name_only_rows_the_place_has() {
+fn f156_abroad_labels_name_the_checks_even_with_the_rows() {
     const PLAIN: &str = "P-1: plain が無い";
     const POLARITY: &str = "P-1: P-1.1: strength must-not と文末が合わない（must-not ⇔ 〜ない。）";
     const VOCAB: &str = "P-1 title: 語彙に無い英字の語「foobar」";
@@ -365,44 +367,60 @@ fn f156_labels_name_only_rows_the_place_has() {
             ("R-11", row("R-11", "強度と文末の一致")),
         ]
     };
+    let names = [
+        format!("[平易文] {PLAIN}"),
+        format!("[強度と文末] {POLARITY}"),
+        format!("[語彙] {VOCAB}"),
+    ];
 
     let w = Work::skeleton("f156-names");
     break_p1(&w.dir());
     w.commit();
     let out = w.check(&[]);
     assert_eq!(out.status.code(), Some(1), "{}", show(&out));
-    assert_eq!(
-        violations(&out),
-        [
-            format!("[平易文] {PLAIN}"),
-            format!("[強度と文末] {POLARITY}"),
-            format!("[語彙] {VOCAB}"),
-        ],
-        "{}",
-        show(&out)
-    );
+    assert_eq!(violations(&out), names, "{}", show(&out));
     // 違反の在る置き場でも知らせは出る
     assert_eq!(off_count(&out), 1, "{}", show(&out));
 
-    let ids = [
-        format!("[R-10] {PLAIN}"),
-        format!("[R-11] {POLARITY}"),
-        format!("[R-9] {VOCAB}"),
-    ];
+    // 閾値の節に行 R-9〜R-11 を足しても、外の置き場の名札は検査の名
     add_rows(&w.dir(), "thresholds", &rows(|id, what| threshold(id, what, "0 件")));
     w.commit();
     let out = w.check(&[]);
     assert_eq!(out.status.code(), Some(1), "{}", show(&out));
-    assert_eq!(violations(&out), ids, "{}", show(&out));
+    assert_eq!(violations(&out), names, "{}", show(&out));
 
-    // 作法の節に置いても行 id で名指す
+    // 作法の節に置いても同じ
     let d = Work::skeleton("f156-discipline");
     break_p1(&d.dir());
     add_rows(&d.dir(), "discipline", &rows(discipline));
     d.commit();
     let out = d.check(&[]);
     assert_eq!(out.status.code(), Some(1), "{}", show(&out));
-    assert_eq!(violations(&out), ids, "{}", show(&out));
+    assert_eq!(violations(&out), names, "{}", show(&out));
+
+    // 名だけ folio2 の置き場の名にした写しは行 id（folio2 の置き場は行 R-9〜R-11 を持ち、字は便 156 のまま）
+    let h = Work::skeleton("f156-home");
+    break_p1(&h.dir());
+    add_rows(&h.dir(), "thresholds", &rows(|id, what| threshold(id, what, "0 件")));
+    edit(&h.dir().join("constitution.yaml"), |t| t.replacen("  id: 未記入\n", "  id: folio2-constitution\n", 1));
+    h.commit();
+    let out = h.check(&[]);
+    // 骨格の欄の決まりの file（adr/schema.yaml・design-note/schema.yaml）は外の置き場の字で書かれ、folio2 の置き場の床の定数と違う
+    // （[adr]・[note] の行）ので、崩した 3 つの字の行だけを見る
+    let broken: Vec<String> = violations(&out)
+        .into_iter()
+        .filter(|l| [PLAIN, POLARITY, VOCAB].iter().any(|m| l.ends_with(m)))
+        .collect();
+    assert_eq!(
+        broken,
+        [
+            format!("[R-10] {PLAIN}"),
+            format!("[R-11] {POLARITY}"),
+            format!("[R-9] {VOCAB}"),
+        ],
+        "{}",
+        show(&out)
+    );
 }
 
 // ── 便 203（delivery-203.md §1 (c)）──
