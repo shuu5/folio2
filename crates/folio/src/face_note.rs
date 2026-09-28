@@ -524,7 +524,7 @@ fn id_links(env: &Env<'_>, x: &X<'_>) -> R<Vec<String>> {
 /// 器の導出 file（床と同じ式 `note::external_path` で解く）を行走査で読み、field の name を宣言の順に返す。
 /// 読めない・期待する形でない は「まだ分からない」（要件書 FR10・AC8）。
 fn load_external(dir: &Path) -> R<Vec<String>> {
-    let bad = |why: String| format!("{EXTERNAL_PATH}: 器の導出 file が読めない: {why}");
+    let bad = |why: String| cursor::unreadable(format!("{EXTERNAL_PATH}: 器の導出 file が読めない: {why}"));
     let path = note::external_path(dir).map_err(bad)?;
     if path.is_symlink() {
         return Err(bad("symlink は認めない".to_string()));

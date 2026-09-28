@@ -368,6 +368,16 @@ const OTHER_ROWS: &[Row] = &[
         face: "note:decide",
         said: "design-note/decide.yaml.meta.approval[0].who: 文字列でない",
     },
+    // 形の誤り（重複キー）は読めないでない＝面だけが読む file でも違反 [面]（床のほかの段の重複キーと同じ・便 187 改訂 a）
+    Row {
+        id: "intake-duplicate-key",
+        apply: |d| {
+            let p = d.join("intake-sheet.yaml");
+            fs::write(&p, format!("{}x: 1\nx: 2\n", fs::read_to_string(&p).unwrap())).unwrap();
+        },
+        face: "index",
+        said: "intake-sheet.yaml: 重複キー「x」（52 行）",
+    },
 ];
 
 /// 1 行を撃つ: 床が不合格（違反 1 件・[面] の字が面の字）・build は何も書かず 1・面の口そのものも同じ字で止まる。
@@ -485,6 +495,122 @@ fn f187_the_face_stage_runs_only_on_an_otherwise_silent_floor() {
     assert_eq!(out.status.code(), Some(2), "{told}");
     assert!(!told.contains("[面] ") && told.contains("違反 0・"), "{told}");
     let _ = fs::remove_dir_all(&td);
+}
+
+/// 床の段の順（便 187 改訂 a）: 面の段は索引の段の後・凍結の後始末の前。索引が数えた置き場では面を組まない（check も
+/// build --write も違反 1 件のまま・[面] なし）。面が組めない置き場では --freeze-adrs が封を足さない（対の緑: 面の欠けを
+/// 戻すと同じ口が封を足す＝歯の写しが凍結の道を通る）。
+#[test]
+fn f187_the_face_stage_runs_after_the_index_and_before_the_freeze() {
+    let face_gap = |d: &Path| edit(d, "srs.yaml", TOOL, "  - {id: folio-v2, name: folio v2, role: 作る}\n");
+    let face_back = |d: &Path| edit(d, "srs.yaml", "  - {id: folio-v2, name: folio v2, role: 作る}\n", TOOL);
+    // 索引の節点の違反（FR1 の id を一重の引用符で）+ 面の欠け
+    let (td, dir) = place("after-index");
+    face_gap(&dir);
+    edit(&dir, "srs.yaml", "  - id: FR1\n", "  - id: 'FR1'\n");
+    let told = text(&check(&dir));
+    assert!(
+        told.contains("[索引の節点] srs.yaml: 索引の節点 FR1 ")
+            && told.contains("folio check: 不合格（違反 1・まだ分からない 0）")
+            && !told.contains("[面] "),
+        "{told}"
+    );
+    let site = td.join("site");
+    let build = folio(&[
+        "build",
+        "--dir",
+        dir.to_str().unwrap(),
+        "--out",
+        site.to_str().unwrap(),
+        "--write",
+    ]);
+    let said = text(&build);
+    assert!(
+        said.contains("folio build: 床 = 不合格（違反 1・まだ分からない 0）・書かない"),
+        "{said}"
+    );
+    let _ = fs::remove_dir_all(&td);
+    // 発効して封の無い判断の記録（ADR-4 の字から id だけ替える）+ 面の欠け → 封を足さない
+    let (td, dir) = place("before-freeze");
+    let t = fs::read_to_string(dir.join("adr/ADR-4.yaml")).unwrap();
+    fs::write(dir.join("adr/ADR-12.yaml"), t.replacen("id: ADR-4\n", "id: ADR-12\n", 1)).unwrap();
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "ADR-12"]);
+    face_gap(&dir);
+    let seals = dir.join("anchors/adr-seals.yaml");
+    let before = fs::read(&seals).unwrap();
+    let freeze = |dir: &Path| folio(&["check", "--freeze-adrs", "--dir", dir.to_str().unwrap()]);
+    let out = freeze(&dir);
+    let told = text(&out);
+    assert_eq!(out.status.code(), Some(1), "{told}");
+    assert!(
+        told.contains("[面] srs.yaml.actors: role が「道具」の actor が 0 で 1 つでない") && !told.contains("封を足した"),
+        "{told}"
+    );
+    assert_eq!(fs::read(&seals).unwrap(), before, "面が組めないのに封を足した");
+    face_back(&dir);
+    let out = freeze(&dir);
+    let told = text(&out);
+    assert_eq!(out.status.code(), Some(0), "{told}");
+    assert!(told.contains("封を足した: ") && told.contains("足した行 ADR-12"), "{told}");
+    let _ = fs::remove_dir_all(&td);
+}
+
+/// 面だけが読む file が読めない（YAML として読めない相談窓口の支度表・dir になった様式と天井の印）は、床のほかの段と同じく
+/// まだ分からない 1 件（違反 [面] にしない・P-4.2）。build --write も まだ分からない で何も書かない。
+#[test]
+fn f187_unreadable_face_files_stay_unknown() {
+    type Case = (&'static str, fn(&Path), &'static str);
+    let rows: [Case; 3] = [
+        (
+            "intake-syntax",
+            |d| {
+                let p = d.join("intake-sheet.yaml");
+                fs::write(&p, format!("{}k: [\n", fs::read_to_string(&p).unwrap())).unwrap();
+            },
+            "# まだ分からない: intake-sheet.yaml: 読めない: ",
+        ),
+        (
+            "style-dir",
+            |d| fs::create_dir_all(d.join("preview/folio.css")).unwrap(),
+            "preview/folio.css: 読めない: ",
+        ),
+        (
+            "stamp-dir",
+            |d| fs::create_dir_all(d.join("preview/ceiling-stamp.yaml")).unwrap(),
+            "# まだ分からない: preview/ceiling-stamp.yaml: 読めない: ",
+        ),
+    ];
+    for (case, apply, said) in rows {
+        let (td, dir) = place(case);
+        apply(&dir);
+        let out = check(&dir);
+        let told = text(&out);
+        assert_eq!(out.status.code(), Some(2), "{case}: {told}");
+        assert!(
+            told.contains(said)
+                && told.contains("folio check: まだ分からない（違反 0・まだ分からない 1）")
+                && !told.contains("[面] "),
+            "{case}: {told}"
+        );
+        let site = td.join("site");
+        let build = folio(&[
+            "build",
+            "--dir",
+            dir.to_str().unwrap(),
+            "--out",
+            site.to_str().unwrap(),
+            "--write",
+        ]);
+        let said = text(&build);
+        assert_eq!(build.status.code(), Some(2), "{case}: {said}");
+        assert!(
+            said.contains("folio build: 床 = まだ分からない（違反 0・まだ分からない 1）"),
+            "{case}: {said}"
+        );
+        assert!(!site.exists(), "{case}: 床が まだ分からない なのに配信先を作った");
+        let _ = fs::remove_dir_all(&td);
+    }
 }
 
 /// 床の面の段は図の道具を撃たない: git だけを置いた PATH（Node が無い）でも、図を持つ写しの床は合格のまま（道具の
