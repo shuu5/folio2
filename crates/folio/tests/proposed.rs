@@ -1,0 +1,308 @@
+//! 編集時の口の歯（便 198・docs/design/delivery-198.md §1 (c)・判断の記録 ADR-33 決定 (1)(2)・要件書 FR28・AC31）。
+//! 土台は凍結した写し（tests/fixtures/floor_base/design-intent/）を一時 dir の `repo/design-intent/` に、器の導出 file を
+//! `repo/contracts/` に作って git の 1 commit にしたもの（素の床は合格 0）。口の一時の作業場所は版管理の外の `tmp/` に作らせる。口が止めた行は、同じ中身を書いた置き場の素の床にも
+//! 同じ字で在ること（条 P-15.2・編集時の判定 ⊆ 事後の判定）を、同じ写しで撃ち比べて見る。期待の行は歯の側の手書き。
+
+use std::collections::BTreeMap;
+use std::fs;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+
+const FLOOR_BASE: &str = "tests/fixtures/floor_base/design-intent";
+const BOGUS: &str = "[未知の欄] rules.yaml: 行 R-2 の未知の欄「bogus」";
+const DANGLING: &str = "[参照 id] srs.yaml: requirements[0].basis[1]: id P-99 が実在しない";
+const LINK_HEAD: &str = "# つながり（編集は止めない・事後の床が数える）: ";
+const CONTRACT: &str = "[note] design-note/example.yaml: §6 の行 a: 契約表の欄「bogus」が器の導出 file に無い";
+const INDEX: &str = "[索引の節点] srs.yaml: 索引の節点 FR1 の行を行の逐語で切れない（id か節の見出しの key が引用符つきか裸の形でない＝folio graph --print が組めない）";
+
+fn copy_tree(src: &Path, dst: &Path) {
+    fs::create_dir_all(dst).unwrap();
+    for entry in fs::read_dir(src).unwrap() {
+        let entry = entry.unwrap();
+        let to = dst.join(entry.file_name());
+        if entry.file_type().unwrap().is_dir() {
+            copy_tree(&entry.path(), &to);
+        } else {
+            fs::copy(entry.path(), &to).unwrap();
+        }
+    }
+}
+
+/// git を呼ぶ。環境変数 GIT_* は継承しない。
+fn git(cwd: &Path, args: &[&str]) {
+    let mut cmd = Command::new("git");
+    for (key, _) in std::env::vars_os() {
+        if key.to_string_lossy().starts_with("GIT_") {
+            cmd.env_remove(key);
+        }
+    }
+    let out = cmd
+        .current_dir(cwd)
+        .args(["-c", "user.email=fx@example", "-c", "user.name=fx", "-c", "commit.gpgsign=false"])
+        .args(args)
+        .output()
+        .expect("git を起動できない");
+    assert!(out.status.success(), "git {args:?}: {}", String::from_utf8_lossy(&out.stderr));
+}
+
+/// 置き場の写しの一時 dir（根・歯の終わりに消す）。版管理は根の下の repo/、口の一時の作業場所は根の下の tmp/（版管理の外）。
+struct Work(PathBuf);
+
+/// 1 回の起動の結果（終了コード・標準出力の行・標準エラーの行）。
+struct Run {
+    code: i32,
+    out: Vec<String>,
+    err: Vec<String>,
+}
+
+impl Work {
+    fn new(case: &str) -> Work {
+        let root = std::env::temp_dir().join(format!("folio-proposed-teeth-{case}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let place = root.join("repo");
+        copy_tree(&repo.join(FLOOR_BASE), &place.join("design-intent"));
+        fs::create_dir_all(place.join("contracts")).unwrap();
+        fs::copy(repo.join("contracts/schema.toml"), place.join("contracts/schema.toml")).unwrap();
+        git(&place, &["init", "-q"]);
+        git(&place, &["add", "-A"]);
+        git(&place, &["commit", "-q", "-m", "fixture"]);
+        fs::create_dir_all(root.join("tmp")).unwrap();
+        Work(root)
+    }
+
+    fn dir(&self) -> PathBuf {
+        self.0.join("repo/design-intent")
+    }
+
+    fn folio(&self, args: &[&str], stdin: Option<&str>) -> Run {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_folio"))
+            .args(["check", "--dir"])
+            .arg(self.dir())
+            .args(args)
+            .env("TMPDIR", self.0.join("tmp"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("folio を起動できない");
+        let mut pipe = child.stdin.take().unwrap();
+        pipe.write_all(stdin.unwrap_or_default().as_bytes()).unwrap();
+        drop(pipe);
+        let o = child.wait_with_output().unwrap();
+        let lines = |b: Vec<u8>| String::from_utf8(b).unwrap().lines().map(str::to_string).collect();
+        Run {
+            code: o.status.code().unwrap(),
+            out: lines(o.stdout),
+            err: lines(o.stderr),
+        }
+    }
+
+    /// 編集時の口（`rel` に `text` を書こうとしている）。
+    fn propose(&self, rel: &str, text: &str) -> Run {
+        self.folio(&["--proposed", rel], Some(text))
+    }
+
+    /// 素の床。
+    fn floor(&self) -> Run {
+        self.folio(&[], None)
+    }
+
+    fn read(&self, rel: &str) -> String {
+        fs::read_to_string(self.dir().join(rel)).unwrap()
+    }
+
+    fn write(&self, rel: &str, text: &str) {
+        fs::write(self.dir().join(rel), text).unwrap();
+    }
+
+    /// `rel` の字の `from` をちょうど 1 か所 `to` に替えた字（置き場は書かない）。
+    fn edited(&self, rel: &str, from: &str, to: &str) -> String {
+        let text = self.read(rel);
+        assert_eq!(text.matches(from).count(), 1, "{rel}: 「{from}」が 1 か所でない");
+        text.replacen(from, to, 1)
+    }
+
+    /// 写しの中の全 file の字（口が置き場を書かないことを見る）。
+    fn snapshot(&self) -> BTreeMap<PathBuf, Vec<u8>> {
+        fn walk(dir: &Path, out: &mut BTreeMap<PathBuf, Vec<u8>>) {
+            for entry in fs::read_dir(dir).unwrap() {
+                let path = entry.unwrap().path();
+                if path.is_dir() {
+                    walk(&path, out);
+                } else {
+                    out.insert(path.clone(), fs::read(&path).unwrap());
+                }
+            }
+        }
+        let mut out = BTreeMap::new();
+        walk(&self.dir(), &mut out);
+        out
+    }
+
+    /// 口の一時 dir の置き場に残った file と dir の数。
+    fn leftovers(&self) -> usize {
+        fs::read_dir(self.0.join("tmp")).unwrap().count()
+    }
+}
+
+impl Drop for Work {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
+}
+
+fn bogus(w: &Work) -> String {
+    w.edited("rules.yaml", "  - {id: R-2, article: P-14,", "  - {id: R-2, article: P-14, bogus: 1,")
+}
+
+/// 要件書の最初の要件（FR1・requirements[0]）の basis に、どこにも無い条 id を足した字。
+fn dangling(w: &Work) -> String {
+    let text = w.read("srs.yaml");
+    let (head, tail) = text.split_once("  - id: FR1\n").unwrap();
+    let tail = tail.replacen("    basis: [P-1]\n", "    basis: [P-1, P-99]\n", 1);
+    format!("{head}  - id: FR1\n{tail}")
+}
+
+/// 便 198 (c) 1: 形の違反を持つ中身は止め（1）、止めた行は同じ中身を書いた置き場の素の床にも同じ字で在る（P-15.2）。口は置き場を書かない。
+#[test]
+fn f198_stop_line_is_a_line_of_the_floor() {
+    let w = Work::new("stop");
+    assert_eq!(w.floor().code, 0, "土台の素の床が合格でない");
+    let text = bogus(&w);
+    let before = w.snapshot();
+    let r = w.propose("rules.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            BOGUS.to_string(),
+            "folio check --proposed: 不合格（新しい違反 1・つながり 0・まだ分からない 0）".to_string()
+        ]
+    );
+    assert_eq!(w.snapshot(), before, "口が置き場を書いた");
+    w.write("rules.yaml", &text);
+    let f = w.floor();
+    assert_eq!(f.code, 1);
+    assert!(f.out.iter().any(|l| l == BOGUS), "素の床に止めた行が無い: {:?}", f.out);
+}
+
+/// 便 198 (c) 2: つながりの違反（参照 id の解決）は止めず（0）、標準エラーに名指し、同じ中身を書いた置き場の素の床は落とす（P-18.2）。
+#[test]
+fn f198_link_is_not_stopped_but_the_floor_counts_it() {
+    let w = Work::new("link");
+    let text = dangling(&w);
+    let r = w.propose("srs.yaml", &text);
+    assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        ["folio check --proposed: 合格（新しい違反 0・つながり 1・まだ分からない 0）".to_string()]
+    );
+    assert!(r.err.iter().any(|l| *l == format!("{LINK_HEAD}{DANGLING}")), "{:?}", r.err);
+    w.write("srs.yaml", &text);
+    let f = w.floor();
+    assert_eq!(f.code, 1);
+    assert!(f.out.iter().any(|l| l == DANGLING), "{:?}", f.out);
+}
+
+/// 便 198 (c) 3: 書く前から在る違反は新しい違反に数えない（ほかの file の編集も、その違反を直す編集も止めない）。
+#[test]
+fn f198_old_violations_do_not_stop() {
+    let w = Work::new("old");
+    let original = w.read("rules.yaml");
+    w.write("rules.yaml", &bogus(&w));
+    assert_eq!(w.floor().code, 1);
+    let r = w.propose("srs.yaml", &w.read("srs.yaml"));
+    assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
+    let r = w.propose("rules.yaml", &original);
+    assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        ["folio check --proposed: 合格（新しい違反 0・つながり 0・まだ分からない 0）".to_string()]
+    );
+}
+
+/// 便 198 (c) 4: YAML として読めない中身は まだ分からない（2・合格にしない・P-4.1）。
+#[test]
+fn f198_unreadable_proposal_is_unknown() {
+    let w = Work::new("unreadable");
+    let r = w.propose("rules.yaml", "a: [\n");
+    assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
+    assert!(r.err.iter().any(|l| l.starts_with("# まだ分からない: rules.yaml: ")), "{:?}", r.err);
+}
+
+/// 便 198 (c) 5: 置き場の外を指す字は数えず まだ分からない（2）で、標準出力に何も出さない。
+#[test]
+fn f198_outside_the_place_is_unknown() {
+    let w = Work::new("outside");
+    for rel in ["../contracts/schema.toml", "/etc/hosts", "./rules.yaml"] {
+        let r = w.propose(rel, "x: 1\n");
+        assert_eq!(r.code, 2, "{rel}: {:?} {:?}", r.out, r.err);
+        assert!(r.out.is_empty(), "{rel}: {:?}", r.out);
+        assert_eq!(
+            r.err,
+            [format!(
+                "folio check --proposed: まだ分からない（{rel} は置き場からの相対の file の字でない（絶対 path・.. ・空は数えない））"
+            )]
+        );
+    }
+}
+
+/// 便 198 (c) 6: 新しい file（判断の記録 1 本）も同じ床で数え、止めた行はどれも書いた後の素の床に在る。
+#[test]
+fn f198_new_file_is_counted_by_the_same_floor() {
+    let w = Work::new("new");
+    let text = w
+        .read("adr/ADR-10.yaml")
+        .replacen("id: ADR-10", "id: ADR-11", 1)
+        .replacen("status: accepted", "status: bogus", 1);
+    let r = w.propose("adr/ADR-11.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    let stops: Vec<&String> = r.out.iter().filter(|l| l.starts_with('[')).collect();
+    assert!(stops.iter().any(|l| l.starts_with("[adr] ADR-11: status が値域外")), "{:?}", r.out);
+    w.write("adr/ADR-11.yaml", &text);
+    let f = w.floor();
+    for l in stops {
+        assert!(f.out.contains(l), "素の床に無い: {l}");
+    }
+}
+
+/// 便 198 (c) 7: 口の一時 dir は止めた周も通した周も残らない。
+#[test]
+fn f198_scratch_is_removed() {
+    let w = Work::new("scratch");
+    assert_eq!(w.propose("rules.yaml", &bogus(&w)).code, 1);
+    assert_eq!(w.propose("srs.yaml", &dangling(&w)).code, 0);
+    assert_eq!(w.leftovers(), 0);
+}
+
+/// 便 198 (c) 8: 索引の床（check_index）も床の 1 本の関数に入る（要件の id を単引用符で囲む中身は止め、素の床にも同じ行が在る）。
+#[test]
+fn f198_index_floor_is_in_the_same_function() {
+    let w = Work::new("index");
+    let text = w.edited("srs.yaml", "  - id: FR1\n", "  - id: 'FR1'\n");
+    let r = w.propose("srs.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(r.out.first().map(String::as_str), Some(INDEX), "{:?}", r.out);
+    w.write("srs.yaml", &text);
+    let f = w.floor();
+    assert!(f.out.iter().any(|l| l == INDEX), "素の床に索引の行が無い: {:?}", f.out);
+}
+
+/// 便 198 (c) 9: 器の導出 file も写しへ写し、設計ノートの契約表の行の欄を同じ床で数える（契約表の行に未知の欄を足す中身は止める）。
+#[test]
+fn f198_contract_rows_are_counted_with_the_vessel_file() {
+    let w = Work::new("contract");
+    let text = w.edited(
+        "design-note/example.yaml",
+        "      - {id: a, title:",
+        "      - {id: a, bogus: x, title:",
+    );
+    let r = w.propose("design-note/example.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(r.out.first().map(String::as_str), Some(CONTRACT), "{:?}", r.out);
+    w.write("design-note/example.yaml", &text);
+    let f = w.floor();
+    assert!(f.out.iter().any(|l| l == CONTRACT), "素の床に契約表の行が無い: {:?}", f.out);
+}

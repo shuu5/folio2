@@ -43,6 +43,7 @@ mod note;
 mod parts;
 mod phase;
 mod plan;
+mod proposed;
 mod prose;
 mod refs;
 mod rules;
@@ -65,6 +66,7 @@ use std::process::ExitCode;
 use clap::{ArgGroup, Parser, Subcommand};
 
 use crate::phase::{After, Flag};
+use crate::verdict::Verdict;
 
 #[derive(Parser)]
 #[command(name = "folio", version, about = "folio v2 — 設計文書の生成と検査")]
@@ -98,6 +100,9 @@ enum Command {
         /// 決定の欄から切り出した裁定 id を全部、1 件 1 行の JSON（ruling・form・bead・node・file・line・field）で標準出力へ書く（違反と要約は標準エラーへ・終了コードは素の床と同じ・一覧が全数なのは 0 のときだけ）
         #[arg(long, conflicts_with_all = ["emit_amends", "freeze_anchor", "freeze_ids", "freeze_start", "freeze_adrs"])]
         emit_rulings: bool,
+        /// 置き場の中の 1 file（置き場からの相対）に標準入力の中身を書いた後の床を、書く前の床と比べ、後にだけ在る違反を返す（編集時の口・合格 0 / 止める 1 / まだ分からない 2・つながりの違反は止めない・file は書かない）
+        #[arg(long, value_name = "PATH", conflicts_with_all = ["emit_amends", "freeze_anchor", "freeze_ids", "freeze_start", "freeze_adrs", "emit_rulings"])]
+        proposed: Option<PathBuf>,
     },
     /// 憲法の前文と規範文を CLAUDE.md の生成区間へ書く（--write）・検査する（--check）・出す（--print）
     #[command(group(ArgGroup::new("mode").required(true).args(["write", "check", "print"])))]
@@ -330,8 +335,46 @@ fn main() -> ExitCode {
     code
 }
 
+/// 編集時の口（便 198・ADR-33 決定 (1)）。止める違反は標準出力、つながりと まだ分からない は標準エラー、要約の 1 行は標準出力。
+fn proposed_check(dir: &std::path::Path, rel: &std::path::Path) -> ExitCode {
+    let mut content = String::new();
+    if let Err(e) = std::io::Read::read_to_string(&mut std::io::stdin(), &mut content) {
+        eprintln!("folio check --proposed: 標準入力を字（UTF-8）として読めない: {e}");
+        return ExitCode::from(Verdict::Unknown.exit_code() as u8);
+    }
+    let judged = match proposed::judge(dir, rel, &content) {
+        Ok(j) => j,
+        Err(why) => {
+            eprintln!("folio check --proposed: まだ分からない（{why}）");
+            return ExitCode::from(Verdict::Unknown.exit_code() as u8);
+        }
+    };
+    for (kind, msg) in &judged.stop {
+        println!("[{kind}] {msg}");
+    }
+    for (kind, msg) in &judged.links {
+        eprintln!("# つながり（編集は止めない・事後の床が数える）: [{kind}] {msg}");
+    }
+    for msg in &judged.unknowns {
+        eprintln!("# まだ分からない: {msg}");
+    }
+    let verdict = judged.verdict();
+    println!(
+        "folio check --proposed: {verdict}（新しい違反 {}・つながり {}・まだ分からない {}）",
+        judged.stop.len(),
+        judged.links.len(),
+        judged.unknowns.len()
+    );
+    ExitCode::from(verdict.exit_code() as u8)
+}
+
 fn run(cli: Cli) -> ExitCode {
     match cli.command {
+        Command::Check {
+            dir,
+            proposed: Some(rel),
+            ..
+        } => proposed_check(&dir, &rel),
         Command::Check {
             dir,
             emit_amends,
@@ -340,6 +383,7 @@ fn run(cli: Cli) -> ExitCode {
             freeze_start,
             freeze_adrs,
             emit_rulings,
+            proposed: None,
         } => {
             let flag = if emit_amends {
                 Flag::EmitAmends
@@ -356,9 +400,8 @@ fn run(cli: Cli) -> ExitCode {
             } else {
                 Flag::None
             };
-            let (mut report, materials) = check::check_dir(&dir, flag);
-            // 索引が組めない置き場を合格と言わない（便 136・層 2 の check_dir からは呼ばない）
-            graph::check_index(&dir, &mut report);
+            // 索引が組めない置き場を合格と言わない（便 136・層 2 の check_dir からは呼ばない）。編集時の口と同じ 1 本（便 198）
+            let (mut report, materials) = proposed::floor(&dir, flag);
             // 凍結の後始末は口を出た直後に 1 度だけ（判定の印字より前・後始末が足す違反も判定に入る）
             let after = freeze::after(
                 &dir,
