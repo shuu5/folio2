@@ -68,7 +68,7 @@
 | rules.rs | 473 | 475 | 1025 |
 
 3. **size は S**（最小の余地は sheet.rs の 902 ≥ 100・src の差は小さい）。
-4. **verify は 5 行**で、done の塊と 1 対 1: `--test sheet f197_`・`--test sheet`（支度表の既存の歯と凍結 anchor）・`--test schema_docs`（2 区間の anchor と数・歯の file の上限）・`--bin folio sheet::tests:: rules::tests::`（sheet.rs と rules.rs の単体の歯）・clippy。base では f197_ の行が 0 件で終了コード 4、ほかは緑。
+4. **verify は 5 行**で、done の塊と 1 対 1: `--test sheet f197_`・`--test sheet`（支度表の既存の歯と凍結 anchor）・`--test schema_docs`（2 区間の anchor と数・歯の file の上限）・`--bin folio sheet_resolve sheet_map rules_floor_`（sheet.rs の単体の歯 2 本と rules.rs の床の木の単体の歯 3 本）・clippy。base では f197_ の行が 0 件で終了コード 4、ほかは緑。
 
 ### (g) 受付・並行の便
 
@@ -119,7 +119,7 @@ title = "台帳 f2-648.74 と f2-648.227: 支度表の命令 sheet.rs が回答�
 req = ["FR1", "FR19"]
 section = "1"
 write-set = ["crates/folio/src/sheet.rs", "crates/folio/src/intake.rs", "crates/folio/src/rules.rs", "crates/folio/tests/sheet.rs", "crates/folio/tests/schema_docs.rs", "design-intent/intake.yaml", "design-intent/rules.yaml", "tests/fixtures/schema/intake-region.txt", "tests/fixtures/schema/rules-region.txt"]
-verify = ["cargo nextest run -p folio --test sheet f197_", "cargo nextest run -p folio --test sheet", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio sheet::tests:: rules::tests::", "cargo clippy --workspace --all-targets -- -D warnings"]
+verify = ["cargo nextest run -p folio --test sheet f197_", "cargo nextest run -p folio --test sheet", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio sheet_resolve sheet_map rules_floor_", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "tests/sheet.rs の f197_ の歯 5 本が緑、tests/sheet.rs の歯の全部（支度表の凍結 anchor を含む）が緑、tests/schema_docs.rs の歯の全部（相談窓口の正本と規則の表の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、sheet.rs と rules.rs の単体の歯が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
+done = "tests/sheet.rs の f197_ の歯 5 本が緑、tests/sheet.rs の歯の全部（支度表の凍結 anchor を含む）が緑、tests/schema_docs.rs の歯の全部（相談窓口の正本と規則の表の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、sheet.rs の単体の歯 2 本と rules.rs の床の木の単体の歯 3 本が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
 <!-- contracts:end -->
