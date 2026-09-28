@@ -358,14 +358,15 @@ fn proposed_check(dir: &std::path::Path, rel: &std::path::Path) -> ExitCode {
     for msg in &judged.unknowns {
         eprintln!("# まだ分からない: {msg}");
     }
-    let verdict = judged.verdict();
     println!(
-        "folio check --proposed: {verdict}（新しい違反 {}・つながり {}・まだ分からない {}）",
+        "folio check --proposed: {}（新しい違反 {}・つながり {}・まだ分からない {}・書く前から在る まだ分からない {}）",
+        judged.word(),
         judged.stop.len(),
         judged.links.len(),
-        judged.unknowns.len()
+        judged.unknowns.len(),
+        judged.before_unknowns
     );
-    ExitCode::from(verdict.exit_code() as u8)
+    ExitCode::from(judged.verdict().exit_code() as u8)
 }
 
 fn run(cli: Cli) -> ExitCode {

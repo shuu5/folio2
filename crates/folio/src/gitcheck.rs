@@ -21,7 +21,7 @@ use crate::yaml::{self, Value};
 /// 各命令の待ち上限。
 const TIMEOUT: Duration = Duration::from_secs(20);
 
-const NO_GIT: &str = "版管理（git）が無いか読めない＝anchor の削除を版管理と照合できない（まだ分からない）。写しで回すときも git init + commit の中で回す";
+pub(crate) const NO_GIT: &str = "版管理（git）が無いか読めない＝anchor の削除を版管理と照合できない（まだ分からない）。写しで回すときも git init + commit の中で回す";
 
 fn floor(path: &[&str]) -> &'static str {
     adr::floor_val(path).unwrap_or_default()

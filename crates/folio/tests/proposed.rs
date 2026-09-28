@@ -14,6 +14,9 @@ const BOGUS: &str = "[未知の欄] rules.yaml: 行 R-2 の未知の欄「bogus�
 const DANGLING: &str = "[参照 id] srs.yaml: requirements[0].basis[1]: id P-99 が実在しない";
 const LINK_HEAD: &str = "# つながり（編集は止めない・事後の床が数える）: ";
 const CONTRACT: &str = "[note] design-note/example.yaml: §6 の行 a: 契約表の欄「bogus」が器の導出 file に無い";
+const SEAL: &str = "[adr] ADR-4: 発効した判断の記録の本文が封（anchors/adr-seals.yaml）の行と違う（発効した記録の本文は変えない・退役で変えてよいのは status と superseded_by だけ・判断を変えるなら新しい判断の記録を立てる）";
+const GONE: &str = "[P-7] FR19 が消えた（baseline の anchors/ids-*.yaml に在る・番号は消さず、廃止は状態で表す・P-7.2）";
+const DUP: &str = "[重複キー] rules.yaml: 行 id「R-2」が重複";
 const INDEX: &str = "[索引の節点] srs.yaml: 索引の節点 FR1 の行を行の逐語で切れない（id か節の見出しの key が引用符つきか裸の形でない＝folio graph --print が組めない）";
 
 fn copy_tree(src: &Path, dst: &Path) {
@@ -76,7 +79,7 @@ impl Work {
         self.0.join("repo/design-intent")
     }
 
-    fn folio(&self, args: &[&str], stdin: Option<&str>) -> Run {
+    fn folio(&self, args: &[&str], stdin: &[u8]) -> Run {
         let mut child = Command::new(env!("CARGO_BIN_EXE_folio"))
             .args(["check", "--dir"])
             .arg(self.dir())
@@ -88,7 +91,7 @@ impl Work {
             .spawn()
             .expect("folio を起動できない");
         let mut pipe = child.stdin.take().unwrap();
-        pipe.write_all(stdin.unwrap_or_default().as_bytes()).unwrap();
+        pipe.write_all(stdin).unwrap();
         drop(pipe);
         let o = child.wait_with_output().unwrap();
         let lines = |b: Vec<u8>| String::from_utf8(b).unwrap().lines().map(str::to_string).collect();
@@ -101,12 +104,17 @@ impl Work {
 
     /// 編集時の口（`rel` に `text` を書こうとしている）。
     fn propose(&self, rel: &str, text: &str) -> Run {
-        self.folio(&["--proposed", rel], Some(text))
+        self.folio(&["--proposed", rel], text.as_bytes())
+    }
+
+    /// 編集時の口に字（UTF-8）でない byte を渡す。
+    fn propose_bytes(&self, rel: &str, bytes: &[u8]) -> Run {
+        self.folio(&["--proposed", rel], bytes)
     }
 
     /// 素の床。
     fn floor(&self) -> Run {
-        self.folio(&[], None)
+        self.folio(&[], &[])
     }
 
     fn read(&self, rel: &str) -> String {
@@ -178,7 +186,7 @@ fn f198_stop_line_is_a_line_of_the_floor() {
         r.out,
         [
             BOGUS.to_string(),
-            "folio check --proposed: 不合格（新しい違反 1・つながり 0・まだ分からない 0）".to_string()
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
         ]
     );
     assert_eq!(w.snapshot(), before, "口が置き場を書いた");
@@ -197,7 +205,7 @@ fn f198_link_is_not_stopped_but_the_floor_counts_it() {
     assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
     assert_eq!(
         r.out,
-        ["folio check --proposed: 合格（新しい違反 0・つながり 1・まだ分からない 0）".to_string()]
+        ["folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()]
     );
     assert!(r.err.iter().any(|l| *l == format!("{LINK_HEAD}{DANGLING}")), "{:?}", r.err);
     w.write("srs.yaml", &text);
@@ -219,7 +227,7 @@ fn f198_old_violations_do_not_stop() {
     assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
     assert_eq!(
         r.out,
-        ["folio check --proposed: 合格（新しい違反 0・つながり 0・まだ分からない 0）".to_string()]
+        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()]
     );
 }
 
@@ -305,4 +313,116 @@ fn f198_contract_rows_are_counted_with_the_vessel_file() {
     w.write("design-note/example.yaml", &text);
     let f = w.floor();
     assert!(f.out.iter().any(|l| l == CONTRACT), "素の床に契約表の行が無い: {:?}", f.out);
+}
+
+/// 便 198 (c) 10: 正本が読めない置き場を直す中身は、写しが版管理の外に在ることの まだ分からない を数えず通す（0）。
+/// 書く前から在る まだ分からない（読めない正本）の数は要約に添え、同じ中身を書いた置き場の素の床は合格。
+#[test]
+fn f198_fixing_an_unreadable_place_is_not_unknown() {
+    let w = Work::new("fix");
+    let original = w.read("srs.yaml");
+    w.write("srs.yaml", &format!("{original}broken: [\n"));
+    assert_eq!(w.floor().code, 2);
+    let r = w.propose("srs.yaml", &original);
+    assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 1）".to_string()]
+    );
+    w.write("srs.yaml", &original);
+    assert_eq!(w.floor().code, 0);
+}
+
+/// 便 198 (c) 11: 書く先の path が symlink を通れば書かず まだ分からない（2）。写しの外の file は変わらず、外に dir も作らない。
+#[test]
+fn f198_symlink_on_the_way_is_unknown() {
+    let w = Work::new("symlink");
+    let outside = w.0.join("outside");
+    fs::create_dir_all(&outside).unwrap();
+    fs::write(outside.join("v.txt"), "orig\n").unwrap();
+    std::os::unix::fs::symlink(&outside, w.dir().join("lnk")).unwrap();
+    std::os::unix::fs::symlink(outside.join("v.txt"), w.dir().join("vfile.txt")).unwrap();
+    for rel in ["lnk/v.txt", "vfile.txt", "lnk/newdir/x.txt"] {
+        let r = w.propose(rel, "changed\n");
+        assert_eq!(r.code, 2, "{rel}: {:?} {:?}", r.out, r.err);
+        assert!(r.out.is_empty(), "{rel}: {:?}", r.out);
+        assert_eq!(
+            r.err,
+            [format!("folio check --proposed: まだ分からない（{rel} は symlink を通る（写しの外を書きうる））")]
+        );
+    }
+    assert_eq!(fs::read_to_string(outside.join("v.txt")).unwrap(), "orig\n");
+    assert!(!outside.join("newdir").exists());
+    assert_eq!(w.leftovers(), 0);
+}
+
+/// 便 198 (c) 12: 発効した判断の記録の本文を 1 字変える中身は止め（1・凍結＝封）、止めた行は同じ中身を書いた素の床に在る。
+#[test]
+fn f198_sealed_body_change_is_stopped() {
+    let w = Work::new("seal");
+    let text = w.edited("adr/ADR-4.yaml", "\ntitle: ", "\ntitle: X");
+    let r = w.propose("adr/ADR-4.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            SEAL.to_string(),
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+        ]
+    );
+    w.write("adr/ADR-4.yaml", &text);
+    assert!(w.floor().out.iter().any(|l| l == SEAL));
+}
+
+/// 便 198 (c) 13: id の一覧の凍結 anchor に在る要件を消す中身は止め（1・凍結＝番号の消失）、参照の解決はつながりとして名指すだけ。
+#[test]
+fn f198_frozen_id_removal_is_stopped() {
+    let w = Work::new("gone");
+    let srs = w.read("srs.yaml");
+    let (head, tail) = srs.split_once("  - id: FR19\n").unwrap();
+    let text = format!("{head}{}", &tail[tail.find("nonfunctional:\n").unwrap()..]);
+    let r = w.propose("srs.yaml", &text);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            GONE.to_string(),
+            "folio check --proposed: 止める（新しい違反 1・つながり 4・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+        ]
+    );
+    w.write("srs.yaml", &text);
+    assert!(w.floor().out.iter().any(|l| l == GONE));
+}
+
+/// 便 198 (c) 14: 書く前から在る違反と同じ字の違反が 1 つ増える中身は止める（重複ごとに数える差）。
+#[test]
+fn f198_one_more_of_the_same_words_is_new() {
+    let w = Work::new("dup");
+    let row = |text: &str| text.lines().find(|l| l.starts_with("  - {id: R-2,")).unwrap().to_string();
+    let rules = w.read("rules.yaml");
+    let line = row(&rules);
+    let once = rules.replacen(&line, &format!("{line}\n{line}"), 1);
+    let twice = rules.replacen(&line, &format!("{line}\n{line}\n{line}"), 1);
+    w.write("rules.yaml", &once);
+    assert_eq!(w.floor().out.iter().filter(|l| *l == DUP).count(), 1);
+    let r = w.propose("rules.yaml", &twice);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            DUP.to_string(),
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+        ]
+    );
+}
+
+/// 便 198 (c) 15: 字（UTF-8）でない標準入力は まだ分からない（2・通さない・P-4.1）。
+#[test]
+fn f198_stdin_not_utf8_is_unknown() {
+    let w = Work::new("bytes");
+    let r = w.propose_bytes("rules.yaml", &[0xff, 0xfe, b'\n']);
+    assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
+    assert!(r.out.is_empty(), "{:?}", r.out);
+    assert_eq!(r.err.len(), 1, "{:?}", r.err);
+    assert!(r.err[0].starts_with("folio check --proposed: 標準入力を字（UTF-8）として読めない: "), "{:?}", r.err);
 }
