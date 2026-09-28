@@ -184,3 +184,164 @@ fn gitcheck_rewritten_anchor_fails() {
         "{v:?}"
     );
 }
+
+// ── 便 190（判断の記録 ADR-34）: 照合するのは HEAD の祖先と根の無い枝の履歴だけ ──
+
+const LOST: &str = "は版管理の履歴に在ったが作業ツリーに無い";
+const SWAPPED: &str = "が版管理の履歴の同じ形式の anchor と中身が違う";
+const V10: &str = "design-intent/anchors/constitution-v1.0.yaml";
+
+/// 違反の行のうち `needle` を含む行の数。
+fn count(out: &Output, needle: &str) -> usize {
+    violations(out).iter().filter(|l| l.contains(needle)).count()
+}
+
+/// 取り込んでいない枝 w を切って `edit` の後に commit し（その前に根の file だけの commit を 1 つ挟む）、元の枝へ戻る。
+fn side_branch(td: &Path, edit: impl FnOnce(&Path)) {
+    git(td, &["checkout", "-q", "-b", "w"]);
+    fs::write(td.join("side.txt"), "w\n").unwrap();
+    git(td, &["add", "-A"]);
+    git(td, &["commit", "-q", "-m", "w1"]);
+    edit(td);
+    git(td, &["add", "-A"]);
+    git(td, &["commit", "-q", "-m", "w2"]);
+    git(td, &["checkout", "-q", "-"]);
+}
+
+/// v1.0 の anchor の題を 1 字変える（形式は同じ・digest は合わない）。
+fn rewrite_v10(td: &Path) {
+    let path = td.join(V10);
+    let before = fs::read_to_string(&path).unwrap();
+    let after = before.replacen("title: 床は数える", "title: 床は数えた", 1);
+    assert_ne!(before, after, "変異が当たっていない");
+    fs::write(&path, after).unwrap();
+}
+
+#[test]
+fn f190_side_branch_added_anchor_is_not_lost() {
+    let td = copy_fixture("f190-side-adds", "root-digest-drift", true);
+    side_branch(&td, |td| {
+        let v10 = fs::read_to_string(td.join(V10)).unwrap();
+        fs::write(
+            td.join("design-intent/anchors/constitution-v1.1.yaml"),
+            v10.replace("v1.0", "v1.1"),
+        )
+        .unwrap();
+    });
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(count(&out, LOST), 0, "{v:?}");
+    // 土台の違反（列の根が床の定数の表に無い）は今のまま 1 本だけ
+    assert_eq!(v.len(), 1, "{v:?}");
+    assert!(v[0].contains("列の根の表に無い"), "{v:?}");
+}
+
+#[test]
+fn f190_side_branch_rewrite_is_not_a_swap_on_head() {
+    let td = copy_fixture("f190-side-rewrites", "root-digest-drift", true);
+    side_branch(&td, rewrite_v10);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(count(&out, SWAPPED), 0, "{v:?}");
+    assert_eq!(v.len(), 1, "{v:?}");
+}
+
+#[test]
+fn f190_side_branch_first_anchors_leave_head_unknown() {
+    let td = copy_fixture("f190-side-first", "no-anchor", true);
+    side_branch(&td, |td| {
+        copy_tree(
+            &repo_root().join("tests/fixtures/anchor/root-digest-drift/anchors"),
+            &td.join("design-intent/anchors"),
+        );
+    });
+    let out = folio_check(&td);
+    assert_eq!(
+        out.status.code(),
+        Some(2),
+        "{}{}",
+        stdout(&out),
+        stderr(&out)
+    );
+    assert!(violations(&out).is_empty(), "{:?}", violations(&out));
+}
+
+#[test]
+fn f190_deletion_committed_on_head_still_fails() {
+    let td = copy_fixture("f190-head-deletes", "root-digest-drift", true);
+    git(&td, &["rm", "-q", V10]);
+    git(&td, &["commit", "-q", "-m", "del"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, LOST), 1, "{v:?}");
+    assert!(
+        v.iter()
+            .any(|l| l.contains("anchors/constitution-v1.0.yaml") && l.contains(LOST)),
+        "{v:?}"
+    );
+}
+
+#[test]
+fn f190_side_branch_merged_then_deleted_fails() {
+    let td = copy_fixture("f190-merged-deletes", "root-digest-drift", true);
+    side_branch(&td, |td| {
+        let v10 = fs::read_to_string(td.join(V10)).unwrap();
+        fs::write(
+            td.join("design-intent/anchors/constitution-v1.1.yaml"),
+            v10.replace("v1.0", "v1.1"),
+        )
+        .unwrap();
+    });
+    git(&td, &["merge", "-q", "--no-ff", "--no-edit", "w"]);
+    git(
+        &td,
+        &["rm", "-q", "design-intent/anchors/constitution-v1.1.yaml"],
+    );
+    git(&td, &["commit", "-q", "-m", "del"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(count(&out, LOST), 1, "{v:?}");
+    assert!(
+        v.iter().any(|l| l.contains("anchors/constitution-v1.1.yaml")),
+        "{v:?}"
+    );
+}
+
+#[test]
+fn f190_rootless_branch_still_sees_the_other_history() {
+    let td = copy_fixture("f190-orphan", "root-digest-drift", true);
+    git(&td, &["checkout", "-q", "--orphan", "clean"]);
+    git(&td, &["rm", "-q", "-r", "--cached", "design-intent/anchors"]);
+    fs::remove_dir_all(td.join("design-intent/anchors")).unwrap();
+    git(&td, &["commit", "-q", "-m", "orphan"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, LOST), 2, "{v:?}");
+}
+
+#[test]
+fn f190_rewrite_committed_on_head_still_fails() {
+    let td = copy_fixture("f190-head-rewrites", "root-digest-drift", true);
+    rewrite_v10(&td);
+    git(&td, &["commit", "-q", "-am", "rw"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, SWAPPED), 1, "{v:?}");
+}
+
+#[test]
+fn f190_schema_notes_name_the_counted_history() {
+    let text = fs::read_to_string(repo_root().join("design-intent/adr/schema.yaml")).unwrap();
+    for want in [
+        "照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・判断の記録 ADR-34）",
+        "床が応じるのは環境変数の遮断・根の無い枝の履歴の照合・",
+    ] {
+        assert_eq!(text.matches(want).count(), 1, "{want}");
+    }
+    for gone in ["全ての参照（--all）の履歴を見る", "全ての参照の照合"] {
+        assert!(!text.contains(gone), "{gone}");
+    }
+}
