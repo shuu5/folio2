@@ -62,9 +62,7 @@
 //! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 17 行が外れ、索引の欄の決まりの注から周の引き金の
 //! 2 文が外れた（CEILING_REGION_*・F95_GRAPH_* を、前の anchor を行と字で直した写しを sha256sum で測り直した値に）。
 //! 便 177（delivery-177.md §1 (b)(c)）: 索引の欄の決まりの注 digest_note から印の 1 文が外れた（F95_GRAPH_* を同じ手順で測り直した値に）。
-//! 便 195（行 gp）: 索引の欄の決まりの生成区間の末尾に、参照 id の空間（refs.rs・prose.rs）と行 R-17 の読み（mentions.rs）の定数の
-//! 写し ids・mentions と 2 つの注を足した（F95_GRAPH_* を測り直した値に）。
-//! f195_ 1. 実の graph.yaml の生成区間の ids と mentions の値が期待の字と順のまま・2 つの注が正本の置き場を名指す。
+//! 便 195（行 gp）: 索引の欄の決まりの生成区間の末尾に ids・mentions と 2 つの注を足した（F95_GRAPH_* を測り直した値に・写しの字の歯は tests/graph.rs）。
 
 use std::fs;
 use std::io::Write;
@@ -1055,8 +1053,7 @@ fn f89_schema_teeth_are_split_and_under_the_cap() {
 /// 便 95 (c) 凍結 anchor の置き場と自己検査の値（設計判断の席が独立の実装で組んだ）。
 const F95_GRAPH_ANCHOR: &str = "tests/fixtures/schema/graph-region.txt";
 /// 便 99 で node の digest と edge_fields・edge_fields_note・digest_note を足した値（docs/design/delivery-99.md §1 (f)）。
-/// 便 195 で末尾に ids・ids_note・mentions・mentions_note の 62 行を足した値（35 行・3537 byte から・anchor は導出を使わない
-/// 独立の script が base の anchor の末尾に行を足して組み、wc と sha256sum で測った）。
+/// 便 195 で末尾に ids・mentions と 2 つの注の 62 行を足した値（anchor は導出を使わない独立の script が組み、wc と sha256sum で測った）。
 const F95_GRAPH_LINES: usize = 97;
 const F95_GRAPH_BYTES: usize = 7000;
 const F95_GRAPH_SHA256: &str = "837f24b54555e5a04df66eb66f41e5ab9431cf155a94493f7a6bc8e6a923e307";
@@ -1171,126 +1168,5 @@ fn f129_the_graph_region_notes_follow_adr20_and_adr14() {
     }
     for old in ["周の引き金にならない（判断の記録 ADR-13 決定 (8)）", "文書を節点にする便で足す"] {
         assert!(!reg.contains(old), "graph.yaml の生成区間に古い字「{old}」が残る");
-    }
-}
-
-// ── 便 195（行 gp・P-5.6・行 D-11）: 索引の欄の決まりの生成区間に参照 id の空間と行 R-17 の読みの写し ──
-
-/// 期待の字（手で写した・base 7528256 の refs.rs・prose.rs・mentions.rs の定数と同じ字と順）。
-const F195_IDS: [(&str, &[&str]); 3] = [
-    ("rule_sections", &["thresholds", "discipline"]),
-    (
-        "srs_sections",
-        &["goals", "requirements", "nonfunctional", "acceptance", "constraints", "actors", "outputs"],
-    ),
-    ("relation_namespaces", &["reqs", "rules", "articles", "sections"]),
-];
-const F195_PREFIXES: [(&str, &[&str]); 3] = [
-    ("article", &["P-", "A-", "N-"]),
-    ("rule", &["R-", "D-"]),
-    ("srs", &["FR", "NFR", "AC", "CON", "GOAL"]),
-];
-const F195_LISTS: [(&str, &[&str]); 5] = [
-    (
-        "targets",
-        &[
-            "constitution.yaml",
-            "rules.yaml",
-            "srs.yaml",
-            "vocabulary.yaml",
-            "ceiling.yaml",
-            "index.yaml",
-            "intake.yaml",
-            "adr/",
-            "design-note/",
-        ],
-    ),
-    (
-        "typed",
-        &[
-            "article", "articles", "amended_by", "amends", "ac", "adrs", "basis", "figures", "goals", "produced", "reads",
-            "ref", "refs", "relations", "req", "reqs", "rules", "sections", "target", "verifies", "verify",
-        ],
-    ),
-    ("provenance", &["approval", "date", "grill", "ruled_at", "ruling", "source"]),
-    ("top_skipped", &["meta", "schema"]),
-    (
-        "excluded",
-        &["対象外", "本判断の外", "同じ運び方", "同形", "と同じく", "と揃う", "審査の記帳", "根拠から", "へ移した", "と書いたら"],
-    ),
-];
-const F195_SRS_KINDS: [(&str, &str); 7] = [
-    ("goals", "目的"),
-    ("actors", "登場人物"),
-    ("outputs", "出力"),
-    ("requirements", "要件"),
-    ("nonfunctional", "要件"),
-    ("acceptance", "受入基準"),
-    ("constraints", "制約"),
-];
-const F195_ALL: &[&str] = &["条", "規範文", "規則行", "判断の記録", "要件", "制約", "受入基準", "目的", "登場人物", "出力"];
-const F195_RECEIVES: [(&str, &[&str]); 10] = [
-    ("条", F195_ALL),
-    ("規範文", &[]),
-    ("規則行", F195_ALL),
-    ("判断の記録", F195_ALL),
-    ("要件", &["条", "規範文", "規則行", "判断の記録", "受入基準", "目的"]),
-    ("制約", &["条", "規範文", "規則行"]),
-    ("受入基準", &["要件"]),
-    ("目的", &[]),
-    ("登場人物", &[]),
-    ("出力", &[]),
-];
-
-/// 表の鍵の順（yaml の順のまま）。
-fn f195_keys(node: &Yaml, at: &str) -> Vec<String> {
-    node.as_hash()
-        .unwrap_or_else(|| panic!("{at} が表でない"))
-        .keys()
-        .map(|k| k.as_str().unwrap_or_else(|| panic!("{at} の鍵が字でない")).to_string())
-        .collect()
-}
-
-/// 歯 1: 実の graph.yaml の生成区間の末尾 4 欄が ids・ids_note・mentions・mentions_note で、型付きの欄の値は期待の字と順のまま
-/// （鍵の過不足も落とす）。2 つの注は正本の定数の置き場を名指す。base の生成区間は ids と mentions を持たない。
-#[test]
-fn f195_the_graph_region_copies_the_id_space_and_the_mention_lists() {
-    let reg = YamlLoader::load_from_str(&f129_real_region("graph.yaml")).unwrap().remove(0);
-    let schema = &reg["schema"];
-    let keys = f195_keys(schema, "schema");
-    assert_eq!(keys[keys.len().saturating_sub(4)..], ["ids", "ids_note", "mentions", "mentions_note"], "{keys:?}");
-
-    let ids = &schema["ids"];
-    assert_eq!(f195_keys(ids, "ids"), ["rule_sections", "srs_sections", "relation_namespaces", "prefixes"]);
-    for (key, want) in F195_IDS {
-        assert_eq!(strs(&ids[key], key), want, "ids.{key}");
-    }
-    let prefixes = &ids["prefixes"];
-    assert_eq!(f195_keys(prefixes, "ids.prefixes"), F195_PREFIXES.map(|(k, _)| k));
-    for (key, want) in F195_PREFIXES {
-        assert_eq!(strs(&prefixes[key], key), want, "ids.prefixes.{key}");
-    }
-
-    let mentions = &schema["mentions"];
-    let mut want_keys: Vec<&str> = F195_LISTS.iter().map(|(k, _)| *k).collect();
-    want_keys.extend(["srs_kinds", "receives"]);
-    assert_eq!(f195_keys(mentions, "mentions"), want_keys);
-    for (key, want) in F195_LISTS {
-        assert_eq!(strs(&mentions[key], key), want, "mentions.{key}");
-    }
-    let kinds = &mentions["srs_kinds"];
-    assert_eq!(f195_keys(kinds, "mentions.srs_kinds"), F195_SRS_KINDS.map(|(k, _)| k));
-    for (section, kind) in F195_SRS_KINDS {
-        assert_eq!(kinds[section].as_str(), Some(kind), "mentions.srs_kinds.{section}");
-    }
-    let receives = &mentions["receives"];
-    assert_eq!(f195_keys(receives, "mentions.receives"), F195_RECEIVES.map(|(k, _)| k));
-    for (from, want) in F195_RECEIVES {
-        assert_eq!(strs(&receives[from], from), want, "mentions.receives.{from}");
-    }
-
-    for (note, place) in [("ids_note", "crates/folio/src/refs.rs"), ("mentions_note", "crates/folio/src/mentions.rs")] {
-        let text = schema[note].as_str().unwrap_or_else(|| panic!("{note} が字でない"));
-        assert!(text.contains(place) && text.contains("写し"), "{note}: {text}");
     }
 }
