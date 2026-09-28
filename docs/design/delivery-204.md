@@ -126,7 +126,7 @@
 ### (g) 門・受付・ほかのレーンとの重なり
 
 1. **門。** 冒頭のとおり 0（通す）。write-set に `design-intent/rules.yaml`（生成区間だけ）が在るので門の対象（規則の表の行 D-12）。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d204 の本契約で 契約に起因する断り PRECHECK（起草の記録の precheck.log）。
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d204 の本契約で 契約に起因する断り 0・preflight ok（起草の記録の precheck.log）。見本の先端 25d6460 で verify の 6 行とも rc 0。
 3. **便 203 との重なり（起草の時点 2026-09-29 07:4x・便 203 の見本は origin に未 push で、起草役 p184-draft の scratch の枝 impl/d203 ec92308〔親 1c7f927〕を読んだ）。**
 
 | file | 便 203 | 便 204 | 重なり |
