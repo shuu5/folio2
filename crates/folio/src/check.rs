@@ -28,6 +28,7 @@ use crate::link;
 use crate::mentions;
 use crate::note;
 use crate::phase::{Flag, State};
+use crate::polarity;
 use crate::refs;
 use crate::rules;
 use crate::ruling;
@@ -179,6 +180,8 @@ pub struct Materials {
     pub not_yet_live: Vec<String>,
     /// 規則の表に行 R-17 が無く、散文の言及の歯が数えなかった（便 156・床の判定の外）。
     pub mentions_off: bool,
+    /// 規則の表に欄 key が in-loop-min の閾値の行が無く、編集時の止めの下限を数えなかった（便 200・床の判定の外）。
+    pub in_loop_min_off: bool,
     /// `--emit-rulings` の標準出力の行（便 186・ADR-31 決定 (4)・床と同じ歩き手と関数・旗の無いときは空）。
     pub rulings: Vec<String>,
 }
@@ -212,6 +215,7 @@ pub fn check_dir(dir: &Path, flag: Flag) -> (Report, Materials) {
     let mut seals = None;
     let mut not_yet_live = Vec::new();
     let mut mentions_off = false;
+    let mut in_loop_min_off = false;
     let mut rulings = Vec::new();
     match load_all(dir, &mut report) {
         Some(src) => {
@@ -220,6 +224,8 @@ pub fn check_dir(dir: &Path, flag: Flag) -> (Report, Materials) {
             let range = place_range(&src.constitution, &mut report);
             check_constitution(&src.constitution, &src.rules, &range, &mut report);
             check_rules(&src.rules, &mut report);
+            // 極性一覧の編集時（in-loop）の本数の下限（便 200・ADR-33 決定 (5)・条 P-18.4）
+            in_loop_min_off = polarity::check_floor(&src.constitution, &src.rules, &mut report);
             check_vocabulary(&src.vocabulary, &mut report);
             check_srs(&src.srs, &mut report);
             entrance::check_entrance(&src.index, &src.vocabulary, &mut report);
@@ -324,6 +330,7 @@ pub fn check_dir(dir: &Path, flag: Flag) -> (Report, Materials) {
         seals,
         not_yet_live,
         mentions_off,
+        in_loop_min_off,
         rulings,
     };
     (report, materials)
