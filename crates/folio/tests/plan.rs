@@ -216,11 +216,20 @@ fn f183_no_plan_note_a_draft_two_rows_or_a_bad_value_is_unknown() {
     two.edit("constitution.yaml", "R-19, R-27]", "R-19, R-27, R-28]");
     let bad = Work::new("bad", true);
     bad.edit("rules.yaml", "value: plan,", "value: Plan,");
+    // 設計ノートが 1 本も無い（欄の決まりの schema.yaml だけ）置き場と、設計ノートの置き場が無い置き場でも、名札の行が在れば黙らない（改訂 a）
+    let none = Work::new("none", true);
+    for n in ["example.yaml", "figures.yaml", "plan.yaml"] {
+        fs::remove_file(none.path(&format!("design-note/{n}"))).unwrap();
+    }
+    let nodir = Work::new("nodir", true);
+    fs::remove_dir_all(nodir.path("design-note")).unwrap();
     for (w, why, schema) in [
         (&gone, "rules.yaml: 計画の名札の行が名指す計画のノート design-note/plan.yaml が無い", 0),
         (&draft, "design-note/plan.yaml: 計画のノートの状態が effective でない（draft）＝計画の床を数えない", 0),
         (&two, "rules.yaml: 計画のノートの名札の行が読めない: 欄 key が plan-note の閾値の行が 2 本ある", 1),
         (&bad, "rules.yaml: 計画のノートの名札の行が読めない: 行 R-27 の value「Plan」が文書 id の形でない", 0),
+        (&none, "rules.yaml: 計画の名札の行が名指す計画のノート design-note/plan.yaml が無い", 0),
+        (&nodir, "rules.yaml: 計画の名札の行が名指す計画のノート design-note/plan.yaml が無い", 0),
     ] {
         let (v, p) = w.check();
         assert_eq!(v.iter().filter(|l| l.starts_with("[schema] ")).count(), schema, "{v:?}");
@@ -285,7 +294,7 @@ fn f183_size_files_shapes_and_the_decision_ruling_are_read() {
     );
 }
 
-/// 歯 6: 行の索引は file 名の順・表の中の順（id の字の順ではない）に並び、folio derive --write が書いた字を 2 度目は変えない。
+/// 歯 6: 行の索引は file 名の順（文書 id の順ではない・ex-b.yaml が ex.yaml より先）・表の中の順（id の字の順ではない）に並び、folio derive --write が書いた字を 2 度目は変えない。
 #[test]
 fn f183_the_index_follows_file_names_then_table_order() {
     let w = Work::new("order", true);
@@ -295,13 +304,37 @@ fn f183_the_index_follows_file_names_then_table_order() {
         row.replacen("{id: a,", "{id: z,", 1),
         row.replacen("{id: a,", "{id: y,", 1)
     );
-    fs::write(w.path("design-note/a-wave.yaml"), wave).unwrap();
+    fs::write(w.path("design-note/a-wave.yaml"), &wave).unwrap();
+    // file 名の順（ex-b.yaml が ex.yaml より先）と文書 id の順（ex が ex-b より先）が割れる組（改訂 a）
+    for (id, rid) in [("ex", "x1"), ("ex-b", "x2")] {
+        let body = wave.replacen("id: a-wave", &format!("id: {id}"), 1).replacen("{id: z,", &format!("{{id: {rid},"), 1);
+        let body = body.lines().filter(|l| !l.starts_with("      - {id: y,")).collect::<Vec<_>>().join("\n") + "\n";
+        fs::write(w.path(&format!("design-note/{id}.yaml")), body).unwrap();
+    }
     assert_eq!(w.derive("--write").status.code(), Some(0));
     let plan = w.read("design-note/plan.yaml");
-    let want = format!("      {BEGIN}\n      - {{id: z, doc: a-wave}}\n      - {{id: y, doc: a-wave}}\n      - {{id: a, doc: example}}\n      {END}\n");
+    let want = format!(
+        "      {BEGIN}\n      - {{id: z, doc: a-wave}}\n      - {{id: y, doc: a-wave}}\n      - {{id: x2, doc: ex-b}}\n      - {{id: x1, doc: ex}}\n      - {{id: a, doc: example}}\n      {END}\n"
+    );
     assert!(plan.contains(&want), "{plan}");
     let again = w.derive("--write");
     assert!(text(&again).contains("書いた 0 file"), "{}", text(&again));
     assert_eq!(w.read("design-note/plan.yaml"), plan);
     assert!(w.check().0.is_empty());
+}
+
+/// 歯 7（改訂 a）: 印を散文の節の body の中に置き（区間の字は導出と合う）、行の索引の節の rows を空にした写しで、床は違反 1、
+/// folio derive --check は 1 と同じ理由の DRIFT の行を出す（床と --check が同じ関数で比べる・判断の記録 ADR-31 決定 (2)(ウ)）。
+#[test]
+fn f183_markers_outside_the_section_fail_the_floor_and_derive_check_alike() {
+    let w = Work::new("outside", true);
+    let file = "design-note/plan.yaml";
+    let region = format!("    rows:\n      {BEGIN}\n      - {{id: a, doc: example}}\n      {END}\n");
+    w.edit(file, &region, "    rows: []\n");
+    w.edit(file, "    body: 計画の見本。\n", &format!("    body: |\n      計画の見本。\n      {BEGIN}\n      - {{id: a, doc: example}}\n      {END}\n"));
+    let why = "行の索引の節の行が生成区間の導出と違う（印が節の rows の外に在る・folio derive --write で書き直す）";
+    assert_eq!(w.check().0, [format!("[note] {file}: {why}")]);
+    let out = w.derive("--check");
+    assert_eq!(out.status.code(), Some(1), "{}", text(&out));
+    assert!(text(&out).contains(&format!("DRIFT: {file}（{why}）")), "{}", text(&out));
 }
