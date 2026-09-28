@@ -62,6 +62,8 @@
 //! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 17 行が外れ、索引の欄の決まりの注から周の引き金の
 //! 2 文が外れた（CEILING_REGION_*・F95_GRAPH_* を、前の anchor を行と字で直した写しを sha256sum で測り直した値に）。
 //! 便 177（delivery-177.md §1 (b)(c)）: 索引の欄の決まりの注 digest_note から印の 1 文が外れた（F95_GRAPH_* を同じ手順で測り直した値に）。
+//! 便 197（delivery-197.md §1 (b)(d)）: 相談窓口の生成区間に回答の値の読み方と行き先の固定の値の写し 4 行（F77_REGIONS の intake.yaml を、
+//! 前の anchor に 4 行を手で足した写しを sha256sum で測り直した 7 行・1644 byte と要約値に）。
 
 use std::fs;
 use std::io::Write;
@@ -107,9 +109,9 @@ const F77_REGIONS: [(&str, &str, usize, usize, &str); 3] = [
     (
         "intake.yaml",
         "tests/fixtures/schema/intake-region.txt",
-        3,
-        256,
-        "0f6a498f0c308603740e02debfc79fbfbde72d69ea1a6ca101c8a7b320eecd97",
+        7,
+        1644,
+        "e800ebde8734bc5ec9cba3bd904a7adb1f2dfb06ace61ed33124974921be32fa",
     ),
 ];
 
