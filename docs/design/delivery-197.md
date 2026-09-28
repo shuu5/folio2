@@ -5,18 +5,18 @@
 - 出所: 判断の記録 ADR-11 決定 (3)(ア)・(4)⑥（相談窓口の回答の値は file が正本で、実装は実行時に読む・台帳 **f2-648.74**）と規則の表の行 D-11。同乗は台帳 **f2-648.227**（除外の字が機械の待ち時間まで除外に読める・天井の 46 周目の忠実さの気づき・席の依頼 2026-09-28 18:1x）。
 - 承認: .74 は file の値に従う形へ実装を直し（folio2 と土台と tsuzuri では答えが 1 byte も変わらない）、その読み方の写しを足す。.227 は欄の決まりの字の直しで規則の表の行ではない。どちらも行 D-17 の 4 つに当たらないと読み、席の裁定で受け付ける（.227 は席の依頼の読みと同じ）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gr` が指す §1 だけ。write-set 9 本（src 3・歯の file 2・設計文書 2・fixture 2）・新しい file も dir も無い。
-- 門: **0（通す）**。本流 6467915 の組み立てに write-set 9 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え。
-- 前の便: **base = 本流 6467915**（便 185 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d197/`。
-- 見本: origin の枝 `impl/d197`（**b1ffd2d**）。`git diff 6467915 b1ffd2d` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
+- 門: **0（通す）**。本流 44c14ac の組み立てに write-set 9 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え。
+- 前の便: **base = 本流 44c14ac**（便 185・192〜194 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d197/`。
+- 見本: origin の枝 `impl/d197`（**8a0abe9**・本流 44c14ac を merge した commit）。`git diff 44c14ac 8a0abe9` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
 
 ## 1. 設計
 
-### (a) いま起きていること（参考値・base 6467915）
+### (a) いま起きていること（参考値・base 44c14ac）
 
 1. **回答の値が 2 か所（.74）。** 相談窓口の正本 `design-intent/intake.yaml` は `answers: {values: [はい, いいえ], default: recommend}` を人が書き、床（`intake.rs`）はそれを値域として読む。ところが支度表の命令（`sheet.rs`）は定数 YES = はい・NO = いいえ を手で持ち、回答が YES なら質問の行の yes の行き先・NO なら no の行き先を選び、ほかの値は断る。file の側の値を変えると、床は合格なのに `folio intake --write` だけが「はい でも いいえ でもない」で止まる。
 2. **固定の値の写しが無い。** `intake.rs` の INJECT_TARGET（行き先の値域に足す inject）と DEFAULT_RECOMMEND（answers.default が取れる recommend）は、判定に使う値なのに生成区間に写しが無い。相談窓口の正本の生成区間は最上位の節の閉じた一覧だけを持つ。
 3. **除外の字が広い（.227）。** 規則の表の欄の決まりの生成区間 excluded（正本 = `rules.rs` の EXCLUDED_WHAT と why）は「時間」「費用」を凍結から外すと書き、字のうえでは道具が決定的に測れる機械の待ち時間まで除外に当たる。要件書 not_frozen が外しているのは人の作業の時間（60 分以内）と AI の費用（300k token 以下）である。
-4. **base の歯。** workspace の nextest 1050 / 1050・clippy 0 警告・床 4 本 rc 0・`folio build --write` 37 file。`f197_` と行 id `gr` は 0 件。
+4. **base の歯。** workspace の nextest 1070 / 1070・clippy 0 警告・床 4 本 rc 0・`folio build --write` 37 file。`f197_` と行 id `gr` は 0 件。
 
 ### (b) 直す先
 
@@ -43,8 +43,8 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **落ちる既存の歯は無い**（anchor と区間の数の値は (b) の 4 のとおり同じ便で直す）。便の全部を当てた写しで workspace の nextest 1055 / 1055（+5 = f197_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
-2. **突然変異 17 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った）。
+1. **落ちる既存の歯は無い**（anchor と区間の数の値は (b) の 4 のとおり同じ便で直す）。便の全部を当てた写しで workspace の nextest 1075 / 1075（+5 = f197_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
+2. **突然変異 17 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 8a0abe9 で撃ち直し・落ちる歯の数は前の base と同じ）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -64,7 +64,7 @@
 | file | base | 便の後 | 便の後の余地 |
 | --- | ---: | ---: | ---: |
 | sheet.rs | 577 | 598 | 902 |
-| intake.rs | 252 | 286 | 1214 |
+| intake.rs | 256 | 290 | 1210 |
 | rules.rs | 473 | 475 | 1025 |
 
 3. **size は S**（最小の余地は sheet.rs の 902 ≥ 100・src の差は小さい）。
@@ -72,14 +72,14 @@
 
 ### (g) 受付・並行の便
 
-- **重なり**（本流 b716d94 の契約表と `git merge-tree` の実測）: 便 194（小さな直し・先に着地）と `intake.rs` を両方が書く（別の関数・字の衝突なし・2 つを合わせた写しで両方の歯が緑）。便 192・193 とは重ならない。便 162（未着地・base 8472b5c）の契約の write-set とは `rules.rs`・`rules.yaml`・`rules-region.txt`・`tests/schema_docs.rs` が重なり、RULES_REGION_* の 2 行は両方が書く＝後に着地する側が数え直す。便 187・190・192・193・198 とは重ならない。
-- **同じレーン**: 便 195・196 とは `tests/schema_docs.rs` の頭の来歴の行が隣り合う所だけが当たる（後に着地する側が両方の行を残す）。着地の順は 195 → 196 → 197。
-- **受付の時点の main が 6467915 と違えば**、2 区間・anchor 2 本・区間の数・余地を数え直してから運ぶ（便 194 の着地の後は外の置き場の注の字の落とし方も変わる＝tsuzuri の書き直しの字を見直す）。
+- **重なり**（本流 44c14ac の上の見本どうしの `git merge-tree` の実測・2026-09-28 20:0x・読むだけ）: 便 187（床の穴・先に着地・impl/d187 430c9c7）・便 190（検査の信頼・先・83f049d）・便 198（編集時の止め・後・15b235a）とは write-set が重ならない。便 194 は base に入った（両方が書いた `intake.rs` は merge で衝突なし・194 の歯 f194_ と本便の歯が同じ木で緑）。便 162（未着地・枝 docs/d162 336b11f・base 8472b5c）の契約の write-set とは `rules.rs`・`rules.yaml`・`rules-region.txt`・`tests/schema_docs.rs` が重なり、RULES_REGION_* の 2 行は両方が書く＝後に着地する側が数え直す。
+- **同じレーン**: 便 195・196 とは `tests/schema_docs.rs` の頭の来歴の行が隣り合う所だけが当たる（後に着地する側が両方の行を残す）。3 本を本流 44c14ac の上に 195 → 196 → 197 の順で重ねた写し（控え copies-scripts/stack44/・commit を作らない git apply -3）では、字の衝突はその頭の注の 2 塊だけ（両方の行を残して解いた）で、9 本の生成区間は重ねたまま schema --check が一致し（--write は何も書き直さない）、workspace の nextest 1083 / 1083（base 1070 + 5 + 3 + 5）・clippy 0 警告・床 4 本 rc 0・`folio build` は本流と byte で同じ・3 本の verify 17 行が全部 rc 0、`tests/schema_docs.rs` は器の式で 1177 行（上限 1200）・`tests/schema.rs` は 700 行（上限 700）。着地の順は 187 → 195 → 196 → 197。
+- **受付の時点の main が 44c14ac と違えば**、2 区間・anchor 2 本・区間の数・余地を数え直してから運ぶ（便 162 が先に着地したら RULES_REGION_* と rules-region.txt は必ず）。
 
 ### (h) 今の置き場の床が変わらないこと
 
 1. **folio2 自身。** 床 4 本の答えは同じ（schema --check の intake.yaml と rules.yaml の byte 数の 2 行だけが違う）。`folio build` の出力は byte で同じ。`folio intake` の出力と支度表は base と byte で同じ。
-2. **tsuzuri**（写しへ cp・本物では何も撃たない・values は [はい, いいえ]）。便の binary の `folio schema --write` が書き直すのは intake.yaml と rules.yaml の 2 本だけで、その後の check・schema --check・derive・`folio intake --print` / `--write` は 0、出力と支度表は本流の binary の答えと byte で同じ。
+2. **tsuzuri**（写しへ cp・本物では何も撃たない・写し 59af37e・values は [はい, いいえ]・本流 44c14ac の binary と比べた）。便の binary の `folio schema --write` が本流の binary の書き直し（写しが本流より古い分の adr/schema.yaml と design-note/schema.yaml）のほかに書き直すのは intake.yaml と rules.yaml の 2 本だけで、その後の check・schema --check・derive・`folio intake --print` / `--write` は 0、出力と支度表は本流の binary の答えと byte で同じ。
 
 ### (i) 連絡・運ばないもの・撤退条件
 
@@ -115,7 +115,7 @@ schema = 1
 
 [[contract]]
 id = "gr"
-title = "台帳 f2-648.74 と f2-648.227: 支度表の命令 sheet.rs が回答の値 はい / いいえ を定数で持つのをやめ、相談窓口の正本 intake.yaml の answers.values を読んで 1 つ目を yes・2 つ目を no の行き先の回答とし、values が 2 つでなければ --write が断る（判断の記録 ADR-11 決定 (3)(ア)(4)⑥）。その読み方と固定の値 inject・recommend を intake.rs の床の木 INTAKE_FLOOR から相談窓口の正本の生成区間へ写し（行 D-11）、規則の表の欄の決まりの除外 EXCLUDED_WHAT と why を人の作業の時間と AI の費用に狭める。2 file は folio schema --write で書く。folio2 と tsuzuri の答えは変えない。歯は f197_ 5 本。base = main 6467915"
+title = "台帳 f2-648.74 と f2-648.227: 支度表の命令 sheet.rs が回答の値 はい / いいえ を定数で持つのをやめ、相談窓口の正本 intake.yaml の answers.values を読んで 1 つ目を yes・2 つ目を no の行き先の回答とし、values が 2 つでなければ --write が断る（判断の記録 ADR-11 決定 (3)(ア)(4)⑥）。その読み方と固定の値 inject・recommend を intake.rs の床の木 INTAKE_FLOOR から相談窓口の正本の生成区間へ写し（行 D-11）、規則の表の欄の決まりの除外 EXCLUDED_WHAT と why を人の作業の時間と AI の費用に狭める。2 file は folio schema --write で書く。folio2 と tsuzuri の答えは変えない。歯は f197_ 5 本。base = main 44c14ac"
 req = ["FR1", "FR19"]
 section = "1"
 write-set = ["crates/folio/src/sheet.rs", "crates/folio/src/intake.rs", "crates/folio/src/rules.rs", "crates/folio/tests/sheet.rs", "crates/folio/tests/schema_docs.rs", "design-intent/intake.yaml", "design-intent/rules.yaml", "tests/fixtures/schema/intake-region.txt", "tests/fixtures/schema/rules-region.txt"]

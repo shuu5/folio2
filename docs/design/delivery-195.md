@@ -5,20 +5,20 @@
 - 出所: 規則の表の行 D-11。判断の記録 ADR-11 決定 (4)⑧（参照 id の形と節の一覧は写しを生成区間へ出し、実装の中の 2 枚以上を 1 枚に寄せる・台帳 **f2-648.76**）と、天井の 31 周目 実態 F-3（行 R-17 の注が名指す写しの後続・台帳 **f2-648.184**）。
 - 承認: 判定の値も式も変えず、既に効いている定数の写しを足すだけ。行 D-17 の「実装の定数を変えて生成区間の規則を変える」には当たらないと読み、席の裁定で受け付ける（読みが割れたら持ち主の承認の 1 回に載せる・字は変わらない）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gp` が指す §1 だけ。write-set 12 本（src 6・歯の file 4〔本文不変 1〕・設計文書 1・fixture 1）・新しい file も dir も無い。
-- 門: **0（通す）**。本流 6467915 の組み立てに write-set 12 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（印の周 51 に、書き換える file を場所とする支持された 止める は無い）。
-- 前の便: **base = 本流 6467915**（便 185 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d195/`（run・red・mut・cap・anchor・tz の script）。
-- 見本: origin の枝 `impl/d195`（**0860ba4**・本流を merge した commit）。`git diff 6467915 0860ba4` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
+- 門: **0（通す）**。本流 44c14ac の組み立てに write-set 12 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（印の周 51 に、書き換える file を場所とする支持された 止める は無い）。
+- 前の便: **base = 本流 44c14ac**（便 185・192〜194 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d195/`（run・red・mut・cap・anchor・tz の script）。
+- 見本: origin の枝 `impl/d195`（**80aec6c**・本流 44c14ac を merge した commit）。`git diff 44c14ac 80aec6c` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
 
 ## 1. 設計
 
-### (a) いま起きていること（参考値・base 6467915）
+### (a) いま起きていること（参考値・base 44c14ac）
 
 1. **写しが無い。** 索引の欄の決まりの正本 `design-intent/graph.yaml` の生成区間は、節点の種類・辺の型・辺の欄だけを持つ。参照 id の解決（行 R-4）・散文の門（行 R-16）・散文の言及の歯（行 R-17）が判定に使う次の閉じた一覧は、実装の定数にしか無い。
    - 参照 id の空間: `refs.rs` の SRS_ID_SECTIONS（要件書の id を持つ 7 節）・RULE_SECTIONS（規則の表の 2 節）・RELATION_NAMESPACES（憲法の条の relations の 4 名前空間）・SRS_ID_PREFIXES（要件書の id の頭 5 つ）と、`prose.rs` の ARTICLE（P- / A- / N-）・RULE（R- / D-）。
    - 行 R-17 の読みの 5 つの閉じた一覧: `mentions.rs` の TARGETS（対象の file 9）・TYPED（型付きの欄 21）・PROVENANCE（来歴の欄 6）・TOP_SKIPPED（読まない最上位 2）・EXCLUDED（数えない言及の語形 10）と、要件書の節ごとの行の種類 SRS_SECTIONS、受け皿の表（関数 receives の match の式・表になっていない）。
    - 行 R-17 の注は「写しを設計文書の置き場へ導出することは後続である（P-5.6）」と書くが、その後続がまだ無い。
 2. **同じ一覧が 2 枚以上。** RULE_SECTIONS は refs・link・note・prose・mentions・graph の 6 file に 6 枚、SRS_ID_SECTIONS は refs・link・note に 3 枚、prose.rs の REQUIREMENT は refs.rs の SRS_ID_PREFIXES と同じ 5 語（順だけ違う・照合は頭どうしが前方一致しないので順は答えに効かない）。
-3. **base の歯。** workspace の nextest 1050 / 1050・clippy 0 警告・床 4 本 rc 0・`folio build --write` 37 file。`f195_` と行 id `gp` は 0 件。
+3. **base の歯。** workspace の nextest 1070 / 1070・clippy 0 警告・床 4 本 rc 0・`folio build --write` 37 file。`f195_` と行 id `gp` は 0 件。
 
 ### (b) 直す先
 
@@ -40,7 +40,7 @@
 3. **graph::tests::f195_abroad_region_keeps_the_lists_and_the_unmarked_notes**（単体・`graph.rs`）。外の置き場の名で導出しても型付きの欄の行は folio2 と同じ字で、2 つの注は番号の括弧だけが落ちた字になる。**base では欄が無い＝RED。**
 4. **mentions::tests::f195_receives_answers_every_pair_as_before**（単体・`mentions.rs`）。受け皿の 10 × 10 の答え（受ける組 40）を歯の中の行列で固定する。**答えを保つ歯＝base でも緑が正しい**（変異 M2〜M6 を落とす）。
 5. **mentions::tests::f195_receives_table_is_keyed_by_the_kind_names**（単体・`mentions.rs`）。RECEIVES の鍵が 10 の種類の名を宣言の順に持ち、値がどれも種類の名である。見本の新しい定数を引くので base には当てない。
-- 既存の歯の直し: `tests/schema_docs.rs` の F95_GRAPH_*（graph.yaml の区間の行数・byte 数・要約値）を便の後の値に。歯だけを base に当てると、落ちるのは 1〜3 と F95 の 3 本だけ（212 本中 6）。
+- 既存の歯の直し: `tests/schema_docs.rs` の F95_GRAPH_*（graph.yaml の区間の行数・byte 数・要約値）を便の後の値に。歯だけを base に当てると、落ちるのは 1〜3 と F95 の 3 本だけ（215 本中 6）。
 
 ### (d) 採らなかった形
 
@@ -51,8 +51,8 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **落ちる既存の歯は無い**（F95 の 3 本は (c) のとおり同じ便で値を直す）。便の全部を当てた写しで workspace の nextest 1055 / 1055（+5 = f195_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
-2. **突然変異 14 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った）。
+1. **落ちる既存の歯は無い**（F95 の 3 本は (c) のとおり同じ便で値を直す）。便の全部を当てた写しで workspace の nextest 1075 / 1075（+5 = f195_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
+2. **突然変異 14 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 80aec6c で撃ち直し・落ちる歯の顔ぶれは前の base と同じ）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -74,7 +74,7 @@
 | graph.rs | 1036 | 1135 | 365 |
 | link.rs | 661 | 647 | 853 |
 | mentions.rs | 348 | 449 | 1051 |
-| note.rs | 1010 | 996 | 504 |
+| note.rs | 1016 | 1002 | 498 |
 | prose.rs | 327 | 327 | 1173 |
 | refs.rs | 431 | 434 | 1066 |
 
@@ -83,14 +83,14 @@
 
 ### (g) 受付・並行の便
 
-- **重なり**（本流 b716d94 の契約表と `git merge-tree` の実測・どれも字の衝突なし）: 便 192（小さな直し・先に着地）と `note.rs`、便 198（編集時の止め・後）と `tests/modules.rs` を両方が書くが、別の所で自動で合わさる。便 193・194・187・190 とは write-set が重ならない。ただし便 194 は `floor.rs` の外の置き場の字の落とし方（括弧を落とした跡の空白・指す語で始まる文）を変えるので、194 の着地の後は (c) の 3 の期待の字と、tsuzuri で書き直る graph.yaml の注の字を数え直す。
-- **同じレーン**: 便 196・197 とは `tests/schema_docs.rs` の頭の注に便ごとの行を隣り合わせに足す所だけが当たる（後に着地する側が両方の行を残す）。着地の順は 195 → 196 → 197。
-- **受付の時点の main が 6467915 と違えば**、graph.rs の余地・graph.yaml の区間・graph-region.txt・F95_GRAPH_* を数え直してから運ぶ（手順は控え）。
+- **重なり**（本流 44c14ac の上の見本どうしの `git merge-tree` の実測・2026-09-28 20:0x・読むだけ）: 便 187（床の穴・先に着地・impl/d187 430c9c7）と便 190（検査の信頼・先・83f049d）とは write-set が重ならない（字の衝突も無い）。便 198（編集時の止め・後・15b235a）とは `tests/modules.rs` を両方が書くが、別の所で自動で合わさる。便 192〜194 は base に入った: 192 と両方が書いた `note.rs` は merge で衝突なし。194 は `floor.rs` の外の置き場の字の落とし方（括弧を落とした跡の空白・指す語で始まる文）を変えたが、(c) の 3 の期待の字は変わらない（2 つの注の番号の括弧は和字どうしか文の末尾に接し、丸ごと落ちる文も無い＝base 44c14ac の上で単体の歯と 194 の歯 f194_ が緑）。
+- **同じレーン**: 便 196・197 とは `tests/schema_docs.rs` の頭の注に便ごとの行を隣り合わせに足す所だけが当たる（後に着地する側が両方の行を残す）。3 本を本流 44c14ac の上に 195 → 196 → 197 の順で重ねた写し（控え copies-scripts/stack44/・commit を作らない git apply -3）では、字の衝突はその頭の注の 2 塊だけ（両方の行を残して解いた）で、9 本の生成区間は重ねたまま schema --check が一致し（--write は何も書き直さない）、workspace の nextest 1083 / 1083（base 1070 + 5 + 3 + 5）・clippy 0 警告・床 4 本 rc 0・`folio build` は本流と byte で同じ・3 本の verify 17 行が全部 rc 0、`tests/schema_docs.rs` は器の式で 1177 行（上限 1200）・`tests/schema.rs` は 700 行（上限 700）。着地の順は 187 → 195 → 196 → 197。
+- **受付の時点の main が 44c14ac と違えば**、graph.rs の余地・graph.yaml の区間・graph-region.txt・F95_GRAPH_* を数え直してから運ぶ（手順は控え）。
 
 ### (h) 今の置き場の床が変わらないこと
 
 1. **folio2 自身。** 床 4 本の答えは同じ（schema --check の graph.yaml の byte 数の 1 行だけが違う）。`folio build` の出力は byte で同じ。
-2. **tsuzuri**（写しへ cp・本物では何も撃たない）。本流の binary では素の写しで床 4 本が合格。便の binary では schema --check だけが落ち（graph.yaml に ids と mentions が無い）、`folio schema --write` が書き直すのは graph.yaml だけ（区間の末尾に 62 行）。その後の check と derive の出力は本流の binary の答えと byte で同じ。注は番号の括弧だけが落ちる。
+2. **tsuzuri**（写しへ cp・本物では何も撃たない・写し 59af37e・本流 44c14ac の binary と比べた）。本流の binary では素の写しで check と derive が合格（schema --check は写しが本流より古い分の adr/schema.yaml と design-note/schema.yaml で落ちる＝本便の外）。便の binary の `folio schema --write` が本流の binary の書き直しのほかに書き直すのは graph.yaml だけ（区間の末尾に 62 行・消えた行 0）。その後の check・schema --check・derive は 0 で、check と derive の出力は本流の binary の素の写しの答えと byte で同じ。注は番号の括弧だけが落ちる（folio2 の番号の跡 0）。
 
 ### (i) 連絡・運ばないもの・撤退条件
 
@@ -126,7 +126,7 @@ schema = 1
 
 [[contract]]
 id = "gp"
-title = "台帳 f2-648.76 の前半と f2-648.184: 参照 id の空間（要件書の id を持つ節・規則の表の節・憲法の relations の名前空間・id の頭）と行 R-17 の読みの 5 つの閉じた一覧（対象の file・型付きの欄・来歴の欄・読まない最上位・数えない語形と、節ごとの行の種類・受け皿の表）を、索引の欄の決まり graph.yaml の生成区間へ写す（行 D-11）。refs.rs の定数を 1 枚の正本にして link・note・prose・mentions・graph の写しを消し、mentions.rs の受け皿の match を種類の名の表 RECEIVES にし、graph.rs の FLOOR に ids と mentions と注 2 つを足して folio schema --write で書く。判定の答えは変えない。歯は f195_ 5 本と F95 の値の直し。base = main 6467915"
+title = "台帳 f2-648.76 の前半と f2-648.184: 参照 id の空間（要件書の id を持つ節・規則の表の節・憲法の relations の名前空間・id の頭）と行 R-17 の読みの 5 つの閉じた一覧（対象の file・型付きの欄・来歴の欄・読まない最上位・数えない語形と、節ごとの行の種類・受け皿の表）を、索引の欄の決まり graph.yaml の生成区間へ写す（行 D-11）。refs.rs の定数を 1 枚の正本にして link・note・prose・mentions・graph の写しを消し、mentions.rs の受け皿の match を種類の名の表 RECEIVES にし、graph.rs の FLOOR に ids と mentions と注 2 つを足して folio schema --write で書く。判定の答えは変えない。歯は f195_ 5 本と F95 の値の直し。base = main 44c14ac"
 req = ["FR19", "FR5"]
 section = "1"
 write-set = ["crates/folio/src/graph.rs", "crates/folio/src/link.rs", "crates/folio/src/mentions.rs", "crates/folio/src/note.rs", "crates/folio/src/prose.rs", "crates/folio/src/refs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/modules.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/check.rs", "design-intent/graph.yaml", "tests/fixtures/schema/graph-region.txt"]
