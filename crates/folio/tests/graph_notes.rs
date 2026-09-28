@@ -4,12 +4,14 @@
 //! 1. 凍結した土台の契約表の行 example#a が、節点の行・req の辺・--summary の行・--digest の 3 表で手書きの字のとおりに出る。
 //! 2. 塊の形の行（外の利用者の形）: id は meta の id（file 名でない）と行 id、題は行の section が指す節の題、eng は行の題の全文、
 //!    line は行 id の行、要約値は req と depends の行を落とした塊。depends は同じノートの行への辺、行の無い depends は数えるだけ。
-//!    行 id は欄の順を問わない（塊の形の 2 行目・流れの形の 2 つ目の欄）。契約表でない表の行は節点にしない。
+//!    行 id は欄の順を問わない（塊の形の 2 行目・流れの形の 2 つ目の欄）。契約表でない表の行（部品表・計画の行の索引）は節点にしない。
 //! 3. 辺の欄（req・depends）だけの変更は要約値を動かさず、行の題の変更はその行の要約値だけを動かす。
 //! 4. 設計ノートの外の行（節点・辺・--summary の行・--digest の行）は、設計ノートの置き場を消した写しと byte で同じ。
 //! 5. 行の逐語で切れない行（引用符つきの行 id）・読めない設計ノート・dir でない置き場では表を出さずに まだ分からない（2）、
 //!    床は引用符つきの行 id を種類 索引の節点 の違反 1 件に数える。
-//! 6. 1 本のノートの 2 つの契約表に同じ行 id が在れば、索引は組めず（2）、床は 索引の節点 の違反に数える。
+//! 6. 1 本のノートの 2 つの契約表に同じ行 id が在れば、索引のどの口（--print・--summary・--digest・folio hello）も
+//!    組めず（2）、床は 索引の節点 の違反に数える。
+//! 7. 退役の設計ノートの行も節点になる（状態で絞らない・判断の記録 ADR-32 決定 (1)）。
 
 use std::fs;
 use std::io::Write;
@@ -137,7 +139,7 @@ fn f185_the_frozen_base_row_is_a_node_with_its_req_edge() {
     }
 }
 
-/// 外の利用者の形の設計ノート（塊の形の行・file 名は meta の id と違う・契約表でない表の行を持つ）。
+/// 外の利用者の形の設計ノート（塊の形の行・file 名は meta の id と違う・契約表でない表の行〔部品表と計画の行の索引〕を持つ）。
 const WAVE: &str = "meta:
   id: wave
   title: 塊の形の行の見本
@@ -179,6 +181,13 @@ sections:
     title: 部品
     rows:
       - {id: part, name: 部品, role: 節点にならない表の行}
+  - n: 5
+    type: row-index
+    title: 行の索引
+    rows:
+      # folio:rows:begin — 生成区間・手で直さない・正本は置き場の契約表（folio derive --write が書く）
+      - {id: s, doc: other}
+      # folio:rows:end
 ";
 
 #[test]
@@ -310,17 +319,69 @@ fn f185_an_unscannable_or_unreadable_note_is_inconclusive() {
 fn f185_a_row_id_twice_in_one_note_is_inconclusive() {
     let work = Work::base("twice");
     let twice = format!(
-        "{WAVE}  - n: 5\n    type: contract-table\n    title: 二つ目の契約表\n    rows:\n      - {{id: p, title: 同じ行 id, req: [FR5], section: \"1\"}}\n"
+        "{WAVE}  - n: 6\n    type: contract-table\n    title: 二つ目の契約表\n    rows:\n      - {{id: p, title: 同じ行 id, req: [FR5], section: \"1\"}}\n"
     );
     work.write("design-note/wave-file.yaml", &twice);
-    let out = folio(&["graph", "--print"], &work.dir());
-    let err = String::from_utf8_lossy(&out.stderr);
-    assert_eq!(out.status.code(), Some(2), "{err}");
-    assert!(err.contains("まだ分からない") && err.contains("wave#p") && err.contains("2 度"), "{err}");
+    // 重なった行を黙って 1 つに数える口を残さない（--digest と folio hello は行の逐語を走らせない・P-4.1）
+    for args in [&["graph", "--print"][..], &["graph", "--print", "--summary"], &["graph", "--digest"]] {
+        let out = folio(args, &work.dir());
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert_eq!(out.status.code(), Some(2), "{args:?}: {err}");
+        assert!(out.stdout.is_empty(), "{args:?}: 表が出た");
+        assert!(err.contains("まだ分からない") && err.contains("wave#p") && err.contains("2 度"), "{args:?}: {err}");
+    }
+    let hello = Command::new(env!("CARGO_BIN_EXE_folio"))
+        .args(["hello", "--dir"])
+        .arg(work.dir())
+        .arg("--state")
+        .arg(work.root.join("state"))
+        .output()
+        .expect("folio を起動できない");
+    let err = String::from_utf8_lossy(&hello.stderr);
+    assert_eq!(hello.status.code(), Some(2), "{err}");
+    assert!(err.contains("まだ分からない") && err.contains("wave#p"), "{err}");
     let check = folio(&["check"], &work.dir());
     let text = format!("{}{}", String::from_utf8_lossy(&check.stdout), String::from_utf8_lossy(&check.stderr));
     assert!(
         text.lines().any(|l| l.starts_with("[索引の節点] design-note/wave-file.yaml") && l.contains("2 度")),
         "{text}"
     );
+}
+
+/// 退役の設計ノート（状態 retired・契約表の行 1 つ）。
+const OLD: &str = "meta:
+  id: old
+  title: 退役した設計ノート
+  version: v1.0
+  status: retired
+  generated: 2026-09-28
+  profile: design-note
+sections:
+  - n: 1
+    type: prose
+    title: 行 z — 退役した便の見出し
+    body: |
+      退役。
+  - n: 2
+    type: contract-table
+    title: 契約表
+    rows:
+      - {id: z, title: 退役した便, req: [FR1], section: \"1\"}
+";
+
+#[test]
+fn f185_a_retired_note_row_is_still_a_node() {
+    let work = Work::base("retired");
+    work.write("design-note/old.yaml", OLD);
+    let text = print(&work.dir());
+    let (nodes, edges, _) = tables(&text);
+    let z = digest_of("      - {id: z, title: 退役した便, section: \"1\"}\n");
+    assert_eq!(
+        note_rows(&nodes),
+        [
+            "example#a\t設計ノートの行\tdesign-note/example.yaml\t4914ab68\t目的".to_string(),
+            format!("old#z\t{KIND}\tdesign-note/old.yaml\t{z}\t行 z — 退役した便の見出し"),
+        ]
+    );
+    assert_eq!(note_rows(&edges), ["example#a\tFR15\treq", "old#z\tFR1\treq"]);
 }

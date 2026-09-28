@@ -339,7 +339,7 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
             ),
             ("row_id_note", Floor::Val("行の id は文書内で一意・append-only。この形は folio2 が所有する文書の id 空間の解決（R-4）の範囲で folio2 が自前に持つもので、器の値域（器は「文書内で一意」だけを言う）を写したものではない。文書 id と同じ形（ハイフン可）")),
             ("semantic_check_owner", Floor::Val("scribe2")),
-            ("semantic_check_note", Floor::Val("行の id の一意・要件の欄が要件書に実在・節の欄が同じ文書に実在し本文が非空・依存の解決と輪の無さ・検証の欄の形・触る型の閉包が書き込み範囲に収まること、は器（scribe2）の 1 つの関数（編集時・黙って飛ばさない）が持つ。folio2 は持たない（ADR-3 決定 (3)・要件書 scope_m1.not_build）")),
+            ("semantic_check_note", Floor::Val("行の id の一意・要件の欄が要件書に実在・節の欄が同じ文書に実在し本文が非空・依存の解決と輪の無さ・検証の欄の形・触る型の閉包が書き込み範囲に収まること、は器（scribe2）の 1 つの関数（編集時・黙って飛ばさない）が持つ。folio2 は持たない（ADR-3 決定 (3)・要件書 scope_m1.not_build）。ただし 1 本のノートの中の契約表の行 id の重なりは、索引の id の一意として床が種類 索引の節点 の違反に数える（ADR-3 決定 (3) の folio2 が所有する文書の id 空間の解決・判断の記録 ADR-32）")),
             (
                 "folio_check",
                 Floor::Strs(&["yaml-form", "derived-diff-zero", "own-id-space"]),

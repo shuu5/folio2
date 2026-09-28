@@ -6,8 +6,9 @@
 //! 所属 file の中の id の行の番号・平易文の欄の字・技術の要約の字（受入基準は題の全文）を添えた 1 行の JSON（JSON Lines）を出す。
 //! 便 185（docs/design/delivery-185.md §1・判断の記録 ADR-32・要件 FR14 第 1.54 版）: 設計ノートの契約表の節の行も節点にする
 //! （種類 設計ノートの行・id は meta の id と行 id を「#」でつないだ字・辺は req と depends）。読み手は床と導出と同じ note.rs の load_notes。
+//! 同じ id の節点を 2 度組んだ索引は、どの口（--print・--summary・--digest・folio hello）も まだ分からない にする（P-4.1）。
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{btree_map::Entry, BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
@@ -192,7 +193,7 @@ const RELATIONS: [(&str, usize); 4] = [("articles", 1), ("reqs", 2), ("rules", 3
 type Ref = (String, String, &'static str);
 
 /// 索引: 節点（id → 種類・file・題）と、欄が指した参照と、行の逐語から組んだ節点の要約値と id の行の番号（--print
-/// だけが組む）と、節点の平易文と技術の要約の字（無ければ None・便 180）。
+/// だけが組む）と、節点の平易文と技術の要約の字（無ければ None・便 180）と、2 度組もうとした節点の id（便 185）。
 #[derive(Default)]
 struct Index {
     nodes: BTreeMap<String, (&'static str, String, String)>,
@@ -201,14 +202,17 @@ struct Index {
     lines: BTreeMap<String, usize>,
     texts: BTreeMap<String, (Option<String>, Option<String>)>,
     notes: Vec<String>,
+    twice: BTreeSet<String>,
 }
 
 impl Index {
     fn node(&mut self, id: &str, kind: usize, file: &str, title: Option<&Node>) {
         let title = fold(title.and_then(Node::as_str).unwrap_or_default());
-        self.nodes
-            .entry(id.to_string())
-            .or_insert((NODE_KINDS[kind], file.to_string(), title));
+        if let Entry::Vacant(e) = self.nodes.entry(id.to_string()) {
+            e.insert((NODE_KINDS[kind], file.to_string(), title));
+        } else {
+            self.twice.insert(id.to_string());
+        }
     }
 
     /// 節点の平易文（行の欄 plain）と技術の要約 `eng` の字を覚える。
@@ -523,6 +527,15 @@ fn build(dir: &Path) -> Result<Index, String> {
         return Err("節点が 1 つも無い".to_string());
     }
     Ok(index)
+}
+
+/// 口が使う索引: 同じ id の節点を 2 度組んだら黙って 1 つに数えず Err（床は行の逐語の側で違反に数える・便 185）。
+fn whole(dir: &Path) -> Result<Index, String> {
+    let index = build(dir)?;
+    match index.twice.first() {
+        Some(id) => Err(format!("索引に節点 {id} が 2 度ある")),
+        None => Ok(index),
+    }
 }
 
 // ── 節点の要約値（便 99・docs/design/delivery-99.md §1 (b)）──
@@ -938,7 +951,7 @@ pub fn check_index(dir: &Path, report: &mut Report) {
 
 /// 節点の数と表に出た辺の数だけを返す口（`folio hello` の 1 行が使う・組み方を 2 面に増やさない・便 96）。
 pub fn counts(dir: &Path) -> Result<(usize, usize), String> {
-    let index = build(dir)?;
+    let index = whole(dir)?;
     let edges = index.split().0.len();
     Ok((index.nodes.len(), edges))
 }
@@ -954,7 +967,7 @@ pub struct Outcome {
 /// 表を出さずに「まだ分からない」。索引は節点の要約値の欄を持つ（便 99）: 索引の節点と行の逐語から切り出した節点が
 /// 食い違えば表を出さない（P-4.1）。節点ごとの 1 行の id の行の番号も同じ行の逐語から取る（便 180）。
 pub fn run(dir: &Path, digest: bool, summary: bool) -> Outcome {
-    let built = build(dir).and_then(|mut index| {
+    let built = whole(dir).and_then(|mut index| {
         if !digest {
             let mut scan = Scan::default();
             for name in source_files(dir, &index)? {
