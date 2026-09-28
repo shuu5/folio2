@@ -20,16 +20,16 @@
 
 ### (b) 直す先 — 床と同じ歩き手と関数で、決定の欄の裁定 id を標準出力へ
 
-1. **`crates/folio/src/main.rs`。** `folio check` に旗 `--emit-rulings` を足す（ほかの 5 つの旗と同時に撃てない＝`conflicts_with_all`）。旗の値は `Flag::EmitRulings`。違反の行と要約の行を `--emit-amends` と同じく標準エラーへ出し（`matches!(flag, Flag::EmitAmends | Flag::EmitRulings)`）、判定の後に材料の書き出しの行を標準出力へ 1 行ずつ出す。終了コードは素の床の判定のまま（`verdict.exit_code()`）。「#」で始まる注（まだ分からない・機構がまだ無い条・行 R-17）は今のまま標準エラー。
+1. **`crates/folio/src/main.rs`。** `folio check` に旗 `--emit-rulings` を足す（ほかの 5 つの旗と同時に撃てない＝`conflicts_with_all`）。旗の値は型 `Flag` の `EmitRulings`。違反の行と要約の行を `--emit-amends` と同じく標準エラーへ出し（標準エラーへ回す旗の条件に `EmitRulings` を足す）、判定の後に材料の書き出しの行を標準出力へ 1 行ずつ出す。終了コードは素の床の判定のまま（`verdict.exit_code()`）。「#」で始まる注（まだ分からない・機構がまだ無い条・行 R-17）は今のまま標準エラー。
 2. **`crates/folio/src/phase.rs`。** `Flag` に `EmitRulings` を足す（注 1 行）。
-3. **`crates/folio/src/freeze.rs`。** `after` の match で `Flag::None | Flag::EmitRulings` を `After::Nothing` にする（凍結の後始末は無い）。
-4. **`crates/folio/src/check.rs`。** 材料 `Materials` に `rulings: Vec<String>`（`--emit-rulings` の標準出力の行・旗の無いときは空）を足す。`check_dir` は歩き手の結果 `sites` を 1 度だけ作って床（`check_rulings`）に渡し、旗が `EmitRulings` のときだけ同じ `sites` を `ruling::emit` に渡す。床の判定と違反の字は変えない。
+3. **`crates/folio/src/freeze.rs`。** `after` の match で `None` と `EmitRulings` を同じ腕にして後始末の値を無し（`After::Nothing`）にする（凍結の後始末は無い）。
+4. **`crates/folio/src/check.rs`。** 材料 `Materials` に `rulings: Vec<String>`（`--emit-rulings` の標準出力の行・旗の無いときは空）を足す。`check_dir` は歩き手の結果 `sites` を 1 度だけ作って床（`check_rulings`）に渡し、旗が `EmitRulings` のときだけ同じ `sites` を ruling.rs の関数 `emit` に渡す。床の判定と違反の字は変えない。
 5. **`crates/folio/src/ruling.rs`。**
    - `Site` に 2 欄を足す: `path`（file の根からの欄の道・一覧の番号は 0 始まり・例 `thresholds[9].ruling`・`articles[4].amended_by[0].ruling`・`approval.ruling`・`meta.approval[2].stamp`・`sections[1].rows[0].ruling`）と `node`（欄を持つ索引の節点の id）。node は条の改訂来歴では条の id、規則の表の行では行の id、判断の記録の承認欄では判断の記録の id で、節点の無い欄（憲法の発効の承認・設計ノートの承認欄の行・5 正本の stamp・判断の表の行）では None。
    - 歩き手 `sites` は一覧の番号を表でない項を飛ばす前の番号で持つ（関数 `rows`・`approval_rows` はそれを使う）。拾う欄・順・床の違反の字（`at`）は変えない。
-   - 関数 `emit(dir, sites)` を足す: 値が字の欄ごとに `rulings` で切り出した裁定 id を全部、欄の順・切り出した順に 1 件 1 行の JSON にする。欄は `ruling`（切り出した字）・`form`（`Form::name`）・`bead`（台帳の id の部分）・`node`（字か `null`）・`file`（置き場の根からの相対・`Site.file` のまま＝設計ノートは `design-note/<file 名>`・判断の記録は `adr/<id>.yaml`）・`line`（欄の鍵の行・1 始まり）・`field`（`path`）の順で、空白を挟まない。字の escape は `yaml::json_str`。値が無い・字でない欄は出さない（床の違反）。
+   - 関数 `emit`（引数は置き場の dir と歩き手の結果）を足す: 値が字の欄ごとに `rulings` で切り出した裁定 id を全部、欄の順・切り出した順に 1 件 1 行の JSON にする。欄は `ruling`（切り出した字）・`form`（`Form::name`）・`bead`（台帳の id の部分）・`node`（字か `null`）・`file`（置き場の根からの相対・`Site.file` のまま＝設計ノートは `design-note/<file 名>`・判断の記録は `adr/<id>.yaml`）・`line`（欄の鍵の行・1 始まり）・`field`（`path`）の順で、空白を挟まない。字の escape は `yaml::json_str`。値が無い・字でない欄は出さない（床の違反）。
    - 行の番号は、file の字を yaml-rust2 の event（床の読み手 `yaml.rs` と同じ parser と印）でもう 1 度読み、欄の道ごとの鍵の行を引く（受け手 `Lines`・関数 `key_lines` と `lines_of`）。同じ表の 2 度目の鍵は数えない（読み手が最初の値を残すのと同じ）。引けなければ 0（読めない file・rc が 0 でないときだけ起きる）。
-   - `Ruling` と `Form::name` の `allow(dead_code)` を外す（書き出しが読む）。単体の歯 1 本（(c) の 6）。
+   - `Ruling` と `Form::name` の、使われない字を許す印（`#[cfg_attr(not(test), allow(dead_code))]`）を外す（書き出しが読む）。単体の歯 1 本（(c) の 6）。
 6. **変えないもの。** 床の判定（`check_rulings`・違反とまだ分からないの字）・決定の欄の一覧と歩き手の拾う欄と順・文法の関数 `rulings`・`--emit-amends` と凍結の旗の出力・索引（`folio graph`）・設計文書の正本（生成区間を含む）・憲法と要件書と判断の記録の字・folio2 自身の床 4 本の結果・`folio build` の出力（36 file・base と byte で同じ）。
 
 ### (c) 歯（f186_・base で 0 件）
@@ -126,14 +126,14 @@ binary 経由の歯は `crates/folio/tests/emit_rulings.rs`（新）。どれも
 
 ## 2. 範囲
 
-- 入れる: `folio check --emit-rulings`（旗・`Flag::EmitRulings`・標準出力と標準エラーの分け方）・`ruling.rs` の `Site` の欄の道と node・`emit` と鍵の行の引き方・`check.rs` の材料と歩き手の結果の渡し方・`freeze.rs` の match の 1 行・歯の file の f186_ の 5 本と単体の 1 本。
+- 入れる: `folio check --emit-rulings`（旗・型 `Flag` の `EmitRulings`・標準出力と標準エラーの分け方）・`ruling.rs` の `Site` の欄の道と node・`emit` と鍵の行の引き方・`check.rs` の材料と歩き手の結果の渡し方・`freeze.rs` の match の 1 行・歯の file の f186_ の 5 本と単体の 1 本。
 - 入れない: 床の判定・決定の欄の一覧・文法・索引・設計文書の正本・憲法と要件書と判断の記録の字・外の置き場・台帳への記帳・外部 crate・新しい dir。
 
 ## 3. 部品
 
 | id | 名 | 役 |
 | --- | --- | --- |
-| flag | 旗 | `main.rs` の `--emit-rulings`・`phase.rs` の `Flag::EmitRulings`・`freeze.rs` の後始末 |
+| flag | 旗 | `main.rs` の `--emit-rulings`・`phase.rs` の型 `Flag` の `EmitRulings`・`freeze.rs` の後始末 |
 | walk | 歩き手の欄 | `ruling.rs` の `Site.path`・`Site.node`（拾う欄と順は便 181 のまま） |
 | emit | 書き出し | `ruling.rs` の `emit`・`key_lines`・`lines_of`・`Lines`（7 欄の JSON Lines） |
 | wire | 渡し | `check.rs` の `Materials.rulings` と `check_dir` の 1 度だけの `sites` |
