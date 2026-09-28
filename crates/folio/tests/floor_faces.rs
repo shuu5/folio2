@@ -335,6 +335,21 @@ const OTHER_ROWS: &[Row] = &[
         said: "constitution.yaml.amendment: 欄 effective_step が無い",
     },
     Row {
+        id: "article-no-mechanism",
+        apply: |d| {
+            let p = d.join("constitution.yaml");
+            let t = fs::read_to_string(&p).unwrap();
+            let at = t.find("  - id: P-1\n").expect("条 P-1 が無い");
+            let rel = t[at..].find("    mechanism: {").expect("条 P-1 に mechanism が無い");
+            let end = at + rel + t[at + rel..].find('\n').unwrap() + 1;
+            let mut out = t.clone();
+            out.replace_range(at + rel..end, "");
+            fs::write(&p, out).unwrap();
+        },
+        face: "constitution",
+        said: "constitution.yaml.articles[0]: 欄 mechanism が無い",
+    },
+    Row {
         id: "adr-consequence-map",
         apply: |d| edit(d, "adr/ADR-11.yaml", "  - 語彙に語を足す（", "  - 語彙に語を足す, id: （"),
         face: "adr:ADR-11",
