@@ -23,7 +23,7 @@
 ### (b) 直す先
 
 1. **`crates/folio/src/note.rs`。** 根を解く式を関数 `root_of`（置き場を含む版管理の根・無ければ置き場の親・Err は読めない理由の字）に切り出し、`external_path` はその下の `contracts/schema.toml` にする（器の導出 file の置き場の答えは変えない）。
-2. **`crates/folio/src/derive.rs`。** `run` に引数 `from_root` を足す。真なら --out の相対を `note::root_of(dir)` からの相対に解き、根が解けなければ「まだ分からない」で 2。偽なら今のまま（--dir からの相対）。絶対 path はどちらでもそのまま。
+2. **`crates/folio/src/derive.rs`。** `run` に引数 `from_root` を足す。真なら --out の相対を `note.rs` の `root_of` からの相対に解き、根が解けなければ「まだ分からない」で 2。偽なら今のまま（--dir からの相対）。絶対 path はどちらでもそのまま。
 3. **`crates/folio/src/main.rs`。** `folio derive` に旗 `--from-root`（「--out の相対を、置き場を含む版管理の根〔無ければ置き場の親 dir・器の導出 file を探す根と同じ〕からの相対に解く」）を足して `derive::run` へ渡す。--out の説明に「〔--from-root なら根からの相対〕」を足す。説明の字 3 つを次にする。
    - face =「正本から 5 面（入口・憲法・要件書・判断の記録・設計ノート）の 1 面を導出して書く（--write）・検査する（--check）」
    - check =「設計文書の置き場の床（正本 7 file〔憲法・規則の表・語彙・要件書・入口・相談窓口・天井〕の形と、判断の記録・設計ノート・凍結 anchor・索引の欄の決まりと、参照 id と、索引が組めるか）を検査し、合格 0 / 不合格 1 / まだ分からない 2 で終わる」
@@ -50,7 +50,7 @@ binary 経由。期待の字は歯の側の手書き。
 
 1. **--out の相対を常に今の dir か根からの相対に変える。** folio2 自身の床（`--out ../contracts`）と、これまでの契約の done の字と、tsuzuri の今の命令が全部変わる。旗を足す形なら既存の命令は 1 字も変わらない。
 2. **--out を省いたら根の `contracts/` にする（既定を置く）。** 床の定数の placement の字「path は消費側が宣言する」（生成区間）と食い違い、床の定数と生成区間の直しが要る。旗なら消費側が宣言する形のまま。
-3. **根の式を derive.rs に別に書く。** 器の導出 file を探す根と --out の根が 2 つの式になる（P-6.3）。`note::root_of` 1 つを共有した。
+3. **根の式を derive.rs に別に書く。** 器の導出 file を探す根と --out の根が 2 つの式になる（P-6.3）。`note.rs` の `root_of` 1 つを共有した。
 
 ### (e) 既存の歯・突然変異・外の置き場
 
@@ -110,7 +110,7 @@ binary 経由。期待の字は歯の側の手書き。
 
 ## 2. 範囲
 
-- 入れる: `folio derive --from-root`・`note::root_of`・face / check / serve の説明の字・serve の頭の注と断りの字・歯の f192_ の 8 本と serve の歯 1 本の字の期待。
+- 入れる: `folio derive --from-root`・`note.rs` の `root_of`・face / check / serve の説明の字・serve の頭の注と断りの字・歯の f192_ の 8 本と serve の歯 1 本の字の期待。
 - 入れない: --out の既定・床・面・設計文書の正本・外の置き場・台帳・外部 crate・新しい dir。
 
 ## 3. 部品

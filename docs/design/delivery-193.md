@@ -22,7 +22,7 @@
 ### (b) 直す先
 
 1. **`crates/folio/src/face_adr.rs`。** 定数 `ITEM_CLOSERS = ["**", "」"]`（印の直前の句点の後ろに来てよい閉じの字）を足し、`item_marks` は印の直前の末尾の空白を除いた後、閉じの字を末尾から剥がせるだけ剥がしてから句点を見る。番号が 1 から 1 ずつ増える決まりは変えない。`item_marks` を `pub(crate)` にする。
-2. **`crates/folio/src/face_note.rs`（縮む）。** 同じ関数の写しを消し、散文の節は `face_adr::item_marks` を呼ぶ（29 行減る）。
+2. **`crates/folio/src/face_note.rs`（縮む）。** 同じ関数の写しを消し、散文の節は `face_adr.rs` の `item_marks` を呼ぶ（29 行減る）。
 3. **`crates/folio/src/face_labels.rs`。** 定数 `DATED_ROLES = ["承認", "席の裁定"]` を足し、`last_approval` は承認欄の最後の、役がそのどちらかの行（行の順で最後・日付の大小でない）の日付を返す。日付の名（「承認」か「生成」）と draft の扱いは変えない。
 4. **注の字だけ。** `face_labels.rs` の `shelf_updated` の注・`face_srs.rs` の 1 行・`face_index.rs` の 2 行・`face_index_read.rs` の 2 行の「最後の 承認 の行」を「最後の 承認 か 席の裁定 の行」に。
 5. **変えないもの。** 面の字の決まり（強調の印・前置きの段落・(0) の扱い）・日付の名の値域・承認欄の表の役の字・憲法の面の裁定の枡の生成器（歯だけ足す）・設計文書の正本・床。`folio build` の出力は判断の記録の面 6 枚（adr-13・17・18・19・26・27）だけが変わる（§1 (e) 1）。
@@ -67,7 +67,7 @@
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 縮む file は `-crates/folio/src/face_note.rs`。新しい file は無い。本文を変えない write-set は無い。
+1. **write-set の印。** 縮む file は `crates/folio/src/face_note.rs`（write-set では頭に - の印）。新しい file は無い。本文を変えない write-set は無い。
 2. **余地（CapHeadroom）。** write-set の src の 6 本（python と awk の 2 実装で一致・cap-small.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
