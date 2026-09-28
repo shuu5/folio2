@@ -3,7 +3,8 @@
 //! 置き場の親の contracts/ に器の導出 file を写し、git init と 1 commit を行う（tests/mechanism_live.rs と同じ作り方・歯の終わりに消す）。
 //! 凍結 anchor（P-10.1）は、土台の正本を歯の側で手で数えた本数と行の字（folio の code から組まない）。
 //! 1. 土台の極性一覧の行の数と集計の 1 行／2. 下限の行の値を割る写しは素の床が違反 1・足りる写しは合格／
-//! 3. 下限の行が 2 本の写しは まだ分からない／4. 値の形が違う写しは まだ分からない／5. 下限の行が無い写しは数えなかった 1 行。
+//! 3. 下限の行が 2 本の写しは まだ分からない／4. 値の形が違う写しは まだ分からない／5. 下限の行が無い写しは数えなかった 1 行／
+//! 6. 行の極性は行の条の機構の極性（検証役の N-19x-2）／7. 正本の symlink は床と同じ読み口で断る（検証役の N-19x-4）。
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -22,6 +23,9 @@ const UNKNOWN: &str = "# まだ分からない: ";
 /// 土台の行 R-13 の頭と値（行の欄 key を足し、値を変える所）。
 const R13: &str = "{id: R-13, article: P-18, ";
 const R13_VALUE: &str = "value: \"1 本以上\", kind: deny";
+/// 土台の条 P-11 の機構の極性（fail-open に替える所）。
+const OPEN_FROM: &str = "polarity: fail-closed, note: 便・並列実行の再試行回数を R-7";
+const OPEN_TO: &str = "polarity: fail-open, note: 便・並列実行の再試行回数を R-7";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -65,12 +69,17 @@ struct Work {
 impl Work {
     /// 土台を design-intent/ として写し、規則の表に `edits`（前の字 → 後の字・各 1 度）を当ててから git init と 1 commit。
     fn new(case: &str, edits: &[(&str, &str)]) -> Work {
+        Work::at(case, "rules.yaml", edits)
+    }
+
+    /// `new` と同じで、`edits` を当てる file を置き場からの相対の字 `file` で選ぶ。
+    fn at(case: &str, file: &str, edits: &[(&str, &str)]) -> Work {
         let root = std::env::temp_dir().join(format!("folio-f200-{case}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         copy_tree(&repo_root().join(FLOOR_BASE), &root.join("design-intent"));
         fs::create_dir_all(root.join("contracts")).unwrap();
         fs::copy(repo_root().join("contracts/schema.toml"), root.join("contracts/schema.toml")).unwrap();
-        let path = root.join("design-intent/rules.yaml");
+        let path = root.join("design-intent").join(file);
         let mut text = fs::read_to_string(&path).unwrap();
         for (from, to) in edits {
             assert_eq!(text.matches(from).count(), 1, "写しの字が 1 度でない: {from}");
@@ -289,4 +298,42 @@ fn f200_no_bound_row_prints_one_line_and_does_not_count() {
         show(&proposed)
     );
     assert_eq!(off_count(&proposed), 0, "{}", show(&proposed));
+}
+
+// ── f200_ 6. 行の極性は行の条の機構の極性（検証役の N-19x-2） ──
+
+#[test]
+fn f200_row_polarity_follows_its_article() {
+    // 条 P-11（行 R-7 の条）の機構の極性を fail-open にした写し
+    let w = Work::at("open", "constitution.yaml", &[(OPEN_FROM, OPEN_TO)]);
+    let out = w.check(&["--polarity"]);
+    assert_eq!(out.status.code(), Some(0), "{}", show(&out));
+    let got = lines(&out.stdout);
+    for line in ["P-11 · post · fail-open · 憲法の条の機構", "R-7 · post · fail-open · 規則の表の閾値の行"] {
+        assert!(got.iter().any(|l| l == line), "{line}: {}", show(&out));
+    }
+    assert_eq!(got.iter().filter(|l| l.contains(" · fail-open · ")).count(), 2, "{}", show(&out));
+    assert_eq!(got.last().map(String::as_str), Some(SUMMARY), "{}", show(&out));
+}
+
+// ── f200_ 7. 正本の symlink は床と同じ読み口で断る（検証役の N-19x-4） ──
+
+#[test]
+fn f200_polarity_refuses_a_symlinked_source_like_the_floor() {
+    let w = Work::new("link", &[]);
+    let rules = w.root.join("design-intent/rules.yaml");
+    let outside = w.root.join("outside-rules.yaml");
+    fs::rename(&rules, &outside).unwrap();
+    std::os::unix::fs::symlink(&outside, &rules).unwrap();
+    let listed = w.check(&["--polarity"]);
+    assert_eq!(listed.status.code(), Some(2), "{}", show(&listed));
+    assert_eq!(
+        lines(&listed.stdout),
+        ["# まだ分からない: rules.yaml: symlink は認めない", "folio check --polarity: まだ分からない（一覧を組めない）"],
+        "{}",
+        show(&listed)
+    );
+    let out = w.check(&[]);
+    assert_eq!(out.status.code(), Some(2), "{}", show(&out));
+    assert_eq!(unknowns(&out), ["# まだ分からない: rules.yaml: symlink は認めない"], "{}", show(&out));
 }

@@ -396,7 +396,7 @@ fn run(cli: Cli) -> ExitCode {
                 ExitCode::SUCCESS
             }
             Err(why) => {
-                println!("{UNKNOWN_HEAD}{why}");
+                why.iter().for_each(|w| println!("{UNKNOWN_HEAD}{w}"));
                 println!("folio check --polarity: まだ分からない（一覧を組めない）");
                 ExitCode::from(Verdict::Unknown.exit_code() as u8)
             }

@@ -358,16 +358,36 @@ pub fn check_dir(dir: &Path, flag: Flag) -> (Report, Materials) {
     (report, materials)
 }
 
-fn load_all(dir: &Path, report: &mut Report) -> Option<Sources> {
+/// 置き場そのものの断り（symlink・dir でない）。床と `--polarity` が同じ字で断る（便 200）。
+fn place_ok(dir: &Path, report: &mut Report) -> bool {
     if dir.is_symlink() {
         report.unknown(format!(
             "design-intent 自体が symlink（{}）＝認めない",
             dir.display()
         ));
-        return None;
+        return false;
     }
     if !dir.is_dir() {
         report.unknown(format!("design-intent が dir でない: {}", dir.display()));
+        return false;
+    }
+    true
+}
+
+/// 憲法と規則の表を床と同じ読み口（置き場と file の symlink・不在・file でない・parse の断り）で読む（便 200 の `--polarity`）。
+/// 読めなければ まだ分からない の字の列。
+pub fn load_pair(dir: &Path) -> Result<(Node, Node), Vec<String>> {
+    let mut report = Report::default();
+    let pair = if place_ok(dir, &mut report) {
+        load(dir, FILES[0], &mut report).zip(load(dir, FILES[1], &mut report))
+    } else {
+        None
+    };
+    pair.ok_or(report.unknowns)
+}
+
+fn load_all(dir: &Path, report: &mut Report) -> Option<Sources> {
+    if !place_ok(dir, report) {
         return None;
     }
     let mut roots: Vec<Option<Node>> = FILES.iter().map(|name| load(dir, name, report)).collect();
