@@ -4,6 +4,7 @@
 //! 「まだ分からない」を返す。後にだけ在る違反のうち、つながりの違反（`Report::links`）は編集を止めない族として分けて返す。
 //! 写しは版管理の外に置くので、写しが版管理の外に在ることだけから出る「まだ分からない」（gitcheck の NO_GIT）は書く前にも後にも数えない
 //! （書く前の数えが正本を読めずに短絡した周にだけ後に出るため・照合は事後の床だけが数える）。書く先の path が symlink を通れば数えない（まだ分からない）。
+//! 写しの床の子の git には一時の作業場所の親を天井に渡し（外の版管理を見ない）、それでも写しの中で版管理の根が解ければ数えない（まだ分からない）。
 //! 口は file を書かない（置き場も正本も変えない・一時 dir は終わりに消す）。
 
 use std::collections::HashMap;
@@ -13,7 +14,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::check::{self, Materials};
 use crate::floor_note::EXTERNAL_PATH;
-use crate::gitcheck::NO_GIT;
+use crate::gitcheck::{self, NO_GIT};
 use crate::graph;
 use crate::note;
 use crate::phase::Flag;
@@ -95,6 +96,11 @@ pub fn judge(dir: &Path, rel: &Path, content: &str) -> Result<Judged, String> {
         fs::create_dir_all(to.parent().unwrap_or(&scratch.0))
             .and_then(|()| fs::copy(&external, &to).map(|_| ()))
             .map_err(|e| format!("器の導出 file を写せない: {e}"))?;
+    }
+    // 写しの床の子の git は一時の作業場所の親より上の版管理を見ない（置き場の器の導出 file を解いた後に置く）
+    gitcheck::ceil_at(scratch.0.parent().unwrap_or(&scratch.0));
+    if gitcheck::toplevel(&copy).is_some() {
+        return Err("一時の作業場所の中で版管理の根が解ける（写しが版管理の中に在る）".to_string());
     }
     let (before, _) = floor(&copy, Flag::None);
     let target = copy.join(rel);

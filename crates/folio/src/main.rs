@@ -335,19 +335,26 @@ fn main() -> ExitCode {
     code
 }
 
-/// 編集時の口（便 198・ADR-33 決定 (1)）。止める違反は標準出力、つながりと まだ分からない は標準エラー、要約の 1 行は標準出力。
+/// 編集時の口の まだ分からない の行の接頭辞（素の床の まだ分からない の行と同じ字・器は標準出力を逐語で断りの字に写す）。
+const UNKNOWN_HEAD: &str = "# まだ分からない: ";
+
+/// 口が数えられなかった周（理由の 1 行と要約の 1 行を標準出力・終了 2）。
+fn proposed_refused(why: &str) -> ExitCode {
+    println!("{UNKNOWN_HEAD}{why}");
+    println!("folio check --proposed: まだ分からない（口は数えていない）");
+    ExitCode::from(Verdict::Unknown.exit_code() as u8)
+}
+
+/// 編集時の口（便 198・ADR-33 決定 (1)(3)）。止める行・まだ分からない の行・要約の 1 行は標準出力（器が断りの字に写す）、
+/// つながりの行は標準エラー（診断）。
 fn proposed_check(dir: &std::path::Path, rel: &std::path::Path) -> ExitCode {
     let mut content = String::new();
     if let Err(e) = std::io::Read::read_to_string(&mut std::io::stdin(), &mut content) {
-        eprintln!("folio check --proposed: 標準入力を字（UTF-8）として読めない: {e}");
-        return ExitCode::from(Verdict::Unknown.exit_code() as u8);
+        return proposed_refused(&format!("標準入力を字（UTF-8）として読めない: {e}"));
     }
     let judged = match proposed::judge(dir, rel, &content) {
         Ok(j) => j,
-        Err(why) => {
-            eprintln!("folio check --proposed: まだ分からない（{why}）");
-            return ExitCode::from(Verdict::Unknown.exit_code() as u8);
-        }
+        Err(why) => return proposed_refused(&why),
     };
     for (kind, msg) in &judged.stop {
         println!("[{kind}] {msg}");
@@ -356,7 +363,7 @@ fn proposed_check(dir: &std::path::Path, rel: &std::path::Path) -> ExitCode {
         eprintln!("# つながり（編集は止めない・事後の床が数える）: [{kind}] {msg}");
     }
     for msg in &judged.unknowns {
-        eprintln!("# まだ分からない: {msg}");
+        println!("{UNKNOWN_HEAD}{msg}");
     }
     println!(
         "folio check --proposed: {}（新しい違反 {}・つながり {}・まだ分からない {}・書く前から在る まだ分からない {}）",

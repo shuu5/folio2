@@ -17,6 +17,7 @@ const CONTRACT: &str = "[note] design-note/example.yaml: §6 の行 a: 契約表
 const SEAL: &str = "[adr] ADR-4: 発効した判断の記録の本文が封（anchors/adr-seals.yaml）の行と違う（発効した記録の本文は変えない・退役で変えてよいのは status と superseded_by だけ・判断を変えるなら新しい判断の記録を立てる）";
 const GONE: &str = "[P-7] FR19 が消えた（baseline の anchors/ids-*.yaml に在る・番号は消さず、廃止は状態で表す・P-7.2）";
 const DUP: &str = "[重複キー] rules.yaml: 行 id「R-2」が重複";
+const REFUSED: &str = "folio check --proposed: まだ分からない（口は数えていない）";
 const INDEX: &str = "[索引の節点] srs.yaml: 索引の節点 FR1 の行を行の逐語で切れない（id か節の見出しの key が引用符つきか裸の形でない＝folio graph --print が組めない）";
 
 fn copy_tree(src: &Path, dst: &Path) {
@@ -80,11 +81,16 @@ impl Work {
     }
 
     fn folio(&self, args: &[&str], stdin: &[u8]) -> Run {
+        self.folio_in(args, stdin, &self.0.join("tmp"))
+    }
+
+    /// 口の一時の作業場所の置き場（子の環境の TMPDIR）を `tmp` にして撃つ。
+    fn folio_in(&self, args: &[&str], stdin: &[u8], tmp: &Path) -> Run {
         let mut child = Command::new(env!("CARGO_BIN_EXE_folio"))
             .args(["check", "--dir"])
             .arg(self.dir())
             .args(args)
-            .env("TMPDIR", self.0.join("tmp"))
+            .env("TMPDIR", tmp)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -237,7 +243,7 @@ fn f198_unreadable_proposal_is_unknown() {
     let w = Work::new("unreadable");
     let r = w.propose("rules.yaml", "a: [\n");
     assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
-    assert!(r.err.iter().any(|l| l.starts_with("# まだ分からない: rules.yaml: ")), "{:?}", r.err);
+    assert!(r.out.iter().any(|l| l.starts_with("# まだ分からない: rules.yaml: ")), "{:?}", r.out);
 }
 
 /// 便 198 (c) 5: 置き場の外を指す字は数えず まだ分からない（2）で、標準出力に何も出さない。
@@ -247,12 +253,13 @@ fn f198_outside_the_place_is_unknown() {
     for rel in ["../contracts/schema.toml", "/etc/hosts", "./rules.yaml"] {
         let r = w.propose(rel, "x: 1\n");
         assert_eq!(r.code, 2, "{rel}: {:?} {:?}", r.out, r.err);
-        assert!(r.out.is_empty(), "{rel}: {:?}", r.out);
+        assert!(r.err.is_empty(), "{rel}: {:?}", r.err);
         assert_eq!(
-            r.err,
-            [format!(
-                "folio check --proposed: まだ分からない（{rel} は置き場からの相対の file の字でない（絶対 path・.. ・空は数えない））"
-            )]
+            r.out,
+            [
+                format!("# まだ分からない: {rel} は置き場からの相対の file の字でない（絶対 path・.. ・空は数えない）"),
+                REFUSED.to_string()
+            ]
         );
     }
 }
@@ -345,10 +352,10 @@ fn f198_symlink_on_the_way_is_unknown() {
     for rel in ["lnk/v.txt", "vfile.txt", "lnk/newdir/x.txt"] {
         let r = w.propose(rel, "changed\n");
         assert_eq!(r.code, 2, "{rel}: {:?} {:?}", r.out, r.err);
-        assert!(r.out.is_empty(), "{rel}: {:?}", r.out);
+        assert!(r.err.is_empty(), "{rel}: {:?}", r.err);
         assert_eq!(
-            r.err,
-            [format!("folio check --proposed: まだ分からない（{rel} は symlink を通る（写しの外を書きうる））")]
+            r.out,
+            [format!("# まだ分からない: {rel} は symlink を通る（写しの外を書きうる）"), REFUSED.to_string()]
         );
     }
     assert_eq!(fs::read_to_string(outside.join("v.txt")).unwrap(), "orig\n");
@@ -422,7 +429,57 @@ fn f198_stdin_not_utf8_is_unknown() {
     let w = Work::new("bytes");
     let r = w.propose_bytes("rules.yaml", &[0xff, 0xfe, b'\n']);
     assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
-    assert!(r.out.is_empty(), "{:?}", r.out);
-    assert_eq!(r.err.len(), 1, "{:?}", r.err);
-    assert!(r.err[0].starts_with("folio check --proposed: 標準入力を字（UTF-8）として読めない: "), "{:?}", r.err);
+    assert!(r.err.is_empty(), "{:?}", r.err);
+    assert_eq!(r.out.len(), 2, "{:?}", r.out);
+    assert!(r.out[0].starts_with("# まだ分からない: 標準入力を字（UTF-8）として読めない: "), "{:?}", r.out);
+    assert_eq!(r.out[1], REFUSED);
+}
+
+/// 便 198 (c) 16（改訂 b）: 口の一時の作業場所の置き場（TMPDIR）が別の版管理の作業ツリーの中でも、写しの床はその版管理を見ない
+/// （子の git に一時の作業場所の親を天井に渡す）。器の導出 file の無い別の版管理を読むと契約表の行の欄を数えずに通していた。
+#[test]
+fn f198_tmpdir_in_another_work_tree_is_not_read() {
+    let w = Work::new("ceiling");
+    let other = w.0.join("other");
+    fs::create_dir_all(&other).unwrap();
+    fs::write(other.join("README"), "x\n").unwrap();
+    git(&other, &["init", "-q"]);
+    git(&other, &["add", "-A"]);
+    git(&other, &["commit", "-q", "-m", "other"]);
+    let tmp = other.join("tmp");
+    fs::create_dir_all(&tmp).unwrap();
+    let text = w.edited(
+        "design-note/example.yaml",
+        "      - {id: a, title:",
+        "      - {id: a, bogus: x, title:",
+    );
+    let r = w.folio_in(&["--proposed", "design-note/example.yaml"], text.as_bytes(), &tmp);
+    assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            CONTRACT.to_string(),
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+        ]
+    );
+    assert_eq!(fs::read_dir(&tmp).unwrap().count(), 0);
+}
+
+/// 便 198 (c) 17（改訂 b）: 写しの中で版管理の根が解ける置き場（置き場の dir そのものが版管理の根）は数えず まだ分からない（2）。
+#[test]
+fn f198_place_that_is_its_own_repo_is_unknown() {
+    let w = Work::new("own");
+    git(&w.dir(), &["init", "-q"]);
+    git(&w.dir(), &["add", "-A"]);
+    git(&w.dir(), &["commit", "-q", "-m", "own"]);
+    let r = w.propose("rules.yaml", &w.read("rules.yaml"));
+    assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        [
+            "# まだ分からない: 一時の作業場所の中で版管理の根が解ける（写しが版管理の中に在る）".to_string(),
+            REFUSED.to_string()
+        ]
+    );
+    assert_eq!(w.leftovers(), 0);
 }
