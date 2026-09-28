@@ -47,8 +47,8 @@ use std::process::{Command, Output, Stdio};
 /// 注 seal_note の 2 行を limits_note の前に足した後の値（anchor は字面の削除と挿入で作った）。
 /// 便 182 (b): ruling_pattern とその注を直し、4 欄と注の 19 行を足した後の値（anchor は字面の置き換えと挿入で作った）。
 const REGION_LINES: usize = 151;
-const REGION_BYTES: usize = 28724;
-const REGION_SHA256: &str = "fcb962350dcd24aae64c04c98359c7cf20c3a299309d53f845698d2eb58f4263";
+const REGION_BYTES: usize = 28979;
+const REGION_SHA256: &str = "35c4a158c87616c620434415b9e89b65e5b12533b0e088f25865329546633f23";
 
 /// 便 46 (c) → 便 57 (b) 凍結 anchor: design-note/schema.yaml の生成区間（設計判断の席が独立の実装で組んだ・
 /// tests/fixtures/schema/note-region.txt と同じ byte・便 103 で索引の節を指す欄 4 つに改め、便 119 で導出物の検査の命令の名と

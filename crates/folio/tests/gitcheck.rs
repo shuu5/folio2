@@ -346,7 +346,9 @@ fn f190_rewrite_committed_on_head_still_fails() {
 fn f190_schema_notes_name_the_counted_history() {
     let text = fs::read_to_string(repo_root().join("design-intent/adr/schema.yaml")).unwrap();
     for want in [
-        "照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・判断の記録 ADR-34）",
+        "照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・取り込みの commit では両方の親の履歴を辿る〔--full-history〕・判断の記録 ADR-34）",
+        "作業の一時置き場 refs/stash を除く",
+        "本流へ取り込んだ時点で本流の床が落とす",
         "床が応じるのは環境変数の遮断・根の無い枝の履歴の照合・",
     ] {
         assert_eq!(text.matches(want).count(), 1, "{want}");
