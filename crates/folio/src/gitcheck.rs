@@ -185,8 +185,8 @@ fn format_same(doc: &Value) -> bool {
     )
 }
 
-/// `rev-list --parents --all --not HEAD` の行（commit と親）から、取り込んでいない枝の commit（HEAD から辿れず、
-/// 祖先に HEAD の祖先を持つもの）を返す。祖先に HEAD の祖先を持たない根の無い枝の commit は入れない（ADR-34）。
+/// `rev-list --parents --exclude=refs/stash --all --not HEAD` の行（commit と親）から、取り込んでいない枝の commit
+/// （HEAD から辿れず、祖先に HEAD の祖先を持つもの）を返す。祖先に HEAD の祖先を持たない根の無い枝の commit は入れない（ADR-34）。
 fn aside(text: &str) -> BTreeSet<String> {
     let rows: Vec<Vec<&str>> = text
         .lines()
@@ -315,11 +315,31 @@ pub(crate) fn check_git(dir: &Path, report: &mut Report) -> Option<Tracked> {
     }
     let (Some(ls), Some(lg), Some(side)) = (
         git(&top, &["ls-tree", "-r", "--name-only", "HEAD", "--", &rel]),
+        // 作業の一時置き場（refs/stash）は数えない・取り込みの commit で本流の側の親を落とさない（--full-history・ADR-34）
         git(
             &top,
-            &["log", "--all", "--format=%H", "--name-status", "--", &rel],
+            &[
+                "log",
+                "--exclude=refs/stash",
+                "--all",
+                "--full-history",
+                "--format=%H",
+                "--name-status",
+                "--",
+                &rel,
+            ],
         ),
-        git(&top, &["rev-list", "--parents", "--all", "--not", "HEAD"]),
+        git(
+            &top,
+            &[
+                "rev-list",
+                "--parents",
+                "--exclude=refs/stash",
+                "--all",
+                "--not",
+                "HEAD",
+            ],
+        ),
     ) else {
         report.pending(NO_GIT);
         return None;
@@ -435,11 +455,11 @@ mod tests {
 
     #[test]
     fn f190_aside_takes_only_branches_joined_to_head() {
-        // h0・h1 は HEAD の祖先（rev-list の行に出ない）・s は取り込んでいない枝・o は根の無い枝
-        // m1 は根の無い枝 o2 を先の親に、HEAD の祖先 h1 を後の親に持つ取り込み・x1 はその子
-        let text = "x1 m1\ns3 s2 h1\ns2 s1\nm1 o2 h1\ns1 h0\no2 o1\no1\n";
+        // h0・h1 は HEAD の祖先（rev-list の行に出ない）・s は取り込んでいない枝（s1 は子 s2 と s4 の 2 本に分かれる）
+        // o は根の無い枝・m1 は根の無い枝 o2 を先の親に、HEAD の祖先 h1 を後の親に持つ取り込み・x1 はその子
+        let text = "x1 m1\ns3 s2 h1\ns4 s1\ns2 s1\nm1 o2 h1\ns1 h0\no2 o1\no1\n";
         let got: Vec<String> = aside(text).into_iter().collect();
-        assert_eq!(got, ["m1", "s1", "s2", "s3", "x1"]);
+        assert_eq!(got, ["m1", "s1", "s2", "s3", "s4", "x1"]);
         assert!(aside("").is_empty());
     }
 }

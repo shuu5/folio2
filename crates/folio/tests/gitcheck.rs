@@ -3,6 +3,7 @@
 //! 版管理の根はその 1 つ上（写しの design-intent 自体を根にしない）に作る。
 
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -199,7 +200,10 @@ const V10: &str = "design-intent/anchors/constitution-v1.0.yaml";
 
 /// 違反の行のうち `needle` を含む行の数。
 fn count(out: &Output, needle: &str) -> usize {
-    violations(out).iter().filter(|l| l.contains(needle)).count()
+    violations(out)
+        .iter()
+        .filter(|l| l.contains(needle))
+        .count()
 }
 
 /// 取り込んでいない枝 w を切って `edit` の後に commit し（その前に根の file だけの commit を 1 つ挟む）、元の枝へ戻る。
@@ -214,6 +218,16 @@ fn side_branch(td: &Path, edit: impl FnOnce(&Path)) {
     git(td, &["checkout", "-q", "-"]);
 }
 
+/// v1.0 の anchor の版の字を v1.1 に替えた anchor を足す。
+fn add_v11(td: &Path) {
+    let v10 = fs::read_to_string(td.join(V10)).unwrap();
+    fs::write(
+        td.join("design-intent/anchors/constitution-v1.1.yaml"),
+        v10.replace("v1.0", "v1.1"),
+    )
+    .unwrap();
+}
+
 /// v1.0 の anchor の題を 1 字変える（形式は同じ・digest は合わない）。
 fn rewrite_v10(td: &Path) {
     let path = td.join(V10);
@@ -226,14 +240,7 @@ fn rewrite_v10(td: &Path) {
 #[test]
 fn f190_side_branch_added_anchor_is_not_lost() {
     let td = copy_fixture("f190-side-adds", "root-digest-drift", true);
-    side_branch(&td, |td| {
-        let v10 = fs::read_to_string(td.join(V10)).unwrap();
-        fs::write(
-            td.join("design-intent/anchors/constitution-v1.1.yaml"),
-            v10.replace("v1.0", "v1.1"),
-        )
-        .unwrap();
-    });
+    side_branch(&td, add_v11);
     let out = folio_check(&td);
     let v = violations(&out);
     assert_eq!(count(&out, LOST), 0, "{v:?}");
@@ -291,14 +298,7 @@ fn f190_deletion_committed_on_head_still_fails() {
 #[test]
 fn f190_side_branch_merged_then_deleted_fails() {
     let td = copy_fixture("f190-merged-deletes", "root-digest-drift", true);
-    side_branch(&td, |td| {
-        let v10 = fs::read_to_string(td.join(V10)).unwrap();
-        fs::write(
-            td.join("design-intent/anchors/constitution-v1.1.yaml"),
-            v10.replace("v1.0", "v1.1"),
-        )
-        .unwrap();
-    });
+    side_branch(&td, add_v11);
     git(&td, &["merge", "-q", "--no-ff", "--no-edit", "w"]);
     git(
         &td,
@@ -309,7 +309,8 @@ fn f190_side_branch_merged_then_deleted_fails() {
     let v = violations(&out);
     assert_eq!(count(&out, LOST), 1, "{v:?}");
     assert!(
-        v.iter().any(|l| l.contains("anchors/constitution-v1.1.yaml")),
+        v.iter()
+            .any(|l| l.contains("anchors/constitution-v1.1.yaml")),
         "{v:?}"
     );
 }
@@ -318,7 +319,10 @@ fn f190_side_branch_merged_then_deleted_fails() {
 fn f190_rootless_branch_still_sees_the_other_history() {
     let td = copy_fixture("f190-orphan", "root-digest-drift", true);
     git(&td, &["checkout", "-q", "--orphan", "clean"]);
-    git(&td, &["rm", "-q", "-r", "--cached", "design-intent/anchors"]);
+    git(
+        &td,
+        &["rm", "-q", "-r", "--cached", "design-intent/anchors"],
+    );
     fs::remove_dir_all(td.join("design-intent/anchors")).unwrap();
     git(&td, &["commit", "-q", "-m", "orphan"]);
     let out = folio_check(&td);
@@ -389,4 +393,100 @@ fn f190_foreign_rootless_ref_is_not_a_violation() {
     // 土台の違反（列の根が床の定数の表に無い）だけ
     assert_eq!(v.len(), 1, "{v:?}");
     assert!(v[0].contains("列の根の表に無い"), "{v:?}");
+}
+
+#[test]
+fn f190_cut_before_anchors_refreeze_fails_once_merged() {
+    let td = copy_fixture("f190-cut-refreeze", "no-anchor", true);
+    let drift = repo_root().join("tests/fixtures/anchor/root-digest-drift/anchors");
+    let anchors = td.join("design-intent/anchors");
+    // 本流: anchor の無い頃の commit P の上に anchor を足す commit A
+    copy_tree(&drift, &anchors);
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "anchors"]);
+    // P から切った枝 cut で、中身の違う同じ版を凍結し直す commit B
+    git(&td, &["checkout", "-q", "-b", "cut", "HEAD~1"]);
+    copy_tree(&drift, &anchors);
+    rewrite_v10(&td);
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "refreeze"]);
+    // 範囲の外（ADR-34 決定 (4)）: その枝の上の床は本流の A を数えない
+    assert_eq!(count(&run_check(&td), SWAPPED), 0);
+    // 衝突を枝の側で解いて本流へ取り込むと、本流の床が A と中身の違いを落とす
+    git(&td, &["checkout", "-q", "-"]);
+    git(&td, &["merge", "-q", "--no-edit", "-X", "theirs", "cut"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, SWAPPED), 1, "{v:?}");
+}
+
+#[test]
+fn f190_remote_tracking_side_branch_is_not_lost() {
+    // 台帳 .258 の形: 取り込んでいない枝を指すのは remote-tracking の参照だけ
+    let td = copy_fixture("f190-remote-side", "root-digest-drift", true);
+    side_branch(&td, add_v11);
+    git(
+        &td,
+        &["update-ref", "refs/remotes/origin/w", "refs/heads/w"],
+    );
+    git(&td, &["update-ref", "-d", "refs/heads/w"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(count(&out, LOST), 0, "{v:?}");
+    assert_eq!(v.len(), 1, "{v:?}");
+}
+
+#[test]
+fn f190_rev_list_failure_is_unknown() {
+    let td = copy_fixture("f190-rev-list-fails", "root-digest-drift", true);
+    // rev-list だけを失敗させ、ほかの命令は本物の git へ渡す git を PATH の先頭に置く
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    let real = std::env::split_paths(&path)
+        .map(|d| d.join("git"))
+        .find(|g| g.is_file())
+        .expect("git が PATH に無い");
+    let bin = td.join("fakebin");
+    fs::create_dir_all(&bin).unwrap();
+    let fake = bin.join("git");
+    fs::write(
+        &fake,
+        format!(
+            "#!/bin/sh\nfor a in \"$@\"; do [ \"$a\" = rev-list ] && exit 128; done\nexec '{}' \"$@\"\n",
+            real.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&fake, fs::Permissions::from_mode(0o755)).unwrap();
+    let mut paths = vec![bin];
+    paths.extend(std::env::split_paths(&path));
+    let out = Command::new(env!("CARGO_BIN_EXE_folio"))
+        .arg("check")
+        .arg("--dir")
+        .arg(td.join("design-intent"))
+        .env("PATH", std::env::join_paths(paths).unwrap())
+        .output()
+        .expect("folio を起動できない");
+    let _ = fs::remove_dir_all(&td);
+    assert!(
+        stderr(&out)
+            .lines()
+            .any(|l| l.starts_with("# まだ分からない: ")
+                && l.contains("版管理を読めない（ls-tree / log / rev-list が失敗）")),
+        "{}",
+        stderr(&out)
+    );
+    assert_eq!(count(&out, LOST) + count(&out, SWAPPED), 0);
+}
+
+#[test]
+fn f190_stash_is_not_counted() {
+    let td = copy_fixture("f190-stash", "root-digest-drift", true);
+    // 作業の一時置き場（refs/stash）: 未追跡の anchor を stash -u で退ける（未追跡の commit は根の無い commit）
+    add_v11(&td);
+    git(&td, &["stash", "-q", "-u"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(count(&out, LOST), 0, "{v:?}");
+    assert_eq!(v.len(), 1, "{v:?}");
 }
