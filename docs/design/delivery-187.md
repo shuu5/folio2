@@ -2,12 +2,12 @@
 
 - 要件: FR5（配信先を組み立てるたびに構造の床を実行し 3 値で返す・実行できなかった検査を合格と表示しない）と FR10（契約表の欄は器の導出 file から読む）。本流の要件書に在る id で、字は変えない。
 - 条: P-3.1（決定的に検査できる項目は床）・P-3.3（床の合格を完成として扱わない）・P-4.1（生成できなかった結果を異常なしにしない）・P-6.3（読み手を 2 つにしない＝床は面の関数そのものを呼ぶ）・P-15.2（編集時の guard が後で呼ぶ床の関数を、面と同じにしておく）・P-10.1（期待の字は歯の側の手書き）。
-- 出所: 持ち主の指示（2026-09-28 16:3x JST・逐語「床は通るのにページ生成が止まる穴の束は進めて良い」）。台帳 f2-648.249（要件書・入口・憲法の床が面の要る形を見ない）・f2-648.274（判断の記録の帰結の項が写像に読まれても床は合格）・f2-648.242（設計ノートの承認欄の一覧の形の値）。元の表は f2-648.245（9 か所・うち章の上限は便 179 で済み）。
+- 出所: 持ち主の指示（2026-09-28 16:3x JST・逐語「床は通るのにページ生成が止まる穴の束は進めて良い」）。台帳 f2-648.249（要件書・入口・憲法の床が面の要る形を見ない）・f2-648.274（判断の記録の帰結の項が写像に読まれても床は合格）・f2-648.242（設計ノートの承認欄の一覧の形の値）・f2-648.180（床の穴の控え＝条の中の行の欄・最上位の節の中の欄・mechanism の鍵の不在と必須の欄）。元の表は f2-648.245（9 か所・うち章の上限は便 179 で済み）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gh` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 11 本（src 5・歯の file 6〔新 1・本文不変 5〕）。縮む file・消す file・新しい dir は無い。
 - 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流 6467915 の組み立てに write-set 11 本を渡した `folio ceiling --gate --dir design-intent --write-set …` は **0（通す・設計文書の正本を書き換えない便）**（起草の記録の gate-187.log）。
 - 前提: **base = 本流 6467915**（便 185 の着地の後）。この契約の数はすべて base の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d187`（commit **0d4de9f**・3ad67a6〔本便〕に本流 6467915 の merge 94ee033 と歯の 2 行を積んだもの）。`git diff 6467915 0d4de9f` が便の全体の差分（6 file・+670 −10・34,801 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 0d4de9f -- <write-set の file>`）。write-set の外は変えない。
-- 並行の便との重なり: base の時点で本便の write-set を書き換える未着地の便の契約は無い。便 185（索引・`graph.rs` ほか）は着地済みで、本便は索引の床（`graph::check_index`）の後ろに段を 1 つ足すだけ。
+- 実装の見本: origin の枝 `impl/d187`（commit **14bca08**・3ad67a6〔本便〕に本流 6467915 の merge 94ee033 と歯の行 3 つ〔0d4de9f・14bca08〕を積んだもの）。`git diff 6467915 14bca08` が便の全体の差分（6 file・+685 −10・35,477 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 14bca08 -- <write-set の file>`）。write-set の外は変えない。
+- 並行の便との重なり: 便 185（索引・`graph.rs` ほか）は着地済みで、本便は索引の床（`graph::check_index`）の後ろに段を 1 つ足すだけ。並行の起草の見本（着地の順は本便が先）との重なり: 便 190（`impl/d190`・検査の信頼）・便 195 と 197（写しの負債）は書き換える file の重なり 0（190 の verify の scope の `tests/floor_cases.rs` は両便とも本文不変）。便 198（`impl/d198`・編集時の止め）は `main.rs` が重なる（198 は check の段の `check_dir` と `graph::check_index` を 1 つの床の関数へ移す）＝198 は本便の着地の後に積み直し、その床の関数に本便の面の段も入れる（編集時の口と事後の床を同じ関数に・P-15.2・起草役へ知らせ済み）。
 
 ## 1. 設計
 
@@ -29,6 +29,8 @@
 | .249 | 憲法の amendment の表の形 | constitution.yaml.amendment: 欄 effective_step が無い |
 | .274 | 判断の記録の帰結の項が写像 | adr/ADR-11.yaml.consequences[1]: 文字列でない（発効した記録は封が先に落とす＝提案中の記録で起きる） |
 | .242 | 設計ノートの承認欄の一覧の形の値 | design-note/decide.yaml.meta.approval[0].who: 文字列でない |
+| .180 (3) | 条の mechanism の鍵が無い・条の rationale が無い・rationale の行の ref が無い・north_star の judged_by が無い | constitution.yaml.articles[0]: 欄 mechanism が無い（ほかも同じ形・床の土台で 4 つとも割れ）。条の plain・規範文の strength・mechanism の live の欠けは床が既に落とす |
+| .180 (1)(2) | 条の中の行（rationale・retreat）と最上位の節（north_star・amendment・sources の行）の未知の欄 | 面は止まらない（面は知らない欄を読まない）＝割れでなく床だけの穴。本便では閉じない（(i) の 1）。relations と規範文の行の未知の欄は床が既に落とす |
 
 5. **表に在って台帳に無い行。** 3. の 863 のほとんど（目標・受入基準・制約の行の欄〔例 srs.yaml.goals[0]: 欄 text が無い〕・規則の表の行の種別と状態の値域・入口の棚と道の欄・支度表の欄・語彙の行の形 など）。加えて、契約表の行の verify と done を欠く設計ノート（面は「欄 done が無い」で止まる）は、床が器の導出 file の要否 conditional に従って合格にし（既存の歯 `f120_conditional_fields_pass_with_and_without_values` がその答えを固定）、面だけが要る欄にしていた＝面の側の読み違い（FR10）。
 6. **base の歯（参考値）。** workspace の nextest 1050 / 1050（base 6467915 と src が同じ写し）・clippy 0 警告・床 4 本 rc 0・`folio build --write` 37 file。`git grep -n f187_ -- crates` は 0 件・行 id `gh` は 0 件。
@@ -47,13 +49,13 @@
 binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは床の土台を一時 dir の `design-intent/` に、器の導出 file を写しの根の `contracts/` に作り、提案中の判断の記録 ADR-11（土台の ADR-4 の字から id と状態を替え承認欄を外す）と発効した設計ノート decide（承認欄 1 行・散文の節と判断の表の節）を足して git の 1 commit にする（素の床は合格 0 / 0）。字は作業ツリーだけに当てる。期待の字は歯の側の手書き。
 
 1. **f187_srs_splits_fail_the_floor_with_the_face_words（要件書の 10 行）。** 道具 0・道具 2・入れる側 5・出る側 5・出る側の from が受入基準・rail 8 段・verdicts 5・要件の根拠に判断の記録・目標に text が無い・承認欄が表 1 つ。各行で: 当てる前の床が合格 0 / 0、当てた後の `folio check` が 1 で `[面] <面の字>` の行と「不合格（違反 1・まだ分からない 0）」、`folio build --write` が 1 で「床 = 不合格（違反 1・まだ分からない 0）・書かない」を出し配信先を作らない、面の口 `folio face` が 2 で同じ字を出す（床の字は面の字そのもの）。
-2. **f187_other_splits_fail_the_floor_with_the_face_words（入口・憲法・判断の記録・設計ノートの 5 行）。** 入口の承認欄が表 1 つ・憲法の改訂の段 8・改訂の欄 effective_step が無い・判断の記録の帰結の項が写像（.274）・設計ノートの承認欄の who が一覧（.242）。撃ち方は 1. と同じ（判断の記録と設計ノートは `folio face --id`）。
+2. **f187_other_splits_fail_the_floor_with_the_face_words（入口・憲法・判断の記録・設計ノートの 6 行）。** 入口の承認欄が表 1 つ・憲法の改訂の段 8・改訂の欄 effective_step が無い・条 P-1 の mechanism の鍵が無い（.180 の (3)）・判断の記録の帰結の項が写像（.274）・設計ノートの承認欄の who が一覧（.242）。撃ち方は 1. と同じ（判断の記録と設計ノートは `folio face --id`）。
 3. **f187_the_face_stage_runs_only_on_an_otherwise_silent_floor。** 同じ面の欠け（道具 0）で、ほかが黙っている写しは `[面]`、最上位に知らない節を 1 つ足した写しは違反 1 件のまま `[面]` なし、版管理の無い写し（測れない 1 件）は まだ分からない のまま `[面]` なし。
 4. **f187_the_floor_does_not_run_the_figure_tool。** git だけを置いた PATH（Node が無い）で、図を持つ写しの床は 0。同じ PATH で rail 8 段の写しは 1 で `[面]`。
 5. **f187_contract_rows_without_verify_and_done_build（向き (b)）。** 土台の設計ノート example の契約表の行 a から verify と done を外すと、床は合格 0 / 0 のまま、`folio face --face note --id example` が 0 で書け、行 a の記事に done の段落も検証の札も無い。
 6. **単体 f187_memo_reads_a_file_once_inside_and_every_time_outside（`site.rs` の tests の区間）。** 閉包の中では file を消した後の 2 度目の `load` が 1 度目と同じ木、外では Err。
 7. **単体 f187_dry_render_checks_the_shape_without_the_tool（同じ区間）。** 図の口の中では道具の置き場の無い dir でも空の本体、型が表に無い・記述が表でないは今どおり Err、外に出ると空の本体を返さない。
-8. **RED の実測。** 歯の file だけ（見本 0d4de9f の字）を base に当てると、binary の 5 本とも落ちる（base の床は割れの写しで合格のまま・nextest の rc 100・起草の記録の red-187-final.log）。base の `--bin folio f187_` は 0 本（nextest の rc 4）。
+8. **RED の実測。** 歯の file だけ（見本 14bca08 の字）を base に当てると、binary の 5 本とも落ちる（base の床は割れの写しで合格のまま・nextest の rc 100・起草の記録の red-187-final.log）。base の `--bin folio f187_` は 0 本（nextest の rc 4）。
 
 ### (d) 採らなかった形
 
@@ -64,14 +66,14 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本の写しで workspace の nextest **1057 / 1057**（base 1050 + f187_ の 7 本・94ee033 の時点。歯の 2 行を足した 0d4de9f で floor_faces は 5 / 5）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・verify の 8 行とも rc 0（verify-187.log）。字の期待を直した既存の歯は無い。
+1. **既存の歯。** 見本の写しで workspace の nextest **1057 / 1057**（base 1050 + f187_ の 7 本・94ee033 の時点。歯の行を 3 つ足した 14bca08 で floor_faces は 5 / 5・clippy 0）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・verify の 8 行とも rc 0（verify-187.log）。字の期待を直した既存の歯は無い。
 2. **突然変異（見本の src だけを 1 通りずつ変え、f187_ の 7 本を撃つ）。** 14 通りとも落ちる（生き残り 0・mut-187.log）。check が面の段を呼ばない・--write の床が呼ばない・測れない が在っても回す・違反が在っても回す・違反でなく まだ分からない に数える・字を面の字から変える・床で図の道具を撃つ・図の口が形を確かめる前に返る・図の口を出ても旗を戻さない・読み直さない口を出ても写しを返す・何も覚えない・done を要る欄に戻す・verify を要る欄に戻す・面の段が判断の記録と設計ノートの面を組まない。
 3. **外の置き場と folio2 自身（見本の binary）。** folio2 の本流 6467915・床の土台・tsuzuri の写し（b229dd9）とも床 0 / 0 のまま（新しく落ちる正本 0）、build は base と全 file が byte で同じ（37・17・42 file）。突然変異の写しでは、床の土台の割れ 808 のうち 805 は床が面の字で 違反 1 に落とし、残る 3 は (b) の 5. の行で面が通るようになる（割れでなくなる）。追加の 2 file の割れ 55 は 55 とも落とす。割れでない写し 7798 と 438 は床の答え（3 値・違反の数・まだ分からない の数）が 1 件も動かない。骨格（git の 1 commit・測れない 6）4340 は床の答えが 1 件も動かない。
 4. **時間。** folio2 の本流 6467915 の `folio check` は release で 0.49 秒 → 1.29 秒・debug で 1.02 秒 → 4.72 秒（面を 37 枚組む）。debug の `folio build --write` は 18.2 秒 → 21.6 秒（床の段の分）で、出力の 37 file は byte で同じ。workspace の nextest の所要は base と同じ幅（8 分前後）。
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は `+crates/folio/tests/floor_faces.rs`。`crates/folio/tests/site.rs`・`crates/folio/tests/note.rs`・`crates/folio/tests/face_note.rs`・`crates/folio/tests/outside_faces.rs`・`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分は 6 file・+670 −10・34,801 byte（`git diff 6467915 0d4de9f | wc -c`）。
+1. **write-set の印。** 新しい file は `+crates/folio/tests/floor_faces.rs`。`crates/folio/tests/site.rs`・`crates/folio/tests/note.rs`・`crates/folio/tests/face_note.rs`・`crates/folio/tests/outside_faces.rs`・`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分は 6 file・+685 −10・35,477 byte（`git diff 6467915 14bca08 | wc -c`）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 5 本（python と awk の 2 実装で一致・cap-187.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
@@ -110,7 +112,7 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
-1. **運ばないもの。** 図の道具と環境の 31 か所（道具の置き場・Node・凍結 anchor・道具が記述を通さない・様式の file・配信先）は床の外のまま（build が まだ分からない で知らせる・FR15）。役の字「道具」の設計文書への写し（P-5.6・f2-648.249 の後半）は生成区間を書くので別の便（門と tsuzuri の `folio schema --write` が要る）。面の要る形を人が読む欄の決まりへ写すこと。設計文書の正本・憲法と要件書と判断の記録の字・台帳への記帳（席）・外部 crate・新しい dir。
+1. **運ばないもの。** 台帳 f2-648.180 の (1)(2)（条の中の行 rationale・retreat・amended_by と最上位の節 north_star・amendment・sources の行の未知の欄）: 面は止まらないので本便の段では閉じない。憲法の schema 節はこれらの行の欄の集合を持たず（article・mechanism・statement・meta・precedence だけ）、床に一覧を持たせるには schema 節を変える（A-2.2 で改訂）か実装の定数を置く（P-5.6 の写しの置き場が要る）ので、席へ返す。図の道具と環境の 31 か所（道具の置き場・Node・凍結 anchor・道具が記述を通さない・様式の file・配信先）は床の外のまま（build が まだ分からない で知らせる・FR15）。役の字「道具」の設計文書への写し（P-5.6・f2-648.249 の後半）は生成区間を書くので別の便（門と tsuzuri の `folio schema --write` が要る）。面の要る形を人が読む欄の決まりへ写すこと。設計文書の正本・憲法と要件書と判断の記録の字・台帳への記帳（席）・外部 crate・新しい dir。
 2. **言えないこと。** (1) 床が まだ分からない（測れない が在る）置き場では、面が止まっても床は面の字を名指さない（骨格の写しで 560 件・答えは base と同じ まだ分からない）。(2) 面の段は最初の 1 つの Err だけを名指す（build と同じ）。(3) 突然変異は欄の道ごとに一覧の最初の項だけを変えた（全数は code の側の 1019 が持つ）。(4) 道具が型付き記述を通さない図は、床が合格でも build が止まる（道具の答え）。
 3. **撤退条件。** (1) 本便が要件の規範文か憲法か判断の記録の字を変えないと書けないと分かったら、止めて席へ返す。(2) 受付の時点で本流の `site.rs` の `build_all` か `write_after_floor`、`main.rs` の check の段の順、`figure.rs` の `render` が base と違えば、止めて席へ返す。(3) 本便の後に既存の歯が落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(4) 本便の後に folio2 自身の床 4 本の結果か `folio build` の出力が 1 byte でも変われば、止めて席へ返す。
 
@@ -137,18 +139,18 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 
 - 外部 crate も外部ライブラリも増やさない。新しい dir は無い。
 - 前提の着地: 便 185（本流 6467915）。
-- 本便の着地の後に席が見ること: 台帳 f2-648.249・.274・.242 の件を閉じるか残りを書く（役の字の写し）。本流の `target/debug/folio` を組み直す。tsuzuri へ床の面の段を返す。
+- 本便の着地の後に席が見ること: 台帳 f2-648.249・.274・.242 の件を閉じるか残りを書く（役の字の写し）。.180 は (3) が閉じ、(1)(2) が残る。本流の `target/debug/folio` を組み直す。tsuzuri へ床の面の段を返す。
 
 <!-- contracts:begin -->
 schema = 1
 
 [[contract]]
 id = "gh"
-title = "床が build と同じ関数で面を組み、面が組めない置き場を面の字のまま違反に数える（床の穴の束・台帳 f2-648.249・.274・.242）: crates/folio/src/site.rs に床の口と違反の種類 面 を足し、床のほかの段が違反も読めないも測れないも数えていないときだけ、build と同じ build_all を crates/folio/src/figure.rs の図を撃たない口（型と型付き記述の形までを確かめ、道具・Node・凍結 anchor を撃たない）と crates/folio/src/cursor.rs の読み直さない口（閉包のあいだ同じ正本の木を 1 度だけ読む）の中で回し、Err を面の字のまま違反 1 件に数える。crates/folio/src/main.rs の folio check と site.rs の --write の床が索引の口の後でこれを呼ぶ。crates/folio/src/face_note.rs は契約表の行の verify と done を在るときだけ出す（器の導出 file で conditional）。床のほかの段の判定と字・面の字と出力・図の道具を撃つ build の道・設計文書の正本は変えない。歯は crates/folio/tests/floor_faces.rs の f187_ の 5 本と site.rs の単体の 2 本。実装の見本は origin の枝 impl/d187 の commit 0d4de9f で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 6467915"
+title = "床が build と同じ関数で面を組み、面が組めない置き場を面の字のまま違反に数える（床の穴の束・台帳 f2-648.249・.274・.242）: crates/folio/src/site.rs に床の口と違反の種類 面 を足し、床のほかの段が違反も読めないも測れないも数えていないときだけ、build と同じ build_all を crates/folio/src/figure.rs の図を撃たない口（型と型付き記述の形までを確かめ、道具・Node・凍結 anchor を撃たない）と crates/folio/src/cursor.rs の読み直さない口（閉包のあいだ同じ正本の木を 1 度だけ読む）の中で回し、Err を面の字のまま違反 1 件に数える。crates/folio/src/main.rs の folio check と site.rs の --write の床が索引の口の後でこれを呼ぶ。crates/folio/src/face_note.rs は契約表の行の verify と done を在るときだけ出す（器の導出 file で conditional）。床のほかの段の判定と字・面の字と出力・図の道具を撃つ build の道・設計文書の正本は変えない。歯は crates/folio/tests/floor_faces.rs の f187_ の 5 本と site.rs の単体の 2 本。実装の見本は origin の枝 impl/d187 の commit 14bca08 で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 6467915"
 req = ["FR5", "FR10"]
 section = "1"
 write-set = ["crates/folio/src/site.rs", "crates/folio/src/main.rs", "crates/folio/src/figure.rs", "crates/folio/src/cursor.rs", "crates/folio/src/face_note.rs", "+crates/folio/tests/floor_faces.rs", "crates/folio/tests/site.rs", "crates/folio/tests/note.rs", "crates/folio/tests/face_note.rs", "crates/folio/tests/outside_faces.rs", "crates/folio/tests/floor_cases.rs"]
 verify = ["cargo nextest run -p folio --test floor_faces f187_", "cargo nextest run -p folio --bin folio f187_", "cargo nextest run -p folio --test site", "cargo nextest run -p folio --test note", "cargo nextest run -p folio --test face_note", "cargo nextest run -p folio --test outside_faces", "cargo nextest run -p folio --test floor_cases", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "crates/folio/tests/floor_faces.rs の f187_ の 5 本（要件書の 10 行と入口・憲法・判断の記録・設計ノートの 5 行の割れの写しで、床が 1 で [面] の行に面の字・build --write が 1 で書かない・folio face が 2 で同じ字／ほかの段が数えているときは面の段を回さない／Node の無い PATH で図を持つ写しの床が 0／契約表の行の verify と done が無くても床は合格で設計ノートの面が書ける）が緑、binary の単体の f187_ の 2 本（読み直さない口と図を撃たない口）が緑、tests/site.rs の歯の全部が緑、tests/note.rs の歯の全部が緑、tests/face_note.rs の歯の全部が緑、tests/outside_faces.rs の歯の全部が緑、tests/floor_cases.rs の歯の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数と中身は着地の直前の main と同じである"
+done = "crates/folio/tests/floor_faces.rs の f187_ の 5 本（要件書の 10 行と入口・憲法・判断の記録・設計ノートの 6 行の割れの写しで、床が 1 で [面] の行に面の字・build --write が 1 で書かない・folio face が 2 で同じ字／ほかの段が数えているときは面の段を回さない／Node の無い PATH で図を持つ写しの床が 0／契約表の行の verify と done が無くても床は合格で設計ノートの面が書ける）が緑、binary の単体の f187_ の 2 本（読み直さない口と図を撃たない口）が緑、tests/site.rs の歯の全部が緑、tests/note.rs の歯の全部が緑、tests/face_note.rs の歯の全部が緑、tests/outside_faces.rs の歯の全部が緑、tests/floor_cases.rs の歯の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数と中身は着地の直前の main と同じである"
 <!-- contracts:end -->
