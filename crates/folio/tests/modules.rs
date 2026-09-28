@@ -320,3 +320,43 @@ fn p106_edges_point_down() {
     let miss = gaps("一覧に無い", &upward, "src に無い", &frozen);
     assert!(miss.is_empty(), "層が上がる辺が凍結した一覧と食い違う: {miss:?}");
 }
+
+// ── 便 195（行 gp・P-5.6・P-6.3・行 D-11）: 参照 id の空間の閉じた一覧は refs.rs の 1 枚 ──
+
+/// 参照 id の空間の閉じた一覧 4 本の定数名（base 7528256 では RULE_SECTIONS が 6 枚・SRS_ID_SECTIONS が 3 枚）。
+const F195_ONE_SHEET: [&str; 4] = [
+    "RULE_SECTIONS",
+    "SRS_ID_SECTIONS",
+    "SRS_ID_PREFIXES",
+    "RELATION_NAMESPACES",
+];
+
+/// file の `#[cfg(test)]` より前の行のうち、定数 `name` を宣言する行（可視性の印は問わない）の数。
+fn f195_declares(src: &str, name: &str) -> usize {
+    let head = src.split("#[cfg(test)]").next().unwrap_or_default();
+    let want = format!("const {name}:");
+    head.lines()
+        .map(str::trim_start)
+        .map(|l| l.strip_prefix("pub(crate) ").or_else(|| l.strip_prefix("pub ")).unwrap_or(l))
+        .filter(|l| l.starts_with(&want))
+        .count()
+}
+
+/// 歯 2: 4 本を宣言するのは refs.rs だけで各 1 回。散文の門（prose.rs）は要件 id の頭を自分で持たず refs.rs の 1 枚を引く。
+#[test]
+fn f195_the_id_space_lists_are_declared_only_in_refs() {
+    for name in F195_ONE_SHEET {
+        let at: Vec<String> = files()
+            .into_iter()
+            .flat_map(|f| {
+                let n = f195_declares(&read(&f), name);
+                std::iter::repeat_n(f, n)
+            })
+            .collect();
+        assert_eq!(at, ["refs"], "{name} を宣言する file");
+    }
+    let prose = read("prose");
+    let head = prose.split("#[cfg(test)]").next().unwrap_or_default();
+    assert!(!head.contains("\"GOAL\""), "prose.rs が要件 id の頭を自分で持つ");
+    assert!(head.contains("refs::SRS_ID_PREFIXES"), "prose.rs が refs.rs の要件 id の頭を引かない");
+}
