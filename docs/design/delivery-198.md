@@ -6,9 +6,10 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gs` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 8 本（src 5〔新 1〕・歯の file 3〔新 1・本文を変える 1・本文不変 1〕）。縮む file・消す file・新しい dir は無い。
 - 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流 6467915 の写しで write-set 8 本を渡した `folio ceiling --gate --dir design-intent --write-set …` は **0（通す・設計文書の正本を書き換えない便）**。
 - 前提: **base = 本流 6467915**（便 185 の着地の後）。この契約の数はすべて 6467915 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d198`（commit **15b235a**・改訂 b・親 6f8a333〔改訂 a〕・d99e5f8・6467915）。`git diff 6467915 15b235a` が便の全体の差分（7 file・+787 −4・44,374 byte）。**作業者は write-set の file をこの枝の中身にしてよい**（`git checkout impl/d198 -- <write-set の file>`）。
+- 実装の見本: origin の枝 `impl/d198`（commit **f19045d**・改訂 c・親 15b235a〔改訂 b〕・6f8a333〔改訂 a〕・d99e5f8・6467915）。`git diff 6467915 f19045d` が便の全体の差分（7 file・+828 −4・46,652 byte）。**作業者は write-set の file をこの枝の中身にしてよい**（`git checkout impl/d198 -- <write-set の file>`）。
 - 改訂 a（2026-09-28）: 独立の検証（起草の記録と同じ dir の `guard-verify.md`）の blocking B1・B2・B6 と非 blocking N1・N2 を見本と歯に入れた（§1 (b) の 3・4・7 と (c) の 10〜15）。
 - 改訂 b（2026-09-28）: 器の席の追加の答え（起草の記録と同じ dir の `s2-guard-answers.md` の末尾の節）を見本と歯に入れた。まだ分からない の行を標準出力へ・写しの床の子の git に一時の作業場所の親を天井に渡す・写しの中で版管理の根が解ければ まだ分からない（§1 (b) の 3〜5 と (c) の 4・5・11・15〜17）。
+- 改訂 c（2026-09-28）: 席の裁定を見本と歯に入れた。つながりの行も標準出力へ出す（器は標準エラーを AI の席に渡さないので、標準エラーでは名指しが届かない・条 P-4.2）。出す順は 止める行 → まだ分からない の行 → 要約 → つながりの行で、器は行の数と字の量の上限で後ろから切るので、つながりの行から先に落ちる。標準エラーは診断だけ（§1 (b) の 4 と (c) の 2・13・18）。
 - 並行の便との重なり: §1 (g) の表。床の穴・検査の信頼・小さな直し・写しの負債のレーンの便が本便の write-set の file を書き換えて先に着地したら、本便は余地と歯の数を数え直してから受け付ける（着地の順は lanes-common の順）。
 
 ## 1. 設計
@@ -29,7 +30,7 @@
    - 関数 floor（新しい名・引数は置き場と旗）: `check_dir` と `check_index` を順に撃つ床の 1 本の関数。`folio check` と口の両方がこれを撃つ（条 P-15.2）。
    - 関数 judge（新しい名・引数は置き場と相対の字と中身）: 相対の字が置き場からの相対の字（成分が全部ふつうの名・絶対 path と `..` と `.` と空は断る）であることを確かめ、置き場を一時の作業場所（`std::env::temp_dir()` の下の `folio-proposed-<pid>-<nanos>/<置き場の dir 名>`）へ丸ごと写す（symlink は symlink のまま）。写しの上で相対の字の成分を 1 つずつ辿り、途中か終わりが symlink なら書かずに断る（まだ分からない・理由の字 `<字> は symlink を通る（写しの外を書きうる）`・書く前の床より前・dir も作らない）。器の導出 file は `note::external_path(dir)` で解き、在れば写しの根の `contracts/schema.toml`（`floor_note::EXTERNAL_PATH`）へ写す（版管理の外の写しは置き場の親の下を読む）。写しのまま `floor` を撃ち（前）、`rel` に `content` を書いて `floor` を撃つ（後）。後の違反のうち前に無いもの（種類と字の組を重複ごと数える差）を、後の `links` に在れば `links` へ、無ければ `stop` へ分け、後の「まだ分からない」（unknowns と pendings）のうち前に無いものを `unknowns` へ入れる。写しが版管理の外に在ることだけから出る まだ分からない（gitcheck の定数 NO_GIT の字）は、前にも後にも数えない（書く前の数えが正本を読めずに途中で止まった周にだけ後に出るため）。前の「まだ分からない」の数（NO_GIT を除く）を `before_unknowns` に数える。改訂 b: 置き場の器の導出 file を解いた後、書く前の床より前に、gitcheck.rs の関数 ceil_at（新しい名）で一時の作業場所の親を子の git の探しの天井に置き、gitcheck.rs の関数 toplevel が写しの中で版管理の根を解けば断る（まだ分からない・理由の字 `一時の作業場所の中で版管理の根が解ける（写しが版管理の中に在る）`）。字の中の写しの path は置き場の path に戻して返す。一時の作業場所は `Drop` で消す。
    - 型 Judged（新しい名・止める行・つながりの行・まだ分からない の 3 つの列と、書く前から在る まだ分からない の数）の関数 verdict: 新しい「まだ分からない」が在れば まだ分からない、`stop` が在れば 不合格、どちらも無ければ 合格（つながりと書く前の数は数えない）。関数 word（新しい名）は同じ判定を口の字 通す／止める／まだ分からない で返す。
-4. **`crates/folio/src/main.rs`。** `folio check` に旗 `--proposed <PATH>` を足す（ほかの 6 つの旗と同時に撃てない＝`conflicts_with_all`）。旗があれば標準入力を全部読み（UTF-8 でなければ まだ分からない 2）、proposed.rs の関数 judge を撃ち、止める行を標準出力に `[種類] 字`、つながりを標準エラーに `# つながり（編集は止めない・事後の床が数える）: [種類] 字`、新しい まだ分からない を標準出力に `# まだ分からない: 字`（改訂 b・素の床の まだ分からない の行と同じ字）、要約を標準出力に `folio check --proposed: <通す|止める|まだ分からない>（新しい違反 N・つながり K・まだ分からない M・書く前から在る まだ分からない B）` で出し、判定の終了コード（0・1・2）で終える。`judge` が断るか標準入力が UTF-8 でなければ、標準出力に `# まだ分からない: <理由>` と `folio check --proposed: まだ分からない（口は数えていない）` の 2 行で 2（改訂 b・標準エラーには何も出さない）。旗が無いときは今までの `check_dir` と `check_index` の 2 行を proposed.rs の関数 floor の 1 行にする（出力と終了は変えない）。`mod proposed;` と `use crate::verdict::Verdict;` を足す。
+4. **`crates/folio/src/main.rs`。** `folio check` に旗 `--proposed <PATH>` を足す（ほかの 6 つの旗と同時に撃てない＝`conflicts_with_all`）。旗があれば標準入力を全部読み（UTF-8 でなければ まだ分からない 2）、proposed.rs の関数 judge を撃ち、標準出力に、止める行 `[種類] 字`、新しい まだ分からない `# まだ分からない: 字`（改訂 b・素の床の まだ分からない の行と同じ字）、要約 `folio check --proposed: <通す|止める|まだ分からない>（新しい違反 N・つながり K・まだ分からない M・書く前から在る まだ分からない B）`、つながり `# つながり（編集は止めない・事後の床が数える）: [種類] 字`（改訂 c・接頭辞の後ろは素の床の行と同じ字）を、この順に出し（器は後ろから切るので、つながりの行から先に落ちる）、標準エラーには何も出さず、判定の終了コード（0・1・2）で終える。旗の説明の字は `通す 0 / 止める 1 / まだ分からない 2`。`judge` が断るか標準入力が UTF-8 でなければ、標準出力に `# まだ分からない: <理由>` と `folio check --proposed: まだ分からない（口は数えていない）` の 2 行で 2（改訂 b・標準エラーには何も出さない）。旗が無いときは今までの `check_dir` と `check_index` の 2 行を proposed.rs の関数 floor の 1 行にする（出力と終了は変えない）。`mod proposed;` と `use crate::verdict::Verdict;` を足す。
 5. **`crates/folio/src/gitcheck.rs`。** 定数 NO_GIT を同じ crate の proposed.rs から名指せる可視性にする（字・撃つ所・違反と まだ分からない の数は変えない）。改訂 b: 一度だけ置ける天井の置き場（新しい名 CEILING）と、それを置く関数 ceil_at（新しい名）を足し、子の git を撃つ関数 git が、天井が置かれていれば子の環境に GIT_CEILING_DIRECTORIES を渡す（置かれていなければ今までどおり GIT_ で始まる環境変数を全部外すだけ＝素の床は変わらない）。
 6. **`crates/folio/tests/modules.rs`。** 層の割り当ての表に区切り proposed を層 3 として 1 行足す（読む相手は check〔2〕・note〔2〕・graph〔3〕・floor_note と phase〔1〕・verdict〔0〕、名指す側は main〔5〕）。
 7. **変えないもの。** 素の `folio check` の出力・判定・終了コード・凍結の旗と `--emit-amends` と `--emit-rulings`・網の関数の中身・違反の字・設計文書の正本と生成区間・憲法と要件書と判断の記録の字・`folio build` の出力。網の外の関数の中の突き合わせの字（設計ノート・計画・判断の記録どうし・封の欠け・入口と相談窓口と天井の英字の語）の族は便 199 が運ぶ（本便ではまだ止める側に数える）。
@@ -39,7 +40,7 @@
 binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床の土台（`tests/fixtures/floor_base/design-intent/`）を一時 dir の `repo/design-intent/` に、器の導出 file を `repo/contracts/` に作って `repo/` を git の 1 commit にし（素の床は合格 0）、口の一時の作業場所を版管理の外の `tmp/` に作らせて（子の環境の `TMPDIR`）撃つ。期待の字は歯の側の手書き。
 
 1. **f198_stop_line_is_a_line_of_the_floor（AC31 の前半・P-15.2）。** 規則の表の行 R-2 に未知の欄 `bogus: 1` を足した中身を `--proposed rules.yaml` に渡すと、終了 1・標準出力はちょうど `[未知の欄] rules.yaml: 行 R-2 の未知の欄「bogus」` と `folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）` の 2 行・置き場の全 file の字が撃つ前と同じ。同じ中身を書いた置き場の素の `folio check` は終了 1 で、標準出力にその 1 行が同じ字で在る（編集時の判定 ⊆ 事後の判定）。
-2. **f198_link_is_not_stopped_but_the_floor_counts_it（AC31・P-18.2）。** 要件 FR1 の basis に `P-99` を足した中身を `--proposed srs.yaml` に渡すと、終了 0・標準出力は要約の 1 行だけ（`通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）`）・標準エラーに `# つながり（編集は止めない・事後の床が数える）: [参照 id] srs.yaml: requirements[0].basis[1]: id P-99 が実在しない`。同じ中身を書いた置き場の素の床は終了 1 で、標準出力にその違反の行が在る。
+2. **f198_link_is_not_stopped_but_the_floor_counts_it（AC31・P-18.2）。** 要件 FR1 の basis に `P-99` を足した中身を `--proposed srs.yaml` に渡すと、終了 0・標準出力はちょうど要約（`通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）`）と `# つながり（編集は止めない・事後の床が数える）: [参照 id] srs.yaml: requirements[0].basis[1]: id P-99 が実在しない` の 2 行（この順）・標準エラーは空（改訂 c）。同じ中身を書いた置き場の素の床は終了 1 で、標準出力にその違反の行が在る。
 3. **f198_old_violations_do_not_stop（AC31）。** 置き場の規則の表に未知の欄を先に書いた（素の床 1）うえで、要件書の今の中身をそのまま渡す提案も、規則の表を元へ戻す提案も終了 0（後者の要約は `通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）`）。
 4. **f198_unreadable_proposal_is_unknown（P-4.1）。** `a: [` の 1 行を `--proposed rules.yaml` に渡すと終了 2 で、標準出力に `# まだ分からない: rules.yaml: ` で始まる行が在る（改訂 b）。
 5. **f198_outside_the_place_is_unknown。** `../contracts/schema.toml`・`/etc/hosts`・`./rules.yaml` の 3 つとも終了 2・標準エラーは空・標準出力はちょうど `# まだ分からない: <字> は置き場からの相対の file の字でない（絶対 path・.. ・空は数えない）` と `folio check --proposed: まだ分からない（口は数えていない）` の 2 行（改訂 b）。
@@ -50,13 +51,14 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 10. **f198_fixing_an_unreadable_place_is_not_unknown（改訂 a・B1）。** 置き場の要件書の末尾に `broken: [` を足して読めなくした（素の床 2）うえで、元の字の要件書を `--proposed srs.yaml` に渡すと終了 0・標準出力はちょうど `folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 1）`。同じ中身を書いた置き場の素の床は 0。
 11. **f198_symlink_on_the_way_is_unknown（改訂 a・B2）。** 置き場に写しの根の外の dir を指す `lnk` と外の file を指す `vfile.txt` を置き、`lnk/v.txt`・`vfile.txt`・`lnk/newdir/x.txt` の 3 つとも終了 2・標準エラーは空・標準出力はちょうど `# まだ分からない: <字> は symlink を通る（写しの外を書きうる）` と `folio check --proposed: まだ分からない（口は数えていない）` の 2 行（改訂 b）。外の file の字は変わらず、外に dir `newdir` を作らず、一時の作業場所も残らない。
 12. **f198_sealed_body_change_is_stopped（改訂 a・B6）。** 発効した判断の記録 ADR-4 の題の頭に 1 字足した中身を `--proposed adr/ADR-4.yaml` に渡すと終了 1・標準出力はちょうど `[adr] ADR-4: 発効した判断の記録の本文が封（anchors/adr-seals.yaml）の行と違う（発効した記録の本文は変えない・退役で変えてよいのは status と superseded_by だけ・判断を変えるなら新しい判断の記録を立てる）` と要約（止める・新しい違反 1・つながり 0）の 2 行。同じ中身を書いた置き場の素の床にその行が在る。
-13. **f198_frozen_id_removal_is_stopped（改訂 a・B6）。** id の一覧の凍結 anchor（床の土台の `anchors/ids-v1.8.yaml`）に在る要件 FR19 の塊を消した中身を `--proposed srs.yaml` に渡すと終了 1・標準出力はちょうど `[P-7] FR19 が消えた（baseline の anchors/ids-*.yaml に在る・番号は消さず、廃止は状態で表す・P-7.2）` と要約（止める・新しい違反 1・つながり 4）の 2 行（FR19 を指す参照の解決の 4 件はつながり）。同じ中身を書いた置き場の素の床にその行が在る。
+13. **f198_frozen_id_removal_is_stopped（改訂 a・B6）。** id の一覧の凍結 anchor（床の土台の `anchors/ids-v1.8.yaml`）に在る要件 FR19 の塊を消した中身を `--proposed srs.yaml` に渡すと終了 1・標準出力は 6 行で、頭の 2 行がちょうど `[P-7] FR19 が消えた（baseline の anchors/ids-*.yaml に在る・番号は消さず、廃止は状態で表す・P-7.2）` と要約（止める・新しい違反 1・つながり 4）、続く 4 行がつながりの行（FR19 を指す参照の解決の 4 件・改訂 c）。同じ中身を書いた置き場の素の床にその行が在り、つながりの行の接頭辞の後ろの字もどれも素の床の行に在る。
 14. **f198_one_more_of_the_same_words_is_new（改訂 a・N2）。** 規則の表の行 R-2 を 2 本にした置き場（素の床に `[重複キー] rules.yaml: 行 id「R-2」が重複` が 1 行）で、3 本にした中身を渡すと終了 1・標準出力はちょうどその 1 行と要約（止める・新しい違反 1）の 2 行（同じ字の違反を重複ごとに数える差）。
 15. **f198_stdin_not_utf8_is_unknown（改訂 a・N2）。** 標準入力に byte `0xff 0xfe` と改行を渡すと終了 2・標準エラーは空・標準出力は `# まだ分からない: 標準入力を字（UTF-8）として読めない: ` で始まる行と `folio check --proposed: まだ分からない（口は数えていない）` の 2 行（P-4.1・改訂 b）。
 16. **f198_tmpdir_in_another_work_tree_is_not_read（改訂 b (a)）。** 口の一時の作業場所の置き場（子の環境の TMPDIR）を、器の導出 file を持たない別の版管理の作業ツリーの中にして歯 9 の中身を渡すと、終了 1・標準出力はちょうど歯 9 の行と要約（止める・新しい違反 1・書く前から在る まだ分からない 0）の 2 行（写しの床は別の版管理を見ない）。一時の作業場所は残らない。改訂 a の見本（6f8a333）の binary では、同じ形で終了 0（書く前から在る まだ分からない 1）だった（起草の記録の実測）。
 17. **f198_place_that_is_its_own_repo_is_unknown（改訂 b (b)）。** 置き場の dir そのものを版管理の根にした（置き場の中に .git を持つ）置き場で、規則の表の今の中身を渡すと、終了 2・標準出力はちょうど `# まだ分からない: 一時の作業場所の中で版管理の根が解ける（写しが版管理の中に在る）` と要約（まだ分からない（口は数えていない））の 2 行。一時の作業場所は残らない。改訂 a の見本の binary では終了 0 だった。
-18. **単体の歯（`crates/folio/src/proposed.rs` の tests の区間）。** f198_inside_refuses_paths_out_of_the_place（`rules.yaml` と `adr/ADR-1.yaml` は受け、空・絶対 path・`..`・`./` を断る）と f198_judged_verdict_counts_stop_and_unknowns_only（つながりと書く前の数だけなら 合格 と 通す・止める行が在れば 不合格 と 止める・新しい まだ分からない が在れば まだ分からない）。
-19. **RED の実測。** 歯の file だけ（`r198-teeth.patch`＝`tests/proposed.rs` と `tests/modules.rs` の差分）を base に当てると、binary の歯 17 本とも落ちる（旗が無く clap が `error: unexpected argument '--proposed' found` で断る）・`--bin folio f198_` は 0 本（nextest の rc 4）・`--test modules` の 2 本（`p106_layers_cover_every_module`・`p106_edges_point_down`）が落ちる（表に区切り proposed の行が在るのに src に file が無い）。log は起草の記録の `red-198b.log`。
+18. **f198_lines_come_in_the_order_stop_unknown_summary_link（改訂 c）。** 要件 FR1 の basis に `P-99` を足し、要件 FR2 の id を単引用符で囲み、節 outputs を表の一覧でない形（`outputs: {x: 1}`）にした中身を `--proposed srs.yaml` に渡すと、終了 2・標準エラーは空・標準出力はちょうど次の 4 行（この順）: `[索引の節点] srs.yaml: 索引の節点 FR2 の行を行の逐語で切れない（…）`・`# まだ分からない: srs.yaml: outputs が表の一覧でない（参照 id を集められない）`・要約（まだ分からない・新しい違反 1・つながり 1・まだ分からない 1・書く前から在る まだ分からない 0）・`# つながり（編集は止めない・事後の床が数える）: [参照 id] srs.yaml: requirements[0].basis[1]: id P-99 が実在しない`。同じ中身を書いた置き場の素の床は終了 2 で、止める行とつながりの行の接頭辞の後ろの字が標準出力に、まだ分からない の行が標準エラーに在る（素の床は まだ分からない の行を標準エラーに出す）。
+19. **単体の歯（`crates/folio/src/proposed.rs` の tests の区間）。** f198_inside_refuses_paths_out_of_the_place（`rules.yaml` と `adr/ADR-1.yaml` は受け、空・絶対 path・`..`・`./` を断る）と f198_judged_verdict_counts_stop_and_unknowns_only（つながりと書く前の数だけなら 合格 と 通す・止める行が在れば 不合格 と 止める・新しい まだ分からない が在れば まだ分からない）。
+20. **RED の実測。** 歯の file だけ（`r198-teeth.patch`＝`tests/proposed.rs` と `tests/modules.rs` の差分）を base に当てると、binary の歯 18 本とも落ちる（旗が無く clap が `error: unexpected argument '--proposed' found` で断る）・`--bin folio f198_` は 0 本（nextest の rc 4）・`--test modules` の 2 本（`p106_layers_cover_every_module`・`p106_edges_point_down`）が落ちる（表に区切り proposed の行が在るのに src に file が無い）。log は起草の記録の `red-198c.log`。
 
 ### (d) 採らなかった形
 
@@ -67,54 +69,59 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 本便の差分を base に当てた写し（見本 impl/d198 の 15b235a）の数は次の表（参考値・起草の記録の `verify-198b-summary.txt`・`CARGO_BUILD_JOBS=4`・`--test-threads 2`）。字の期待を直した既存の歯は無い（`tests/modules.rs` は表に 1 行を足すだけ）。
+1. **既存の歯。** 本便の差分を base に当てた写し（見本 impl/d198 の f19045d）の数は次の表（参考値・起草の記録の `verify-198c-summary.txt`・`CARGO_BUILD_JOBS=4`・`--test-threads 2`）。字の期待を直した既存の歯は無い（`tests/modules.rs` は表に 1 行を足すだけ）。
 
-| 数え | base 6467915 | 見本 15b235a |
+| 数え | base 6467915 | 見本 f19045d |
 | --- | ---: | ---: |
-| workspace の nextest（`cargo nextest list --workspace --message-format oneline` の行数・全部合格） | 1050 | 1069（+17 の歯・+2 の単体） |
+| workspace の nextest（`cargo nextest list --workspace --message-format oneline` の行数・全部合格） | 1050 | 1070（+18 の歯・+2 の単体） |
 | clippy の警告 | 0 | 0 |
 | 床 4 本（check・inject --check・schema --check・derive --check） | 4 本とも rc 0 | 4 本とも rc 0 |
 | `folio build --write` の file 数 | 37 | 37（base と全 file が byte で同じ） |
 
-2. **突然変異（見本の写しの src だけを 1 通りずつ変え、f198_ の歯を撃つ・`mut-198.py`・歯の番号は (c)・18 は単体の 2 本）。**
+2. **突然変異（見本の写しの src だけを 1 通りずつ変え、f198_ の歯を撃つ・`mut-198.py`・歯の番号は (c)・19 は単体の 2 本）。**
 
 | 変異 | 落ちる歯（歯の番号は (c)） |
 | --- | --- |
 | M1 書く前の床を比べない（後の違反を全部新しいとする） | 3・14 |
-| M2 つながりも止める | 2・7・13 |
-| M3 新しい まだ分からない を数えない | 4 |
-| M4 差し替えを写しの根に書く（file を取り違える） | 1・2・4・6・7・8・9・12・13・14・16 |
+| M2 つながりも止める | 2・7・13・18 |
+| M3 新しい まだ分からない を数えない | 4・18 |
+| M4 差し替えを写しの根に書く（file を取り違える） | 1・2・4・6・7・8・9・12・13・14・16・18 |
 | M5 一時 dir を消さない | 7・11・16・17 |
-| M6 置き場の外の字を断らない | 5・18 |
-| M7 止めても 0 で終える | 1・6・7・8・9・12・13・14・16・18 |
-| M8 参照 id と語彙の網をつながりに数えない | 2・7・13 |
-| M9 床の 1 本の関数から索引の床を外す | 8 |
-| M10 止める行を標準エラーへ出す | 1・6・8・9・12・13・14・16 |
-| M11 つながりの行を出さない | 2 |
-| M12 器の導出 file を写さない | 1・2・3・9・10・12・13・14・16 |
-| M13 つながりの印を積まない | 2・7・13 |
-| M14 写しが版管理の外に在ることの まだ分からない も数える（B1） | 1・2・3・10・12・13・14・16 |
+| M6 置き場の外の字を断らない | 5・19 |
+| M7 止めても 0 で終える | 1・6・7・8・9・12・13・14・16・19 |
+| M8 参照 id と語彙の網をつながりに数えない | 2・7・13・18 |
+| M9 床の 1 本の関数から索引の床を外す | 8・18 |
+| M10 止める行を標準エラーへ出す | 1・6・8・9・12・13・14・16・18 |
+| M11 つながりの行を出さない | 2・13・18 |
+| M12 器の導出 file を写さない | 1・2・3・9・10・12・13・14・16・18 |
+| M13 つながりの印を積まない | 2・7・13・18 |
+| M14 写しが版管理の外に在ることの まだ分からない も数える（B1） | 1・2・3・10・12・13・14・16・18 |
 | M15 symlink を通る書く先を断らない（B2） | 11 |
 | M16 id の消失と改番をつながりに数える（V1） | 13 |
 | M17 封の検査をつながりに数える（V2） | 12・13 |
 | M18 同じ字の違反が増えても新しいとしない（集合の差・V3） | 14 |
 | M19 UTF-8 でない標準入力を 0 で通す（V5） | 15 |
-| M20 口の答えの字を床の字に戻す（N1） | 2・3・10・18 |
+| M20 口の答えの字を床の字に戻す（N1） | 2・3・10・19 |
 | M21 書く前から在る まだ分からない を数えない（N1） | 10 |
 | M22 写しで symlink を辿って中身を写す（V7） | 11 |
 | M23 子の git に天井を渡さない（改訂 b (a)） | 16 |
 | M24 写しの中で解ける版管理の根を断らない（改訂 b (b)） | 17 |
-| M25 新しい まだ分からない の行を標準エラーへ出す（改訂 b） | 4 |
+| M25 新しい まだ分からない の行を標準エラーへ出す（改訂 b） | 4・18 |
 | M26 数えられなかった理由を標準エラーへ出す（改訂 b） | 5・11・15・17 |
+| M27 つながりの行を標準エラーへ戻す（改訂 c） | 2・13・18 |
+| M28 つながりの行を止める行より先に出す（順の入れ替え・改訂 c） | 2・13・18 |
+| M29 つながりの行を まだ分からない の行より先に出す（順の入れ替え・改訂 c） | 2・13・18 |
+| M30 まだ分からない の行をつながりの行の後に出す（順の入れ替え・改訂 c） | 18 |
+| M31 要約をつながりの行の後に出す（順の入れ替え・改訂 c） | 2・13・18 |
 
-   26 通りとも落ちる（生き残り 0・`mut-198b.log`・直列）。M14〜M22 は改訂 a で足した（独立の検証の B1・B2 と、検証役の変異 V1・V2・V3・V5・V7 の生き残りを落とす形と、N1 の字と数）。M23〜M26 は改訂 b で足した（子の git の天井・写しの中の版管理の根の断り・まだ分からない の行と数えられなかった理由の出し先）。M12 は、口の一時の作業場所を置き場と同じ版管理の中に作らせた歯の初めの形では生き残った（写しが版管理の根の下の器の導出 file を読めた）。一時の作業場所を版管理の外へ移し、歯 9 を足して落ちるようにした。
+   31 通りとも落ちる（生き残り 0・`mut-198c.log`・直列）。M14〜M22 は改訂 a で足した（独立の検証の B1・B2 と、検証役の変異 V1・V2・V3・V5・V7 の生き残りを落とす形と、N1 の字と数）。M23〜M26 は改訂 b で足した（子の git の天井・写しの中の版管理の根の断り・まだ分からない の行と数えられなかった理由の出し先）。M27〜M31 は改訂 c で足した（つながりの行の出し先と、3 種の行と要約の順の入れ替え 4 通り・M30 は (c) 18 だけが落とす）。M12 は、口の一時の作業場所を置き場と同じ版管理の中に作らせた歯の初めの形では生き残った（写しが版管理の根の下の器の導出 file を読めた）。一時の作業場所を版管理の外へ移し、歯 9 を足して落ちるようにした。
 
-3. **外の置き場（tsuzuri の写し bbc8126・参考値）。** 見本の binary で、設計ノート surface-wave9.yaml の契約表の行 e-hold に未知の欄を足した中身は終了 1（`[note] design-note/surface-wave9.yaml: §2 の行 e-hold: 契約表の欄「bogus」が器の導出 file に無い`＝器の導出 file を写しへ写して契約表の欄を数えた）。req に FR999 を足した中身も終了 1（設計ノートの参照 id の解決は網の外の関数の中の字＝便 199 がつながりへ移す）。同じ中身をそのまま渡すと終了 0（改訂 a の 6f8a333 でも同じ・`tz-198a.log`・改訂 b の 15b235a は `tz-198b.log`）。口の速さは release で 0.16〜0.27 秒、folio2 の要件書で 0.30〜0.46 秒（debug では 1.1〜1.9 秒・2.1〜3.1 秒・負荷 20〜110 の周・`time-198.log`）。
+3. **外の置き場（tsuzuri の写し bbc8126・参考値）。** 見本の binary で、設計ノート surface-wave9.yaml の契約表の行 e-hold に未知の欄を足した中身は終了 1（`[note] design-note/surface-wave9.yaml: §2 の行 e-hold: 契約表の欄「bogus」が器の導出 file に無い`＝器の導出 file を写しへ写して契約表の欄を数えた）。req に FR999 を足した中身も終了 1（設計ノートの参照 id の解決は網の外の関数の中の字＝便 199 がつながりへ移す）。同じ中身をそのまま渡すと終了 0（改訂 a の 6f8a333 でも同じ・`tz-198a.log`・改訂 b の 15b235a は `tz-198b.log`・改訂 c の f19045d は撃ち直していない＝3 つの中身はどれもつながりの行を出さず、改訂 c が動かすのはつながりの行の出し先と順だけ）。口の速さは release で 0.16〜0.27 秒、folio2 の要件書で 0.30〜0.46 秒（debug では 1.1〜1.9 秒・2.1〜3.1 秒・負荷 20〜110 の周・`time-198.log`）。
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は `+crates/folio/src/proposed.rs` と `+crates/folio/tests/proposed.rs`。`crates/folio/tests/check.rs` は本文を変えない（verify の `--test` の scope）。差分 44,374 byte（`git diff 6467915 15b235a | wc -c`・7 file・+787 −4）。
-2. **余地（CapHeadroom）。** 測るのは write-set の src の 5 本（python と awk の 2 実装で一致・`cap-198.sh`・`cap-198b.log`）。
+1. **write-set の印。** 新しい file は `+crates/folio/src/proposed.rs` と `+crates/folio/tests/proposed.rs`。`crates/folio/tests/check.rs` は本文を変えない（verify の `--test` の scope）。差分 46,652 byte（`git diff 6467915 f19045d | wc -c`・7 file・+828 −4）。
+2. **余地（CapHeadroom）。** 測るのは write-set の src の 5 本（python と awk の 2 実装で一致・`cap-198.sh`・`cap-198c.log`・改訂 c は main.rs の行を動かしただけで数は改訂 b と同じ）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
@@ -126,8 +133,8 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 
 3. **size は M。** src の増分は +299 で S の見積 100 を超え、M の見積 300 の内（余裕は 1 行）。余地の最小（check.rs の base 387）は M の 300 を超える。
 4. **verify は 5 行**で、done の 5 つの塊と 1 対 1 に揃える。見本の写しで 5 行とも rc 0。
-   1. `cargo nextest run -p folio --test proposed f198_` = (c) の 1〜17（17 本）。
-   2. `cargo nextest run -p folio --bin folio f198_` = (c) の 18（2 本）。
+   1. `cargo nextest run -p folio --test proposed f198_` = (c) の 1〜18（18 本）。
+   2. `cargo nextest run -p folio --bin folio f198_` = (c) の 19（2 本）。
    3. `cargo nextest run -p folio --test modules` = 層の割り当ての表と層が上がる辺（便 106 の歯）。
    4. `cargo nextest run -p folio --test check` = 素の `folio check` の歯（床の 1 本の関数へ移しても出力と終了が同じ）。
    5. `cargo clippy --workspace --all-targets -- -D warnings` = 0 警告。
@@ -136,8 +143,8 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 ### (g) 門・受付・ほかのレーンとの重なり
 
 1. **門。** 冒頭のとおり対象外・0（通す）。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/guard の本契約で 契約に起因する断り 0（起草の記録の `precheck-198.log`）。**受付は ADR-33 と要件書 第 1.55 版の発効の後**（req の FR28 が本流に在ること）。
-3. **重なり（2026-09-28 19:3x の実測・origin の各レーンの見本の枝と本便の見本 15b235a を git merge-tree で重ねた）。** 本便の write-set の src は `check.rs`・`main.rs`・`verdict.rs`・`gitcheck.rs`。
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/guard の本契約で 契約に起因する断り 0（起草の記録の `precheck-198c.log`・改訂 c）。**受付は ADR-33 と要件書 第 1.55 版の発効の後**（req の FR28 が本流に在ること）。
+3. **重なり（2026-09-28 19:3x の実測・origin の各レーンの見本の枝と本便の見本 15b235a を git merge-tree で重ねた・20:2x に改訂 c の f19045d で撃ち直して同じ＝衝突は 187 の main.rs だけ）。** 本便の write-set の src は `check.rs`・`main.rs`・`verdict.rs`・`gitcheck.rs`。
 
 | レーン（便・見本） | 重なる file | 扱い |
 | --- | --- | --- |
@@ -157,8 +164,8 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-28/guard-draft.md`、script と log は同じ dir の `guard-scripts/`。
 
-1. 模擬: 見本 impl/d198 の 6f8a333（`git diff 6467915 6f8a333` = `c198.patch`・歯だけ = `r198-teeth.patch`）。`verify-198.sh`（組み立て・nextest・clippy・床 4 本・build の出力を base と byte で比べる）。
-2. RED: `red-198.sh`。突然変異: `mut-198.py`（M1〜M22・直列）。余地: `cap-198.sh`（`lines.py` と `lines.awk`）。資源は `CARGO_BUILD_JOBS=4`・nextest `--test-threads 2`。
+1. 模擬: 見本 impl/d198 の f19045d（`git diff 6467915 f19045d` = `c198.patch`・歯だけ = `r198-teeth.patch`）。`verify-198.sh`（組み立て・nextest・clippy・床 4 本・build の出力を base と byte で比べる）。
+2. RED: `red-198.sh`。突然変異: `mut-198.py`（M1〜M31・直列）。余地: `cap-198.sh`（`lines.py` と `lines.awk`）。資源は `CARGO_BUILD_JOBS=4`・nextest `--test-threads 2`。
 3. 速さ: `time-198.sh`（素の床と口を release と debug で 5 回ずつ・folio2 と tsuzuri の写し）。
 4. 外の置き場: tsuzuri の `.git` だけを写して clone・remote を外した写しで、見本の binary の口を撃つ（`tz-198.sh`）。
 
@@ -170,17 +177,17 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 
 ## 2. 範囲
 
-- 入れる: `folio check --proposed`（旗・標準入力・判定・出力の分け方）・`proposed.rs` の関数 floor と judge と写し・`verdict.rs` の欄 links と関数 mark と links_from・`check.rs` の網の 5 つの関数の包み・`main.rs` の素の床の proposed.rs の関数 floor への置き換え・`gitcheck.rs` の定数 NO_GIT の可視性と子の git の探しの天井・層の表の 1 行・歯の file の f198_ の 17 本と単体の 2 本。
+- 入れる: `folio check --proposed`（旗・標準入力・判定・出力の分け方と順）・`proposed.rs` の関数 floor と judge と写し・`verdict.rs` の欄 links と関数 mark と links_from・`check.rs` の網の 5 つの関数の包み・`main.rs` の素の床の proposed.rs の関数 floor への置き換え・`gitcheck.rs` の定数 NO_GIT の可視性と子の git の探しの天井・層の表の 1 行・歯の file の f198_ の 18 本と単体の 2 本。
 - 入れない: 網の外の関数の中の字の族・極性一覧・規則の表と憲法と要件書と判断の記録の字・設計文書の正本と生成区間・器の hook・外部 crate・新しい dir。
 
 ## 3. 部品
 
 | id | 名 | 役 |
 | --- | --- | --- |
-| mouth | 口 | `main.rs` の `--proposed`・`proposed.rs` の `judge` と `Judged`（前後の差・族の分け・写し・symlink の断り・写しの版管理の外の まだ分からない を数えない・子の git の天井と写しの中の版管理の根の断り・まだ分からない の行を標準出力へ） |
+| mouth | 口 | `main.rs` の `--proposed`・`proposed.rs` の `judge` と `Judged`（前後の差・族の分け・写し・symlink の断り・写しの版管理の外の まだ分からない を数えない・子の git の天井と写しの中の版管理の根の断り・まだ分からない の行とつながりの行を標準出力へ・順は 止める → まだ分からない → 要約 → つながり） |
 | floor | 床の 1 本の関数 | `proposed.rs` の `floor`（`check_dir` と `check_index`・素の床と口が撃つ） |
 | mark | 族の印 | `verdict.rs` の `links`・`mark`・`links_from`・`check.rs` の網の 3 か所の包み |
-| teeth | 歯 | `tests/proposed.rs` の f198_ の 17 本と `proposed.rs` の単体の 2 本・`tests/modules.rs` の表の 1 行 |
+| teeth | 歯 | `tests/proposed.rs` の f198_ の 18 本と `proposed.rs` の単体の 2 本・`tests/modules.rs` の表の 1 行 |
 
 ## 4. 検査（歯）
 
@@ -197,11 +204,11 @@ schema = 1
 
 [[contract]]
 id = "gs"
-title = "folio check --proposed を足す（判断の記録 ADR-33 の便 1・決定 (1)(2)(4)・要件書 第 1.55 版の FR28 と AC31）: crates/folio/src/proposed.rs（新）に床の 1 本の関数 floor（check_dir と check_index を順に撃つ・素の folio check もこれを撃つ）と judge（置き場と器の導出 file を一時の作業場所へ写し、写しのまま 1 回とその file を標準入力の中身に差し替えて 1 回 floor を撃ち、後にだけ在る違反を止める行とつながりの行に分け、後にだけ在る まだ分からない を返す・写しが版管理の外に在ることの まだ分からない は前後とも数えない・写しの床の子の git に一時の作業場所の親を天井に渡し写しの中で版管理の根が解ければ断る・置き場の外の字と symlink を通る書く先は断る・一時の作業場所は消す）を置き、crates/folio/src/verdict.rs の Report に links・mark・links_from を足し、crates/folio/src/check.rs の check_dir の網の関数 5 つ（refs・vocab・link・anchor・mentions）の違反をつながりに数え、crates/folio/src/main.rs の folio check に旗 --proposed（ほかの 6 つの旗と同時に撃てない・止める行と まだ分からない の行（接頭辞 # まだ分からない: ）と要約は標準出力・つながりは標準エラー・終了 0 通す 1 止める 2 まだ分からない・要約に書く前から在る まだ分からない の数）を足し、crates/folio/src/gitcheck.rs の定数 NO_GIT を proposed.rs から名指せる可視性にし、子の git に探しの天井を渡す関数 ceil_at を足す。素の folio check の出力と終了・違反の字・設計文書の正本は変えない"
+title = "folio check --proposed を足す（判断の記録 ADR-33 の便 1・決定 (1)(2)(4)・要件書 第 1.55 版の FR28 と AC31）: crates/folio/src/proposed.rs（新）に床の 1 本の関数 floor（check_dir と check_index を順に撃つ・素の folio check もこれを撃つ）と judge（置き場と器の導出 file を一時の作業場所へ写し、写しのまま 1 回とその file を標準入力の中身に差し替えて 1 回 floor を撃ち、後にだけ在る違反を止める行とつながりの行に分け、後にだけ在る まだ分からない を返す・写しが版管理の外に在ることの まだ分からない は前後とも数えない・写しの床の子の git に一時の作業場所の親を天井に渡し写しの中で版管理の根が解ければ断る・置き場の外の字と symlink を通る書く先は断る・一時の作業場所は消す）を置き、crates/folio/src/verdict.rs の Report に links・mark・links_from を足し、crates/folio/src/check.rs の check_dir の網の関数 5 つ（refs・vocab・link・anchor・mentions）の違反をつながりに数え、crates/folio/src/main.rs の folio check に旗 --proposed（ほかの 6 つの旗と同時に撃てない・止める行・まだ分からない の行（接頭辞 # まだ分からない: ）・要約・つながりの行（接頭辞 # つながり（編集は止めない・事後の床が数える）: ）をこの順に標準出力・標準エラーは診断だけ・終了 0 通す 1 止める 2 まだ分からない・要約に書く前から在る まだ分からない の数）を足し、crates/folio/src/gitcheck.rs の定数 NO_GIT を proposed.rs から名指せる可視性にし、子の git に探しの天井を渡す関数 ceil_at を足す。素の folio check の出力と終了・違反の字・設計文書の正本は変えない"
 req = ["FR28"]
 section = "1"
 write-set = ["crates/folio/src/verdict.rs", "crates/folio/src/check.rs", "crates/folio/src/main.rs", "crates/folio/src/gitcheck.rs", "+crates/folio/src/proposed.rs", "+crates/folio/tests/proposed.rs", "crates/folio/tests/modules.rs", "crates/folio/tests/check.rs"]
 verify = ["cargo nextest run -p folio --test proposed f198_", "cargo nextest run -p folio --bin folio f198_", "cargo nextest run -p folio --test modules", "cargo nextest run -p folio --test check", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "crates/folio/tests/proposed.rs の f198_ の 17 本（形の違反を止めた行が同じ中身を書いた置き場の素の床の行に同じ字で在る・つながりの違反は止めずに標準エラーに名指して素の床が落とす・書く前から在った違反は数えない・読めない中身は まだ分からない・置き場の外の字は まだ分からない・新しい file も同じ床で数える・一時の作業場所が残らない・索引の床も同じ関数に入る・器の導出 file を写して契約表の行の欄も数える・正本が読めない置き場を直す中身は通す・symlink を通る書く先は まだ分からない で外の file を書かない・発効した判断の記録の本文の書き換えは止める・id の一覧の凍結 anchor に在る番号の消失は止める・同じ字の違反が 1 つ増えれば止める・UTF-8 でない標準入力は まだ分からない・TMPDIR が別の版管理の作業ツリーの中でも写しはそれを見ない・置き場が自分の版管理の根なら まだ分からない）が緑、crates/folio/src/proposed.rs の単体の f198_ の 2 本（置き場の外の字の断り・判定の 3 値と口の字）が緑、crates/folio/tests/modules.rs（層の表に proposed の行）が緑、crates/folio/tests/check.rs（素の folio check が同じ出力と終了）が緑、cargo clippy --workspace --all-targets -- -D warnings が 0 警告。着地の後の本流で folio check --dir design-intent が合格 0 違反 0・folio schema --dir design-intent --check が一致・folio inject --check が一致・folio derive --dir design-intent --out ../contracts --check が一致"
+done = "crates/folio/tests/proposed.rs の f198_ の 18 本（形の違反を止めた行が同じ中身を書いた置き場の素の床の行に同じ字で在る・つながりの違反は止めずに標準出力の要約の後に名指して素の床が落とす・書く前から在った違反は数えない・読めない中身は まだ分からない・置き場の外の字は まだ分からない・新しい file も同じ床で数える・一時の作業場所が残らない・索引の床も同じ関数に入る・器の導出 file を写して契約表の行の欄も数える・正本が読めない置き場を直す中身は通す・symlink を通る書く先は まだ分からない で外の file を書かない・発効した判断の記録の本文の書き換えは止める・id の一覧の凍結 anchor に在る番号の消失は止める・同じ字の違反が 1 つ増えれば止める・UTF-8 でない標準入力は まだ分からない・TMPDIR が別の版管理の作業ツリーの中でも写しはそれを見ない・置き場が自分の版管理の根なら まだ分からない・止める行と まだ分からない の行と要約とつながりの行がこの順に標準出力に出る）が緑、crates/folio/src/proposed.rs の単体の f198_ の 2 本（置き場の外の字の断り・判定の 3 値と口の字）が緑、crates/folio/tests/modules.rs（層の表に proposed の行）が緑、crates/folio/tests/check.rs（素の folio check が同じ出力と終了）が緑、cargo clippy --workspace --all-targets -- -D warnings が 0 警告。着地の後の本流で folio check --dir design-intent が合格 0 違反 0・folio schema --dir design-intent --check が一致・folio inject --check が一致・folio derive --dir design-intent --out ../contracts --check が一致"
 <!-- contracts:end -->
