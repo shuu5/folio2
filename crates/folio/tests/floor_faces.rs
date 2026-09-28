@@ -556,12 +556,13 @@ fn f187_the_face_stage_runs_after_the_index_and_before_the_freeze() {
     let _ = fs::remove_dir_all(&td);
 }
 
-/// 面だけが読む file が読めない（YAML として読めない相談窓口の支度表・dir になった様式と天井の印）は、床のほかの段と同じく
-/// まだ分からない 1 件（違反 [面] にしない・P-4.2）。build --write も まだ分からない で何も書かない。
+/// 面だけが読む file が読めない（相談窓口の支度表が YAML として読めない・dir・UTF-8 でない・型付きの木に読めない、様式 2 本が
+/// dir、天井の印が dir・YAML として読めない）は、床のほかの段と同じく まだ分からない 1 件（違反 [面] にしない・P-4.2）。
+/// build --write も まだ分からない で何も書かない。
 #[test]
 fn f187_unreadable_face_files_stay_unknown() {
     type Case = (&'static str, fn(&Path), &'static str);
-    let rows: [Case; 3] = [
+    let rows: [Case; 8] = [
         (
             "intake-syntax",
             |d| {
@@ -571,14 +572,53 @@ fn f187_unreadable_face_files_stay_unknown() {
             "# まだ分からない: intake-sheet.yaml: 読めない: ",
         ),
         (
+            "intake-dir",
+            |d| {
+                fs::remove_file(d.join("intake-sheet.yaml")).unwrap();
+                fs::create_dir_all(d.join("intake-sheet.yaml")).unwrap();
+            },
+            "# まだ分からない: intake-sheet.yaml: 読めない: ",
+        ),
+        (
+            "intake-utf8",
+            |d| {
+                let p = d.join("intake-sheet.yaml");
+                let mut bytes = fs::read(&p).unwrap();
+                bytes.extend_from_slice(b"k: \xff\n");
+                fs::write(&p, bytes).unwrap();
+            },
+            "# まだ分からない: intake-sheet.yaml: UTF-8 でない",
+        ),
+        (
+            "intake-scalar",
+            |d| {
+                let p = d.join("intake-sheet.yaml");
+                fs::write(&p, format!("{}zz: 0o17\n", fs::read_to_string(&p).unwrap())).unwrap();
+            },
+            "# まだ分からない: intake-sheet.yaml: 正規化できない scalar「0o17」",
+        ),
+        (
             "style-dir",
             |d| fs::create_dir_all(d.join("preview/folio.css")).unwrap(),
             "preview/folio.css: 読めない: ",
         ),
         (
+            "ui-dir",
+            |d| fs::create_dir_all(d.join("preview/folio-ui.js")).unwrap(),
+            "preview/folio-ui.js: 読めない: ",
+        ),
+        (
             "stamp-dir",
             |d| fs::create_dir_all(d.join("preview/ceiling-stamp.yaml")).unwrap(),
             "# まだ分からない: preview/ceiling-stamp.yaml: 読めない: ",
+        ),
+        (
+            "stamp-syntax",
+            |d| {
+                fs::create_dir_all(d.join("preview")).unwrap();
+                fs::write(d.join("preview/ceiling-stamp.yaml"), "at: [\n").unwrap();
+            },
+            "# まだ分からない: preview/ceiling-stamp.yaml: parse できない: ",
         ),
     ];
     for (case, apply, said) in rows {
