@@ -106,7 +106,7 @@ binary 経由の歯は `crates/folio/tests/emit_rulings.rs`（新）。どれも
 ### (g) 門と受付
 
 1. **門。** 冒頭のとおり対象外・0（通す）。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d186 の本契約で 【precheck】。便 185 とは write-set が重ならない。
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d186 の本契約で 契約に起因する断り 0（preflight ok・`f186_` は base で 0 件・起草の記録の precheck-186.log）。見本の写しで verify の 6 行とも rc 0（verify-186.log）。便 185 とは write-set が重ならない。
 3. **着地の後。** 席は tsuzuri へ「`folio check --emit-rulings` が使える（7 欄・終了コードは素の床と同じ・全数は 0 のときだけ）」を返す。tsuzuri の写しは生成区間が古いので、本便の binary を取り込むときに `folio schema --write` を 1 回撃つ（便 182〜183 の手順・(e) の 3）。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
