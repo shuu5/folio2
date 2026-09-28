@@ -6,7 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gw` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 6 本（src 4・歯の file 2）。縮む file・消す file・新しい dir は無い。
 - 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流の binary で `folio ceiling --gate --dir design-intent --write-set <write-set の 6 本>` は **0（通す・設計文書の正本を書き換えない便）**。
 - 前提: **base = 本流 3f9ec88**（便 200 の着地 a000dce・便 199 の着地の後）。この契約の数はすべて 3f9ec88 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d202`（commit **7016401**・親 3f9ec88）。`git diff 3f9ec88 7016401` が便の全体の差分（6 file・+193 −15・22,867 byte）。見本は 2 commit（0b706a6 が本体・7016401 は歯の file の頭の注を clippy の決まりに合わせて段落に分けただけ）。**作業者は write-set の file をこの commit の中身にしてよい**。write-set の外は変えない。
+- 実装の見本: origin の枝 `impl/d202`（commit **1842864**・親 3f9ec88）。`git diff 3f9ec88 1842864` が便の全体の差分（6 file・+194 −15・22,930 byte）。見本は 3 commit（0b706a6 が本体・7016401 は歯の file の頭の注を clippy の決まりに合わせて段落に分けただけ・1842864 は検証役の N-202-2 で説明の字の歯に assert を 1 行足しただけ）。**作業者は write-set の file をこの commit の中身にしてよい**。write-set の外は変えない。
 - 並行の便との重なり: §1 (g) の表。
 - 昇格条件との関係: 台帳の昇格条件（次の小さな直しの便の束・tsuzuri の道の上・S）。編集時の止めの便（f2-648.275.2 の 198〜200）は着地済みで、polarity.rs を触るほかの便は無い＝単独の便で運ぶ。
 
@@ -40,14 +40,14 @@
 3. **`crates/folio/src/check.rs`。** `check_dir` が `adr::place_name(dir)` で置き場の名を読み、`check_floor` へ渡す（1 行増える）。編集時の口（`folio check --proposed`）は置き場を写した dir で同じ `check_dir` を撃つので、同じ名で同じ字になる。
 4. **`crates/folio/src/main.rs`。** 素の床の知らせを置き場の dir から組んだ字で出す。--polarity の説明の字から「便 200・」を落とす（「（正本が読めなければ まだ分からない 2）」）。
 5. **外の置き場の字（見本の binary の実測）。** 知らせ =「# 欄 key が in-loop-min の閾値の行が規則の表に無い＝編集時の止めの本数の下限は数えていない（床の判定の外）」。違反 =「[polarity] 極性一覧の編集時（in-loop）の仕掛けが <数> 本で、行 <置き場の行の id> の下限 <数> 本以上を割る」。
-6. **変えないもの。** folio2 の置き場と名の無い口（置き場の名を読めない）の字（名札 P-18・末尾の（P-18.4）・条 P-18.4 の知らせ）・判定（下限の数え・違反かどうか・まだ分からない の字・--polarity の出力）・`floor.rs` の外の判定と番号の落とし方の式・床の定数の字・生成区間。
+6. **変えないもの。** folio2 の置き場と名の無い口（置き場の名を読めない）の字（名札 P-18・末尾の（P-18.4）・条 P-18.4 の知らせ）・判定（下限の数え・違反かどうか・まだ分からない の字・--polarity の出力）・`floor.rs` の外の判定と番号の落とし方の式・床の定数の字・生成区間。folio2 の `folio check --help` は 1 行変わる（--polarity の説明の字から 便 200 を落とす・説明の字は置き場に依らない・検証役の N-202-1）。
 
 ### (c) 歯（f202_・base で 0 件・2 本と既存の歯 1 本の字の期待）
 
 1. **単体 f202_notice_and_violation_follow_the_place_name（`polarity.rs` に tests の区間を新しく置く）。** 手書きの規則の表（欄 key in-loop-min の行 R-9・値 1 本以上）と空の憲法で、名が無い・folio2-constitution は名札 P-18 と末尾の（P-18.4）・知らせは今の字、tsuzuri-constitution・folio2・未記入（骨格の名）は名札 polarity と末尾なし・知らせは外の字（歯の側の手書き）。下限の行が無い規則の表は数えなかった真を返して違反 0。
-2. **`tests/polarity.rs` f202_abroad_place_names_no_folio2_article。** 外の置き場の最小の写し = 骨格（git init の後に `folio init`・名は 未記入）に閾値の行 R-9（条 P-1・値 1 本以上・条 P-1 の relations に R-9）を足して 1 commit。(a) 欄 key 無しの写しの素の床: 標準エラーに外の知らせがちょうど 1 行・今の字の知らせは 0 行・P-18 を持つ行が標準出力と標準エラーに 0（骨格の憲法に条 P-18 は無い）。(b) 欄 key in-loop-min の写しの素の床: 違反の行はちょうど「[polarity] 極性一覧の編集時（in-loop）の仕掛けが 0 本で、行 R-9 の下限 1 本以上を割る」・知らせ 0 行・P-18 0。編集時の口: 欄 key 無しの写しに欄 key を付けた rules.yaml を渡すと終了 1・違反の行は同じ 1 行・P-18 0。(c) --polarity: 終了 0・集計の行「folio check --polarity: 仕掛け 10（in-loop 0・post 10）・下限 1 本以上（行 R-9）に足りない」・R-9 の行が在る・P-18 0。説明の字: `folio check --help` が「（正本が読めなければ まだ分からない 2）」を持ち 便 200 を持たない。folio2 の置き場（床の土台・名は folio2-constitution）: 行 R-13 に欄 key を付けて値 99 本以上の写しの違反は「[P-18] …行 R-13 の下限 99 本以上を割る（P-18.4）」、欄 key 無しの写しの知らせは今の字 1 行・外の字 0 行。
+2. **`tests/polarity.rs` f202_abroad_place_names_no_folio2_article。** 外の置き場の最小の写し = 骨格（git init の後に `folio init`・名は 未記入）に閾値の行 R-9（条 P-1・値 1 本以上・条 P-1 の relations に R-9）を足して 1 commit。(a) 欄 key 無しの写しの素の床: 標準エラーに外の知らせがちょうど 1 行・今の字の知らせは 0 行・P-18 を持つ行が標準出力と標準エラーに 0（骨格の憲法に条 P-18 は無い）。(b) 欄 key in-loop-min の写しの素の床: 違反の行はちょうど「[polarity] 極性一覧の編集時（in-loop）の仕掛けが 0 本で、行 R-9 の下限 1 本以上を割る」・知らせ 0 行・P-18 0。編集時の口: 欄 key 無しの写しに欄 key を付けた rules.yaml を渡すと終了 1・違反の行は同じ 1 行・P-18 0。(c) --polarity: 終了 0・集計の行「folio check --polarity: 仕掛け 10（in-loop 0・post 10）・下限 1 本以上（行 R-9）に足りない」・R-9 の行が在る・P-18 0。説明の字: `folio check --help` が「（正本が読めなければ まだ分からない 2）」を持ち、便 200 と P-18 を持たない（P-18 は検証役の N-202-2）。folio2 の置き場（床の土台・名は folio2-constitution）: 行 R-13 に欄 key を付けて値 99 本以上の写しの違反は「[P-18] …行 R-13 の下限 99 本以上を割る（P-18.4）」、欄 key 無しの写しの知らせは今の字 1 行・外の字 0 行。
 3. **既存の歯の字の期待 1 か所。** `tests/mechanism_live.rs` の f156_a_place_without_r17_says_the_mentions_are_not_counted は骨格（外）の標準エラーの末尾 2 行を見る。その 2 行目の期待を外の字にする（定数 IN_LOOP_OFF_ABROAD を足す・判定と件数は同じ）。床の土台（folio2 の名）を見る f131_ の 2 本の期待（今の字 IN_LOOP_OFF）は変えない。
-4. **RED の実測。** 歯の file 2 本だけ（見本の tests の字）を base に当てると、tests/polarity.rs の f202_ の 1 本（8 本のうち 1 本・外の知らせの行が 0 行で期待の 1 行と違う）と tests/mechanism_live.rs の f156_ の 1 本（6 本のうち 1 本・骨格の標準エラーの末尾が今の字）が落ちる（nextest の rc 100・起草の記録の red-202-polarity.log・red-202-mechanism_live.log）。base の `--bin folio f202_` は 0 本（単体の歯は src の中・nextest の rc 4）。
+4. **RED の実測。** 歯の file 2 本だけ（見本の tests の字）を base に当てると、tests/polarity.rs の f202_ の 1 本（8 本のうち 1 本・外の知らせの行が 0 行で期待の 1 行と違う）と tests/mechanism_live.rs の f156_ の 1 本（6 本のうち 1 本・骨格の標準エラーの末尾が今の字）が落ちる（nextest の rc 100・起草の記録の red-202-polarity.log・red-202-mechanism_live.log・1842864 の歯の file で撃ち直して同じ）。base の `--bin folio f202_` は 0 本（単体の歯は src の中・nextest の rc 4）。
 
 ### (d) 採らなかった形
 
@@ -59,8 +59,8 @@
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本の写しで workspace の nextest 1147 / 1147（base 1145 + f202_ の 2 本・0b706a6 で撃った・7016401 は注だけ違う）・clippy 0 警告（7016401）・床 4 本 rc 0・`folio build --write` 39 file が base と全 file で byte で同じ。folio2 の素の床の標準出力と標準エラーは base と同じ（知らせは今の字）。字の期待を直した既存の歯は (c) 3 の 1 か所だけ。
-2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体の f202_ と floor::tests・tests/polarity.rs・tests/mechanism_live.rs を撃つ）。** 14 通りとも落ちる（生き残り 0・起草の記録の mut-202.log・落ちた歯の本文は mut-202-M*.log）。注の中か外かの旗を変える形（注の中として通す）は、名札でない 2 つの字では同じ答えになる等価な変異なので数えない。
+1. **既存の歯。** 見本の写しで workspace の nextest 1147 / 1147（base 1145 + f202_ の 2 本・0b706a6 で撃った・後の 2 commit は歯の file の注と assert 1 行だけ違う）・clippy 0 警告（1842864）・床 4 本 rc 0・`folio build --write` 39 file が base と全 file で byte で同じ。folio2 の素の床の標準出力と標準エラーは base と同じ（知らせは今の字）。字の期待を直した既存の歯は (c) 3 の 1 か所だけ。
+2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体の f202_ と floor::tests・tests/polarity.rs・tests/mechanism_live.rs を撃つ）。** 15 通りとも落ちる（生き残り 0・起草の記録の mut-202.log〔M1〜M14・0b706a6〕と mut-202-M10-M15.log〔1842864〕・落ちた歯の本文は mut-202-M*.log）。注の中か外かの旗を変える形（注の中として通す）は、名札でない 2 つの字では同じ答えになる等価な変異なので数えない。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -78,6 +78,7 @@
 | M12 名が読めない口も外と扱う | 単体・floor の f174_ |
 | M13 床の名を folio2 の置き場の名に固定する | tests/polarity.rs の f202_ |
 | M14 口が今の知らせの字を直に出す | tests/polarity.rs の f202_・mechanism_live の f156_ |
+| M15 説明の字に 条 P-18.3 を足す（検証役の N-202-2） | tests/polarity.rs の f202_ |
 
 3. **外の置き場。** 骨格の写し（(c) 2 と同じ編集・起草の記録の sk-202.log）と tsuzuri の写し（(a) 3・tz-202.log）で、base と見本の答えの違いは次の 3 か所だけで、ほかの標準出力・標準エラー・終了コード・--polarity の出力・`folio build` の出力（tsuzuri 72 file）は byte で同じ。
    - 素の床の標準エラーの知らせ: 「…（床の判定の外・条 P-18.4）」→「…（床の判定の外）」。
@@ -98,7 +99,7 @@
 | `crates/folio/src/main.rs` | 778 | 722 | 778（±0） | 722 |
 
 3. **size は S。** src の増分は +62 で S の見積 100 の内。余地の最小（check.rs の base 329）は S の 100 を超える。
-4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の 7016401 で 6 行とも rc 0（1・1・8・6・6 本と clippy 0 警告・verify-impl2.log）。
+4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の 1842864 で 6 行とも rc 0（1・1・8・6・6 本と clippy 0 警告・verify-impl3.log）。
    1. `cargo nextest run -p folio --bin folio f202_` = (c) 1（1 本）。
    2. `cargo nextest run -p folio --test polarity f202_` = (c) 2（1 本）。
    3. `cargo nextest run -p folio --test polarity` = 便 200 の f200_ の 7 本（folio2 の置き場の字と判定が変わらない）と (c) 2。
@@ -160,7 +161,7 @@ schema = 1
 
 [[contract]]
 id = "gw"
-title = "外の置き場で folio2 の条の番号を名指さない（台帳 f2-648.275.8・便 200 の後・同じ種類の前例は便 194）: crates/folio/src/polarity.rs は、素の床の下限を数えなかった知らせと下限を割った違反の字を置き場の名で出し分ける。置き場の名は adr::place_name で読み（crates/folio/src/check.rs が下限の数えへ渡し、crates/folio/src/main.rs が知らせを出す）、外の置き場（名が folio2 の置き場の名でない）では生成区間と同じ crates/folio/src/floor.rs の abroad と val_for（可視性だけ変える）で、知らせから 条 P-18.4 の項を落とし、違反の名札を polarity にして末尾の（P-18.4）を落とす。folio2 の置き場と名の無い口の字と判定と --polarity の出力は変えない。main.rs の --polarity の説明の字から 便 200 を落とす。歯は polarity.rs の単体の f202_ 1 本と tests/polarity.rs の f202_ 1 本（骨格 folio init を外の置き場の最小の写しにし、素の床・編集時の口・--polarity・説明の字に P-18 が無く、床の土台は今の字）と tests/mechanism_live.rs の骨格の知らせの字の期待 1 か所。実装の見本は origin の枝 impl/d202 の commit 7016401（親 3f9ec88）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 3f9ec88"
+title = "外の置き場で folio2 の条の番号を名指さない（台帳 f2-648.275.8・便 200 の後・同じ種類の前例は便 194）: crates/folio/src/polarity.rs は、素の床の下限を数えなかった知らせと下限を割った違反の字を置き場の名で出し分ける。置き場の名は adr::place_name で読み（crates/folio/src/check.rs が下限の数えへ渡し、crates/folio/src/main.rs が知らせを出す）、外の置き場（名が folio2 の置き場の名でない）では生成区間と同じ crates/folio/src/floor.rs の abroad と val_for（可視性だけ変える）で、知らせから 条 P-18.4 の項を落とし、違反の名札を polarity にして末尾の（P-18.4）を落とす。folio2 の置き場と名の無い口の字と判定と --polarity の出力は変えない。main.rs の --polarity の説明の字から 便 200 を落とす。歯は polarity.rs の単体の f202_ 1 本と tests/polarity.rs の f202_ 1 本（骨格 folio init を外の置き場の最小の写しにし、素の床・編集時の口・--polarity・説明の字に P-18 が無く、床の土台は今の字）と tests/mechanism_live.rs の骨格の知らせの字の期待 1 か所。実装の見本は origin の枝 impl/d202 の commit 1842864（親 3f9ec88）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 3f9ec88"
 req = ["FR29"]
 section = "1"
 write-set = ["crates/folio/src/polarity.rs", "crates/folio/src/floor.rs", "crates/folio/src/check.rs", "crates/folio/src/main.rs", "crates/folio/tests/polarity.rs", "crates/folio/tests/mechanism_live.rs"]
