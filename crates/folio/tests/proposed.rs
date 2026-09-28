@@ -202,7 +202,7 @@ fn f198_stop_line_is_a_line_of_the_floor() {
     assert!(f.out.iter().any(|l| l == BOGUS), "素の床に止めた行が無い: {:?}", f.out);
 }
 
-/// 便 198 (c) 2: つながりの違反（参照 id の解決）は止めず（0）、標準エラーに名指し、同じ中身を書いた置き場の素の床は落とす（P-18.2）。
+/// 便 198 (c) 2: つながりの違反（参照 id の解決）は止めず（0）、標準出力の要約の後に名指し、同じ中身を書いた置き場の素の床は落とす（P-18.2）。
 #[test]
 fn f198_link_is_not_stopped_but_the_floor_counts_it() {
     let w = Work::new("link");
@@ -211,9 +211,12 @@ fn f198_link_is_not_stopped_but_the_floor_counts_it() {
     assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
     assert_eq!(
         r.out,
-        ["folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()]
+        [
+            "folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）".to_string(),
+            format!("{LINK_HEAD}{DANGLING}")
+        ]
     );
-    assert!(r.err.iter().any(|l| *l == format!("{LINK_HEAD}{DANGLING}")), "{:?}", r.err);
+    assert!(r.err.is_empty(), "{:?}", r.err);
     w.write("srs.yaml", &text);
     let f = w.floor();
     assert_eq!(f.code, 1);
@@ -390,15 +393,22 @@ fn f198_frozen_id_removal_is_stopped() {
     let text = format!("{head}{}", &tail[tail.find("nonfunctional:\n").unwrap()..]);
     let r = w.propose("srs.yaml", &text);
     assert_eq!(r.code, 1, "{:?} {:?}", r.out, r.err);
+    assert_eq!(r.out.len(), 6, "{:?}", r.out);
     assert_eq!(
-        r.out,
+        r.out[..2],
         [
             GONE.to_string(),
             "folio check --proposed: 止める（新しい違反 1・つながり 4・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
         ]
     );
     w.write("srs.yaml", &text);
-    assert!(w.floor().out.iter().any(|l| l == GONE));
+    let f = w.floor();
+    assert!(f.out.iter().any(|l| l == GONE));
+    // つながりの行は止める行と要約の後で、接頭辞の後ろは同じ中身を書いた置き場の素の床の行と同じ字
+    for l in &r.out[2..] {
+        let line = l.strip_prefix(LINK_HEAD).unwrap_or_else(|| panic!("つながりの行でない: {l}"));
+        assert!(f.out.iter().any(|x| x == line), "素の床に無い: {line}");
+    }
 }
 
 /// 便 198 (c) 14: 書く前から在る違反と同じ字の違反が 1 つ増える中身は止める（重複ごとに数える差）。
@@ -482,4 +492,35 @@ fn f198_place_that_is_its_own_repo_is_unknown() {
         ]
     );
     assert_eq!(w.leftovers(), 0);
+}
+
+/// 便 198 (c) 18（改訂 c）: 止める行・まだ分からない の行・要約・つながりの行はこの順に標準出力に出る（器は後ろから切るので
+/// つながりの行から落ちる）。標準エラーは空で、どの行も接頭辞の後ろは同じ中身を書いた置き場の素の床の行と同じ字
+/// （素の床は まだ分からない の行を標準エラーに出す）。
+#[test]
+fn f198_lines_come_in_the_order_stop_unknown_summary_link() {
+    let w = Work::new("order");
+    let text = dangling(&w).replacen("  - id: FR2\n", "  - id: 'FR2'\n", 1);
+    let (head, tail) = text.split_once("outputs:\n").unwrap();
+    let text = format!("{head}outputs: {{x: 1}}\n{}", &tail[tail.find("\n\n").unwrap() + 1..]);
+    let unknown = "srs.yaml: outputs が表の一覧でない（参照 id を集められない）";
+    let r = w.propose("srs.yaml", &text);
+    assert_eq!(r.code, 2, "{:?} {:?}", r.out, r.err);
+    assert!(r.err.is_empty(), "{:?}", r.err);
+    assert_eq!(
+        r.out,
+        [
+            INDEX.replace("FR1", "FR2"),
+            format!("# まだ分からない: {unknown}"),
+            "folio check --proposed: まだ分からない（新しい違反 1・つながり 1・まだ分からない 1・書く前から在る まだ分からない 0）".to_string(),
+            format!("{LINK_HEAD}{DANGLING}")
+        ]
+    );
+    w.write("srs.yaml", &text);
+    let f = w.floor();
+    assert_eq!(f.code, 2);
+    for l in [INDEX.replace("FR1", "FR2"), DANGLING.to_string()] {
+        assert!(f.out.contains(&l), "素の床に無い: {l}");
+    }
+    assert!(f.err.contains(&format!("# まだ分からない: {unknown}")), "{:?}", f.err);
 }
