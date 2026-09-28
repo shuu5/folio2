@@ -2,11 +2,11 @@
 
 - 要件: FR5（結果を必ず返し、実行できなかった検査を合格と表示しない）を主に、骨格の置き場の FR22 と、置き場の値域の まだ分からない の FR25。本流の要件書に在る id で、規範文・確かめ方・受入基準は変えない（どれも名札と まだ分からない の行の字の中身を定めない）。
 - 条: P-6.3（外の判定と番号の落とし方は便 194・202 と同じ関数＝2 つ目の式を持たない）・P-4.2（まだ分からない の行は外でも同じ数だけ出す）・P-10.1（期待の字は歯の側の手書き）・N-3.1（旗を足さない）。
-- 出所: 台帳 f2-648.236 の前半（便 156 の検証の不一致 3・名札の残り [N-4]・[P-8]・[R-3]・[A-2]・[P-7]）と、便 202 の起草で拾った骨格の まだ分からない の行（f2-648.236 の notes 2026-09-29 05:51 JST）。名札の形は便 156（`docs/design/delivery-156.md`・置き場の憲法と規則の表に在る id ならその id、無ければ検査の名）、外の判じ方と番号の片の落とし方は便 202（`docs/design/delivery-202.md`）と同じ関数。
+- 出所: 台帳 f2-648.236 の前半（便 156 の検証の不一致 3・名札の残り [N-4]・[P-8]・[R-3]・[A-2]・[P-7]）と、便 202 の起草で拾った骨格の まだ分からない の行（f2-648.236 の notes 2026-09-29 05:51 JST）。名札の決め方は席の裁定（2026-09-29 08:0x・名札に id を出してよいのは、床が置き場の規則の表の行をその id の字で引いて判定の値か対象を読む検査だけ。それ以外の名札は外の置き場では常に検査の名。folio2 の外の利用者は tsuzuri だけ＝持ち主の裁定 2026-09-27）。外の判じ方と番号の片の落とし方は便 202（`docs/design/delivery-202.md`）と同じ関数。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gx` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 14 本（src 8・歯の file 6〔うち tests/polarity.rs は本文不変・verify の scope〕）。縮む file は `crates/folio/src/polarity.rs` の 1 本（関数を floor.rs へ移す）。消す file と新しい dir は無い。
 - 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流の binary で `folio ceiling --gate --dir design-intent --write-set <write-set の 14 本>` は **0（通す・設計文書の正本を書き換えない便）**。
 - 前提: **base = 本流 1c7f927**（便 202 の着地）。この契約の数はすべて 1c7f927 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d203`（commit **ec92308**・親 6750219・ece3137・1c7f927）。`git diff 1c7f927 ec92308` が便の全体の差分（13 file・+411 −53・46,195 byte）。見本は 3 commit（ece3137 が本体・6750219 は歯 (c) 3 の (d) の 2 つの字の期待を足しただけ・ec92308 は変異 M20 の生き残りを受けて歯 (c) 4 を足しただけ〔src は 6750219 と同じ〕）。**作業者は write-set の file をこの commit の中身にしてよい**。write-set の外は変えない。
+- 実装の見本: origin の枝 `impl/d203`（commit **8c2d81b**・親 ec92308・6750219・ece3137・1c7f927）。`git diff 1c7f927 8c2d81b` が便の全体の差分（13 file・+390 −53・45,904 byte）。見本は 4 commit（ece3137 が本体・6750219 は歯 (c) 3 の (d) の 2 つの字の期待を足しただけ・ec92308 は変異 M20 の生き残りを受けて歯 (c) 4 を足しただけ・8c2d81b は席の裁定で名札の読みを置き場の表に依らない形にした〔rules.rs と歯 2 本〕）。**作業者は write-set の file をこの commit の中身にしてよい**。write-set の外は変えない。
 - 並行の便との重なり: §1 (g) 3。
 - 昇格条件との関係: 台帳の前半だけを運ぶ。後半（名札と床が行を id の字で引く意味の予約・判断の記録 ADR-16 決定 (2)(オ) の字）は判断の記録が要り、席が tsuzuri の返事を待つので運ばない。
 
@@ -22,30 +22,45 @@
    - [P-7]・[P-7.1] は凍結 anchor と id の一覧の anchor の検査の名札で、外の置き場で anchor を凍結すると出うる（同じ出力の口を通る）。
 2. **まだ分からない の行。** 骨格の素の床の まだ分からない は 6 行で、うち 5 行が folio2 の番号を持つ: 凍結 anchor が 0 本の行の「A-2 / N-4 の差分検査」と末尾の（P-10.3）、骨格の印の 4 行（meta.approval.ruling・行 R-2・R-8・R-16 の ruling）の（骨格の印・裁定の前＝条 P-17.3）。ADR-1 を発効にすると封の一覧が無い行の（folio check --freeze-adrs で封を書き、commit する・P-10.3）が足される。同じ族は、凍結 anchor の索引の entries が空の行の（まだ分からない・P-10.3）と anchor の列が切れた行の（P-10.3）（`crates/folio/src/anchor.rs`）、置き場の値域の まだ分からない の 6 か所の FR25 の片（`crates/folio/src/check.rs` の `place_range`）、撤退条件の種類が床の値域に無い行の（FR25）（`crates/folio/src/link.rs` の `retreat_kind`）。
 3. **外の置き場の名。** 外かどうかは便 202 と同じ `floor::abroad`（名が在って folio2 の置き場の名 folio2-constitution でない）で判じ、名は `adr::place_name` で読む。骨格の名 未記入 と、歯の写し 18 本の名 fixture-constitution（`tests/fixtures/` の adr・anchor・check・link・refs・vocab ほか）は外に当たる。
-4. **tsuzuri の写し（tsuzuri-pin の基準の clone・hook なし）。** tsuzuri の憲法と規則の表は 6 つの id を全部持つ（条 A-2・N-4・P-7・P-8・規範文 P-7.1・行 R-3）。便 156 の形では tsuzuri の名札は変わらない（撤退条件を空にした写しで base と見本とも [P-8] の 3 行）。ただし tsuzuri の P-7 は検査できなかった結果の扱い、P-8 は値の型の区別、R-3 は同じ種類の失敗の繰り返しの上限で、folio2 の同じ id と意味が違う。名札が id の字で置き場の条を名指すことは台帳の後半（意味の予約）の件で、本便は運ばない。
+4. **tsuzuri の写し（tsuzuri-pin の基準の clone・hook なし）。** tsuzuri の憲法と規則の表は 6 つの id を全部持ち（条 A-2・N-4・P-7・P-8・規範文 P-7.1・行 R-3）、そのうち P-7（検査できなかった結果の扱い）・P-8（値の型の区別）・R-3（同じ種類の失敗の繰り返しの上限）は folio2 と意味が違う。base では tsuzuri の写しの違反の名札が 6 つとも folio2 の id で出る（(e) 3 の表）。置き場に在る id ならその id を出す形（便 156 の形をそのまま広げる形）では tsuzuri の名札は 1 つも変わらず、別の意味の条と行を名指す。
 5. **全数の表（src の本文〔単体の歯の区間と注を除く〕の字で、外の置き場の出力に folio2 の番号が出うる所・起草の記録の scan-203 の実測）。**
 
 | # | 族 | 置き場所と数 | 字 | 本便 |
 | --- | --- | --- | --- | --- |
-| 1 | 違反の名札（6 つの id） | adr.rs・anchor.rs・freeze.rs・ids.rs・lineage.rs・link.rs・parts.rs の 50 か所 | [A-2]・[N-4]・[P-7]・[P-7.1]・[P-8]・[R-3] | 拾う（出力の口 3 か所で引き直す） |
+| 1 | 違反の名札（6 つの id） | adr.rs・anchor.rs・freeze.rs・ids.rs・lineage.rs・link.rs・parts.rs の 50 か所 | [A-2]・[N-4]・[P-7]・[P-7.1]・[P-8]・[R-3] | 拾う（出力の口 3 か所で引き直し、外では置き場の表に依らず検査の名・(a) 6） |
 | 2 | 骨格の印の まだ分からない | check.rs の `check_rulings` の 1 か所（骨格で 4 行） | （骨格の印・裁定の前＝条 P-17.3） | 拾う（外は（骨格の印）） |
 | 3 | 凍結 anchor の まだ分からない | anchor.rs の 3 か所 | A-2 / N-4 の・（まだ分からない・P-10.3）・（P-10.3） | 拾う（外は番号の片を落とす） |
 | 4 | 封の一覧が無い まだ分からない | seal.rs の 1 か所 | （…commit する・P-10.3） | 拾う |
 | 5 | 置き場の値域の まだ分からない | check.rs の `place_range` の 6 か所・link.rs の `retreat_kind` の 1 か所 | （FR25）・・FR25 | 拾う |
-| 6 | 違反の本文の中の番号 | adr.rs 10・anchor.rs 6・check.rs 1・freeze.rs 2・ids.rs 2・lineage.rs 2・link.rs 1・note.rs 1・seal.rs 2・figure.rs 1（道具の失敗の字）の 28 か所 | （P-8.1）・（P-7.2）・（N-1.1）・（P-12.2）・（N-4.1）ほか | 拾わない（席へ返す・2 便目の案） |
-| 7 | 書き出す file の見出しと面の凡例 | freeze.rs 2・ids.rs 1・seal.rs 1・stamp.rs 1 の見出しと face_constitution.rs の凡例 1 | ADR-2・P-7.1・ADR-30 決定 (3)・P-6.2・P-7 | 拾わない（置き場に残る file の字が変わる＝席へ返す・3 便目の案） |
+| 6 | 違反の本文の中の番号 | adr.rs 10・anchor.rs 6・check.rs 1・freeze.rs 2・ids.rs 2・lineage.rs 2・link.rs 1・note.rs 1・seal.rs 2・figure.rs 1（道具の失敗の字）の 28 か所 | （P-8.1）・（P-7.2）・（N-1.1）・（P-12.2）・（N-4.1）ほか | 拾わない（便 205・行 gz の案・今は起草しない） |
+| 7 | 書き出す file の見出しと面の凡例 | freeze.rs 2・ids.rs 1・seal.rs 1・stamp.rs 1 の見出しと face_constitution.rs の凡例 1 | ADR-2・P-7.1・ADR-30 決定 (3)・P-6.2・P-7 | 拾わない（置き場に残る file の字が変わる＝便 206・行 ha の案・今は起草しない） |
 | 8 | 行を id の字で引く所（意味の予約） | 行 R-2（inject.rs）・R-8（adr.rs・link.rs・note.rs の違反の字と床の定数）・R-16（note.rs・prose.rs）・R-17（mentions.rs の知らせ） | 行 R-17 が規則の表に無い ほか | 拾わない（台帳の後半） |
 | 9 | 床の定数の字（生成区間） | floor_adr.rs・floor_note.rs・graph.rs ほかの 65 か所 | 判断の記録 ADR-9 ほか | 拾わない（便 194 の `text_for` で外は落ちる・tsuzuri の写しで跡 0） |
 | 10 | 骨格が自分で持つ id | init.rs（ADR-1・P-1・R-2・R-8・R-16） | 置き場の自分の id | 拾わない（番号の跡でない） |
 
-6. **base の歯（参考値）。** workspace の nextest 1147 / 1147・clippy 0 警告・床 4 本 rc 0・`folio build --write` 39 file。`git grep -n f203_ -- crates` は 0 件・行 id `gx` は 0 件。
+6. **検査ごとの表（名札が folio2 の id の形の検査と、床が置き場の規則の表の行をその id の字で引いて読むか）。** 席の裁定の基準で、引いて値か対象を読む検査だけが名札に id を出してよい。
+
+| 名札 | 検査（file） | 置き場の規則の表の行を id の字で引くか（読む関数・欄） | 外の置き場の名札 | 本便 |
+| --- | --- | --- | --- | --- |
+| A-2 | 改訂の記録の欄（adr.rs の amends・grill）・憲法の版と anchor の食い違い（anchor.rs）・凍結（freeze.rs）・記録の消し込み（lineage.rs）・amended_by と要件の adrs の実在（link.rs） | 引かない（読むのは憲法・判断の記録・anchor） | 改訂と判断の記録 | 拾う |
+| N-4 | 承認欄（adr.rs の `check_approval`・対話面の値は床の定数と比べる）・条文と anchor の写しの一致（anchor.rs）・freeze.rs・lineage.rs・link.rs | 引かない | 改訂の承認 | 拾う |
+| P-7・P-7.1 | 番号の再利用・条の消失・規範文の改番（anchor.rs・lineage.rs）・id の一覧の anchor の消失と付け替え（ids.rs） | 引かない | id の再利用と改番 | 拾う |
+| P-8 | 撤退条件の欄（adr.rs・種類の値域は置き場の憲法の schema.enums.retreat_kind） | 引かない（憲法の値域は読むが規則の表の行ではない） | 撤退条件 | 拾う |
+| R-3 | 部品目録に無い class（parts.rs・目録は床の定数と CSS） | 引かない（行 R-3 の値を読まない） | 部品目録 | 拾う |
+| P-18 | 編集時の止めの本数の下限（polarity.rs） | 欄 key in-loop-min で引く（id では引かない・名札は folio2 の条） | polarity | 便 202 で済み |
+| R-17 | 散文の言及（mentions.rs） | 引く（行 R-17 を id で探し値 0 件 を読む・行が無ければ数えない知らせ） | R-17 | 変えない |
+| R-9・R-10・R-11 | 語彙（vocab.rs）・平易文と強度と文末（check.rs） | 行の在否だけを `rules::label` で見て名札を選ぶ（値も対象も読まない・語彙の母集団は全行の what を読むが id では引かない） | 在れば id・無ければ 語彙・平易文・強度と文末（便 156） | 変えない（席の裁定・(i) 2） |
+
+   行 R-8（対話面の値域・link.rs の `surface`・床の定数）と行 R-16（散文の門・prose.rs）も id の字で引くが、その違反の名札は adr・note（検査の名）で id を出さない。
+
+7. **base の歯（参考値）。** workspace の nextest 1147 / 1147・clippy 0 警告・床 4 本 rc 0・`folio build --write` 39 file。`git grep -n f203_ -- crates` は 0 件・行 id `gx` は 0 件。
 
 ### (b) 直す先
 
 1. **`crates/folio/src/rules.rs`（名札の読み）。** 置き場の名札の読み（型 Labels・置き場の dir から 1 度だけ作り、関数 shown で名札を引く）と、6 つの id の検査の名の表 ABROAD_LABELS を足す: A-2 = 改訂と判断の記録・N-4 = 改訂の承認・P-7 と P-7.1 = id の再利用と改番・P-8 = 撤退条件・R-3 = 部品目録。
-   - 外かどうかは `floor::abroad` に `adr::place_name` の名を渡して判じる。
-   - 置き場に在る id の集合は、参照 id の解決先と同じ `refs::known_ids` で、憲法の条と規範文と規則の表の行（`check::load_pair` の読み）から作る。読めなければ集合は空。
-   - folio2 の置き場と名の無い口は名札の字のまま。外の置き場は、置き場に在る id ならその id、無ければ表の検査の名（便 156 の `rules::label` と同じ形）。表に無い名札（adr・schema・note・R-9 など）は変えない。
+   - 外かどうかは `floor::abroad` に `adr::place_name` の名を渡して判じる（便 202 と同じ）。
+   - folio2 の置き場と名の無い口は名札の字のまま。外の置き場は、表の 6 つの id を置き場の憲法と規則の表に依らず検査の名にする（(a) 6 の表のとおりどれも置き場の行を引かない＝置き場の同じ id は別の意味でありうる）。表に無い名札（adr・schema・note・polarity・行を引く R-17 と便 156 の R-9〜R-11 など）は変えない。
+   - 読みは置き場の名だけで、憲法と規則の表は読まない。
 2. **`crates/folio/src/main.rs`（出力の口 3 か所）。** 素の床・`folio check --proposed`・`folio parts --check` が、置き場の dir で名札の読みを 1 度作り、[名札] を出すときだけ引く。`--proposed` の書く前と後の突き合わせは名札の元の字で数える（止めるか・つながりか・件数は変わらない）。つながりに数える違反の種類（adr・index・note・ceiling・intake・参照 id）は今は表に無いので、つながりの行の名札は変わらない（素の床の行と同じ字を保つために同じ引き方を通す）。
 3. **`crates/folio/src/floor.rs` と `crates/folio/src/polarity.rs`（番号の片の関数）。** 便 202 が polarity.rs に置いた関数 `said`（`val_for` の注の外・folio2 の置き場と名の無い口は定数のまま・外は folio2 の番号の印を持つ括弧の項と文を落とす）を floor.rs へ移し、crate の中から呼べるようにする（式は同じ）。polarity.rs はそれを呼ぶ（字と判定は変わらない）。
 4. **まだ分からない の行の番号の片を同じ関数に通す。** 片だけを通し、置き場の自分の id（行 R-2 など）を持つ片は通さない。
@@ -53,17 +68,17 @@
    - `crates/folio/src/anchor.rs`: `check_anchor` が置き場の名を読み、3 行の片（A-2 / N-4 の・（まだ分からない・P-10.3）・（P-10.3））を通す。
    - `crates/folio/src/link.rs`: `retreat_kind` が置き場の名を引数に取り、（FR25）を通す。
    - `crates/folio/src/seal.rs`: 封の一覧が無い行の（folio check --freeze-adrs で封を書き、commit する・P-10.3）を通す。
-5. **外の置き場の字（見本の binary の実測・骨格）。** 名札 =「[改訂の承認] ADR-1: accepted なのに approval（逐語・日付・裁定 id・対話面）が無い」・「[撤退条件] ADR-1: 撤退条件が空（P-8.1）」ほか・「[部品目録] index.html: 部品目録に無い class「zz-unknown」」（置き場に行 R-3 を足すと [R-3]）・「[改訂と判断の記録] srs.yaml: …」。まだ分からない =「凍結 anchor が 0 本（<dir>）＝差分検査は「まだ分からない」。発効版で --freeze-anchor を実行する」・「<場所> が 未記入（骨格の印）」・「…の本文の凍結を測れない（folio check --freeze-adrs で封を書き、commit する）」・「…比較元が立たない（まだ分からない）。…」・「…anchor file が無いか読めない＝差分検査は「まだ分からない」。anchors/ は消さない」・値域の行は末尾の FR25 の片が無い。
-6. **変えないもの。** folio2 の置き場と名の無い口の字と判定（終了コード・違反と まだ分からない の件数と字・--proposed の答え・--polarity の出力）・`floor.rs` の `abroad`・`val_for`・`text_for` の式・床の定数の字・生成区間・便 156 の `rules::label` と行 R-9〜R-11 の名札・違反の本文の中の番号（表の 6）・書き出す file の見出し（表の 7）・行を id で引く所（表の 8）。外の置き場でも判定と件数は変わらず、変わるのは名札と まだ分からない の行の番号の片だけ。
+5. **外の置き場の字（見本の binary の実測・骨格）。** 名札 =「[改訂の承認] ADR-1: accepted なのに approval（逐語・日付・裁定 id・対話面）が無い」・「[撤退条件] ADR-1: 撤退条件が空（P-8.1）」ほか・「[部品目録] index.html: 部品目録に無い class「zz-unknown」」（置き場に行 R-3 を足しても同じ）・「[改訂と判断の記録] srs.yaml: …」。まだ分からない =「凍結 anchor が 0 本（<dir>）＝差分検査は「まだ分からない」。発効版で --freeze-anchor を実行する」・「<場所> が 未記入（骨格の印）」・「…の本文の凍結を測れない（folio check --freeze-adrs で封を書き、commit する）」・「…比較元が立たない（まだ分からない）。…」・「…anchor file が無いか読めない＝差分検査は「まだ分からない」。anchors/ は消さない」・値域の行は末尾の FR25 の片が無い。
+6. **変えないもの。** folio2 の置き場と名の無い口の字と判定（終了コード・違反と まだ分からない の件数と字・--proposed の答え・--polarity の出力）・`floor.rs` の `abroad`・`val_for`・`text_for` の式・床の定数の字・生成区間・便 156 の `rules::label` と行 R-9〜R-11 の名札・行 R-17 の名札・違反の本文の中の番号（表の 6）・書き出す file の見出し（表の 7）・行を id で引く所（表の 8）。外の置き場でも判定と件数は変わらず、変わるのは名札と まだ分からない の行の番号の片だけ。
 
 ### (c) 歯（f203_・base で 0 件・4 本と既存の歯 6 か所の字の期待）
 
 1. **単体 f203_said_drops_only_the_folio2_number_pieces_abroad（`floor.rs` の tests の区間）。** (b) 4 の片 6 つ（骨格の印・（まだ分からない・P-10.3）・封の片・A-2 / N-4 の・（FR25）・・FR25）について、名が無い・folio2-constitution は片のまま、tsuzuri-constitution・未記入・folio2 は外の字（歯の側の手書き: （骨格の印）・（まだ分からない）・（folio check --freeze-adrs で封を書き、commit する）・空の字・空の字・空の字）。
-2. **単体 f203_labels_name_only_ids_the_place_has_abroad（`rules.rs` の tests の区間）。** folio2 の置き場は 6 つの id のまま。外で id の無い置き場は表の検査の名。表に無い名札（adr・schema・R-9・P-18・polarity）は変えない。条 N-4 と規範文 N-4.1・条 P-7 と規範文 P-7.1・行 R-3・行 D-1 を持つ外の置き場は、A-2 → 改訂と判断の記録・N-4 → N-4・P-7 → P-7・P-7.1 → P-7.1・P-8 → 撤退条件・R-3 → R-3。
+2. **単体 f203_labels_name_the_check_abroad_even_where_the_place_has_the_id（`rules.rs` の tests の区間）。** folio2 の置き場（外でない）は 6 つの id のまま、外の置き場は 6 つとも検査の名（改訂と判断の記録・改訂の承認・id の再利用と改番 2 つ・撤退条件・部品目録・歯の側の手書き）。表に無い名札（adr・schema・R-9・R-17・P-18・polarity）は両方で変わらない。読みは置き場の表を見ないので、同じ id を持つ外の置き場でも検査の名（(c) 3 の (b)(c) が写しで見る）。
 3. **`tests/mechanism_live.rs` f203_abroad_labels_and_unknowns_name_no_folio2_number。** 外の置き場の最小の写し = 骨格（git init の後に `folio init`・名は 未記入）。
    - (a) ADR-1 を発効にした写しの素の床: 終了 1・違反はちょうど [改訂の承認] の 1 行・凍結 anchor が 0 本の行は「）＝差分検査は「まだ分からない」。発効版で --freeze-anchor を実行する」で終わる・封の一覧が無い行は外の字・骨格の印の 4 行は（骨格の印）・標準出力と標準エラーに条と規範文の id の形（P- / N- / A- と数）が 0。編集時の口（新しい骨格に発効にした ADR-1 の中身を渡す）も同じ名札の 1 行と外の字の封の行・id の形 0。
-   - (b) 撤退条件を空にした写し: 違反はちょうど [撤退条件] の 3 行（字の中の（P-8.1）は表の 6 で本便の外）。
-   - (c) 面を 1 度組み、index.html に class zz-unknown を足した `folio parts --check`: 終了 1・「[部品目録] index.html: 部品目録に無い class「zz-unknown」」。規則の表に行 R-3 を足すと「[R-3] …」。
+   - (b) 撤退条件を空にし、同じ id の条 P-8（別の意味の条・規範文 P-8.1・meta.counts を合わせる）を憲法に足した写し: 違反はちょうど [撤退条件] の 3 行（置き場が P-8 を持っても検査の名・字の中の（P-8.1）は表の 6 で本便の外）。
+   - (c) 面を 1 度組み、index.html に class zz-unknown を足した `folio parts --check`: 終了 1・「[部品目録] index.html: 部品目録に無い class「zz-unknown」」。規則の表に行 R-3 を足しても同じ「[部品目録] …」（床は行 R-3 を引かない）。
    - (d) anchors/index.yaml の entries が空の写しと、版 v1.0 だけを持つ索引で anchor file が無い写し: まだ分からない の行がそれぞれ外の字（（まだ分からない）・P-10.3 の片なし）。
    - (e) 同じ中身で憲法の名だけ folio2-constitution にした写し: 名札 [N-4]・「）＝A-2 / N-4 の差分検査は「まだ分からない」（P-10.3）。発効版で --freeze-anchor を実行する」・骨格の印の 4 行は（骨格の印・裁定の前＝条 P-17.3）（今の字）。
 4. **`tests/constitution_range.rs` f203_abroad_range_pendings_drop_the_requirement_id。** 骨格の値域の節に、組み立てた版に無い鍵 colour・一覧でない鍵 tier・広げた値 strength の zz・無い鍵 binds を当てた写しの素の床: 値域の まだ分からない の行がちょうど 4 行で、どれも外の字（（組み立てた版に無い鍵・値域を置き場ごとに広げる口は無い）・末尾の片なし・（「zz」・値域を置き場ごとに広げる口は無い）・末尾の片なし）・出力に FR25 が 0・終了 2。値域の節を表でなくした写し: 撤退条件の種類が読めない行と「schema.enums（置き場の憲法の値域の節）が表でない＝条の値を置き場の値域で引けない」の 2 行・FR25 が 0。folio2 の置き場の同じ 5 通りの字（FR25 の片あり）は便 122 の f122_ の歯が見る。
@@ -72,34 +87,34 @@
    - `tests/link.rs` の link_amended_by_orphan_fails の 2 か所: [N-4] → [改訂の承認]。link_retreat_kind_drift_is_unknown_and_not_pass: まだ分からない の行の末尾の（FR25）を落とす。頭の注に便 203 の 2 行。
    - `tests/face_srs_adrs.rs` の f166_adrs_without_a_record_are_not_yet_known: 骨格の [A-2] → [改訂と判断の記録]。
    - `tests/constitution_range.rs` の f157_narrowed_range_is_pending_and_never_pass: 骨格の値域が狭い行の期待から ・FR25 を落とす。
-6. **RED の実測。** 歯の file 5 本だけ（見本 ec92308 の tests の字）を base に当てると 7 本が落ちる（nextest の rc 100・起草の記録の red-203-*.log）: tests/mechanism_live.rs の f203_ の 1 本（7 本のうち・違反の名札が [N-4] で期待の [改訂の承認] と違う）・tests/adr.rs の 1 本（13 本のうち）・tests/link.rs の 2 本（3 本のうち）・tests/face_srs_adrs.rs の 1 本（3 本のうち）・tests/constitution_range.rs の 2 本（8 本のうち・f203_ と f157_ の値域の行の末尾に FR25 の片が残る）。base の `--bin folio f203_` は 0 本（単体の歯は src の中・nextest の rc 4）。
+6. **RED の実測。** 歯の file 5 本だけ（見本 8c2d81b の tests の字）を base に当てると 7 本が落ちる（nextest の rc 100・起草の記録の red-203-*.log）: tests/mechanism_live.rs の f203_ の 1 本（7 本のうち・違反の名札が [N-4] で期待の [改訂の承認] と違う）・tests/adr.rs の 1 本（13 本のうち）・tests/link.rs の 2 本（3 本のうち）・tests/face_srs_adrs.rs の 1 本（3 本のうち）・tests/constitution_range.rs の 2 本（8 本のうち・f203_ と f157_ の値域の行の末尾に FR25 の片が残る）。base の `--bin folio f203_` は 0 本（単体の歯は src の中・nextest の rc 4）。
 
 ### (d) 採らなかった形
 
-1. **名札を積む所（50 か所）で置き場の id を引く。** 積む関数の全部に置き場の id の集合を渡す口が要り、`--proposed` の書く前と後の突き合わせの字も置き場で動く。出力の口 3 か所で 1 度引く形なら、判定と突き合わせは元の字のままで、便 156 と同じく出すときの字だけが変わる。
-2. **名札を置き場に依らず検査の名にする（台帳の候補 (2) の後ろ半分）。** folio2 の置き場の字が変わる（依頼の変えてはいけないもの）。意味の予約をどう閉じるかの判断（台帳の後半・判断の記録が要る）を先取りする。
-3. **まだ分からない の片を、置き場にその id が在るかで出し分ける（名札と同じ形）。** 片の番号は folio2 の条が理由を名指す字で、置き場の同じ id とは意味が合わない（tsuzuri の P-10 は失敗の繰り返し）。便 194・202 と同じく外では落とす。
+1. **置き場に在る id ならその id、無ければ検査の名（便 156 の形をそのまま 6 つへ広げる・最初の起草 6750219）。** tsuzuri は 6 つの id を全部持つので名札が 1 つも変わらず、しかも P-7・P-8・R-3 は tsuzuri では別の意味の条と行を名指す（(a) 4）。外の利用者は tsuzuri だけなので効かない便になる。席の裁定で、名札に id を出すのは置き場の行を id で引いて読む検査だけにした。
+2. **名札を積む所（50 か所）で引く。** 積む関数の全部に置き場の名を渡す口が要り、`--proposed` の書く前と後の突き合わせの字も置き場で動く。出力の口 3 か所で 1 度引く形なら、判定と突き合わせは元の字のままで、出すときの字だけが変わる。
+3. **まだ分からない の片を、置き場にその id が在るかで出し分ける。** 片の番号（A-2 / N-4・P-10.3・条 P-17.3・FR25）は folio2 の条と要件が理由を名指す字で、どれも置き場の行を引かない（名札と同じ席の基準）。tsuzuri の P-10 は失敗の繰り返しで意味が合わない。便 194・202 と同じく外では落とす。
 4. **まだ分からない の行を丸ごと生成区間の落とし方に通す。** 字の中の行 R-2・R-8・R-16 と置き場の path が印に数えられ、文ごと落ちる（便 202 の (d) 3 と同じ）。片だけを通す。
-5. **違反の本文の中の番号（表の 6・28 か所）も同じ便で拾う。** size が M の上限に近づき（check.rs の余地は本便の後 319）、見る歯も違反の字の 28 通りに広がる。別の便に割る（席へ返す）。
+5. **違反の本文の中の番号（表の 6・28 か所）も同じ便で拾う。** size が M の上限に近づき（check.rs の余地は本便の後 319）、見る歯も違反の字の 28 通りに広がる。便 205（行 gz）に割る（今は起草しない）。
 6. **検査の名の表を規則の表か設計文書に置く。** 名札は検査の名の表示で、閾値でも規則でもない。便 156 の表（rules.rs の LABELS）と同じく実装の型付きの定数に置き、同じ file に並べる。
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本の写し（ec92308）で workspace の nextest 1151 / 1151（base 1147 + f203_ の 4 本・6750219 では 1150 / 1150）・clippy 0 警告・床 4 本 rc 0・`folio build --write` 39 file が base と全 file で byte で同じ。folio2 の素の床の標準出力と標準エラーは base の binary と byte で同じ（知らせは今の字）。字の期待を直した既存の歯は (c) 5 の 6 か所だけ。
-2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体〔f203_・floor・rules・polarity の tests〕と tests/ の 7 本〔mechanism_live・adr・link・face_srs_adrs・constitution_range・polarity・proposed〕を撃つ）。** 23 通りとも落ちる（生き残り 0・起草の記録の mut-203.log〔M1〜M20・6750219〕と mut-203-M20-M21-M22-M23.log〔ec92308〕・落ちた歯の本文は mut-203-M*.log）。6750219 では M20 が生き残ったので、歯 (c) 4 を足して M20 と同じ族の M21〜M23 を撃った。数えない等価な変異: 番号の片の関数の注の旗を真にする（空の字になるのは同じ）・つながりの行の名札を元の字に戻す（今つながりに数える種類は表に無い）。
+1. **既存の歯。** 見本の写し（8c2d81b）で workspace の nextest 1151 / 1151（base 1147 + f203_ の 4 本）・clippy 0 警告・床 4 本 rc 0・`folio build --write` 39 file が base と全 file で byte で同じ。folio2 の素の床の標準出力と標準エラーは base の binary と byte で同じ（知らせは今の字）。字の期待を直した既存の歯は (c) 5 の 6 か所だけ。
+2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体〔f203_・floor・rules・polarity の tests〕と tests/ の 7 本〔mechanism_live・adr・link・face_srs_adrs・constitution_range・polarity・proposed〕を撃つ）。** 23 通りとも落ちる（生き残り 0・起草の記録の mut-203-M1-M2-M3-M4-M5-M6-M7-M8-M9.log と mut-203-M10-…-M23.log〔どちらも 8c2d81b〕・落ちた歯の本文は mut-203-M*.log）。6750219 では M20 が生き残ったので、歯 (c) 4 を足して M20 と同じ族の M21〜M23 も撃った。M1〜M6 は席の裁定の後の名札の読みの変異。数えない等価な変異: 番号の片の関数の注の旗を真にする（空の字になるのは同じ）・つながりの行の名札を元の字に戻す（今つながりに数える種類は表に無い）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
 | M1 名札を常に元の字 | 単体の rules の f203_・mechanism_live の f203_・adr・link・face_srs_adrs の字の期待 3 本 |
-| M2 置き場に在る id かを見ない | 単体の rules の f203_・mechanism_live の f203_（行 R-3 を足した写し） |
-| M3 外かどうかを見ない（folio2 の置き場でも無い id を名にする） | 単体の rules の f203_・mechanism_live の f203_・constitution_range の f122_ 4 本と f157_ 2 本・proposed の f198_ 1 本 |
-| M4 規則の表の行を id に数えない | 単体の rules の f203_・mechanism_live の f203_ |
-| M5 憲法の条と規範文を id に数えない | 単体の rules の f203_ |
-| M6 外の置き場の憲法と規則の表を読まない | mechanism_live の f203_ |
+| M2 外かどうかの分岐を逆にする | 単体の rules の f203_・mechanism_live の f203_・adr・link・face_srs_adrs の字の期待 3 本・constitution_range の f122_ 4 本と f157_ 2 本・proposed の f198_ 1 本 |
+| M3 外かどうかを見ない（folio2 の置き場でも検査の名） | 単体の rules の f203_・mechanism_live の f203_・constitution_range の f122_ 4 本と f157_ 2 本・proposed の f198_ 1 本 |
+| M4 置き場の名を読まず常に folio2 の置き場と扱う | mechanism_live の f203_・adr・link・face_srs_adrs の字の期待 3 本 |
+| M5 置き場の名を読まず常に外と扱う | mechanism_live の f203_・constitution_range の f122_ 4 本と f157_ 2 本・proposed の f198_ 1 本 |
+| M6 表の R-3 の行を別の id にする（外で [R-3] が出る） | 単体の rules の f203_・mechanism_live の f203_ |
 | M7 素の床の違反の行を元の名札で出す | mechanism_live の f203_・adr・link・face_srs_adrs の字の期待 3 本 |
 | M8 --proposed の止める行を元の名札で出す | mechanism_live の f203_ |
 | M9 parts --check の違反の行を元の名札で出す | mechanism_live の f203_ |
-| M10 番号の片の関数が置き場の名を見ない | 単体の floor の f203_ と polarity の f202_・mechanism_live の f203_ と f156_・polarity の f202_・link・constitution_range の f157_ |
+| M10 番号の片の関数が置き場の名を見ない | 単体の floor の f203_ と polarity の f202_・mechanism_live の f203_ と f156_・polarity の f202_・link・constitution_range の f157_ と f203_ |
 | M11 番号の片の関数が常に外の字 | 単体の floor の f203_ と polarity の f202_・mechanism_live の f203_ と f131_ 2 本・polarity の f200_ 2 本と f202_・constitution_range の f122_ 4 本と f157_ 2 本 |
 | M12 骨格の印の行を定数のまま出す | mechanism_live の f203_ |
 | M13 値域が狭い行の FR25 を落とさない | constitution_range の f157_ |
@@ -113,7 +128,18 @@
 | M21 値域の節が表でない行の FR25 を落とさない | constitution_range の f203_ |
 | M22 値域の鍵が一覧でない行の FR25 を落とさない | constitution_range の f203_ |
 | M23 値域に鍵が無い行の FR25 を落とさない | constitution_range の f203_ |
-3. **外の置き場。** 骨格の写し（起草の記録の sk-203.log・(c) 3 と同じ編集）で base と見本の答えの違いは、名札 [N-4] → [改訂の承認]（ADR-1 を発効にした写し）と、まだ分からない の 5〜6 行の番号の片だけ（終了コード 2 と 1・件数は同じ）。見本の出力に残る番号の形は骨格の自分の行 R-2・R-8・R-16 と、行 R-17 の知らせ（表の 8）だけ。tsuzuri の写し（tz-203.log）では、素の床・`--polarity`・編集時の口（撤退条件を空にした ADR-1 を渡す）・`folio build`（72 file）は base と見本で byte で同じ（名札は全部 tsuzuri に在る id）。違いは entries を空にした索引の写しの（まだ分からない・P-10.3）→（まだ分からない）と、封の一覧を外した写しの（…commit する・P-10.3）→（…commit する）の 2 行だけ。
+3. **外の置き場。** 骨格の写し（起草の記録の sk-203.log・(c) 3 と同じ編集）で base と見本の答えの違いは、名札 [N-4] → [改訂の承認]（ADR-1 を発効にした写し）と、まだ分からない の 5〜6 行の番号の片だけ（終了コード 2 と 1・件数は同じ）。見本の出力に残る番号の形は骨格の自分の行 R-2・R-8・R-16 と、行 R-17 の知らせ（表の 8）だけ。tsuzuri の写し（tz-203.log・tz-203b.log）では、素の床・`--polarity`・`folio build`（72 file）は base と見本で byte で同じで、変異を当てた写しの違反の名札が次のとおり変わる（名札を除いた字・終了コード・件数・標準エラーは同じ）。
+
+| tsuzuri の写しに当てた変異 | base の名札 | 見本の名札 |
+| --- | --- | --- |
+| ADR-1 の撤退条件を空（素の床と編集時の口） | [P-8] 3 行（例「[P-8] ADR-1: 撤退条件が空（P-8.1）」） | [撤退条件] 3 行（「[撤退条件] ADR-1: 撤退条件が空（P-8.1）」） |
+| ADR-2 の承認の逐語を 未記入 | 「[N-4] ADR-2.approval.verbatim が 未記入（init の雛形の印・空と同じ）」 | [改訂の承認] で同じ字 |
+| 要件 FR1 の adrs を無い ADR-99 に | 「[A-2] srs.yaml: requirements[0].adrs[0]: 判断の記録 ADR-99 が実在しない」 | [改訂と判断の記録] で同じ字 |
+| ADR-6 の id を ADR-96 に（本文同じ）・ADR-5 の id と title を変える | 「[P-7.1] ADR-6 の本文が ADR-96 へ付け替えられた（…）」・「[P-7] ADR-5 が消えた（…）」・[A-2] 2 行 | [id の再利用と改番] 2 行・[改訂と判断の記録] 2 行 |
+| 規範文 P-1.1 を P-1.9 に改番し憲法の版を v1.2 に | 「[A-2] 憲法の版 v1.2 と最新 anchor の版 v1.1 が違う…」・「[P-7] 規範文の改番: P-1.1 を消して同じ本文を P-1.9 として足している（…）」 | [改訂と判断の記録]・[id の再利用と改番] |
+| 組んだ面の index.html に目録に無い class・`folio parts --check` | 「[R-3] index.html: 部品目録に無い class「zz-unknown」」 | [部品目録] で同じ字 |
+
+   まだ分からない の行は、索引の entries を空にした写しの（まだ分からない・P-10.3）→（まだ分からない）と、封の一覧を外した写しの（…commit する・P-10.3）→（…commit する）の 2 行が変わる。
 
 ### (f) 大きさ・余地・verify と done の対応
 
@@ -124,15 +150,15 @@
 | --- | ---: | ---: | ---: | ---: |
 | `crates/folio/src/floor.rs` | 794 | 706 | 822（+28・単体の歯を含む） | 678 |
 | `crates/folio/src/polarity.rs` | 179 | 1321 | 174（−5） | 1326 |
-| `crates/folio/src/rules.rs` | 498 | 1002 | 592（+94・単体の歯を含む） | 908 |
+| `crates/folio/src/rules.rs` | 498 | 1002 | 561（+63・単体の歯を含む） | 939 |
 | `crates/folio/src/main.rs` | 778 | 722 | 782（+4） | 718 |
 | `crates/folio/src/check.rs` | 1172 | 328 | 1181（+9） | 319 |
 | `crates/folio/src/anchor.rs` | 1072 | 428 | 1079（+7） | 421 |
 | `crates/folio/src/link.rs` | 647 | 853 | 649（+2） | 851 |
 | `crates/folio/src/seal.rs` | 316 | 1184 | 321（+5） | 1179 |
 
-3. **size は M。** src の増分は +144 で S の見積 100 を超え、M の 300 の内。余地の最小（check.rs の base 328）は M の 300 を超える。
-4. **verify は 11 行**で、done の 11 の塊と 1 対 1 に揃える。見本の ec92308 で 11 行とも rc 0（2・1・7・8・13・3・3・8・7・1 本と clippy 0 警告・verify-impl2.log）。
+3. **size は M。** src の増分は +113 で S の見積 100 を超え、M の 300 の内。余地の最小（check.rs の base 328）は M の 300 を超える。
+4. **verify は 11 行**で、done の 11 の塊と 1 対 1 に揃える。見本の 8c2d81b で 11 行とも rc 0（2・1・7・8・13・3・3・8・7・1 本と clippy 0 警告・verify-impl3.log）。
    1. `cargo nextest run -p folio --bin folio f203_` = (c) 1・2（2 本）。
    2. `cargo nextest run -p folio --test mechanism_live f203_` = (c) 3（1 本）。
    3. `cargo nextest run -p folio --test mechanism_live` = (c) 3 と骨格と床の土台の知らせの歯（便 156・202 の f156_・f131_）。
@@ -150,8 +176,8 @@
 1. **門。** 冒頭のとおり対象外・0（通す）。本流の binary（`target/debug/folio`・06:30 の組み立て・1c7f927）に write-set の 14 本を渡した答え「folio ceiling: 通す（設計文書の正本を書き換えない便）」（gate-203.log）。
 2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d203 の本契約で 契約に起因する断り 0（起草の記録の precheck-203.log）。見本の写しで verify の 11 行とも rc 0。
 3. **ほかのレーンとの重なり。** 起草の時点（2026-09-29 07:2x）の origin の impl/* の枝で write-set の file を書き換え、本流に着地していないのは impl/d201（`crates/folio/src/main.rs`・取り下げ済み）だけで、見本との `git merge-tree` は衝突 0。impl/d184〜d202 は本流に squash で着地済み。契約の枝だけで見本の無い docs/d162（write-set に rules.rs・adr.rs・link.rs）と docs/d164（anchor.rs・adr.rs）は base が古く、着地の順が来たら数え直しが要る（本便が先に着地したら、あちらが数え直す）。
-4. **数え直し。** 受付の時点の本流で write-set の file か、`floor.rs` の `abroad`・`val_for`・`text_for`、`refs::known_ids`、`check::load_pair`、`adr::place_name` が base と違えば、見本を本流に取り込み、verify と骨格と tsuzuri の写しの答え（(e) 3）を数え直してから運ぶ。
-5. **着地の後（外の置き場）。** 生成区間も床の判定も変わらないので、外の置き場の file の書き直しは要らない。tsuzuri では名札は変わらず（6 つの id を全部持つ）、まだ分からない の行が出たときだけ（P-10.3）と FR25 の片が落ちる。席は tsuzuri へこの 1 行を返す。
+4. **数え直し。** 受付の時点の本流で write-set の file か、`floor.rs` の `abroad`・`val_for`・`text_for`、`adr::place_name`、`rules::label` が base と違えば、見本を本流に取り込み、verify と骨格と tsuzuri の写しの答え（(e) 3）を数え直してから運ぶ。
+5. **着地の後（外の置き場）。** 生成区間も床の判定も変わらないので、外の置き場の file の書き直しは要らない。tsuzuri では 6 つの名札（A-2・N-4・P-7・P-7.1・P-8・R-3）が検査の名（改訂と判断の記録・改訂の承認・id の再利用と改番・撤退条件・部品目録）で出て、まだ分からない の行が出たときは（P-10.3）と FR25 の片が落ちる。語彙・平易文・強度と文末の名札（便 156）と行 R-17 の名札は変わらない。席は tsuzuri へこの 1 行を返す。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
 
@@ -168,7 +194,7 @@
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
 1. **運ばないもの。** folio2 の置き場の字と判定・`floor.rs` の外の判定と番号の落とし方の式・床の定数の字・生成区間・要件書・規則の表・便 156 の名札・違反の本文の中の番号（(a) 5 の表の 6）・書き出す file の見出しと面の凡例（表の 7）・行を id の字で引く所と判断の記録 ADR-16 決定 (2)(オ) の字（表の 8・台帳の後半）・外の置き場の file・台帳への記帳（席）・外部 crate・新しい dir。
-2. **言えないこと。** 外の置き場の違反の行は、名札に番号が出なくなっても、本文の末尾の（P-8.1）・（P-7.2）などの folio2 の番号を持つ（表の 6・骨格の撤退条件の写しで 1 行）。名札は置き場に在る id ならその id を出すので、置き場が同じ id を別の意味で持つ（tsuzuri の P-7・P-8・R-3）と、名札はその置き場の条を名指したように読める（台帳の後半）。
+2. **言えないこと。** 外の置き場の違反の行は、名札に番号が出なくなっても、本文の末尾の（P-8.1）・（P-7.2）などの folio2 の番号を持つ（表の 6・便 205 の案・骨格の撤退条件の写しで 1 行）。便 156 の名札 R-9〜R-11 は置き場の表に同じ id の行が在れば id を出すので、tsuzuri では語彙・平易文・強度と文末の違反が [R-9]・[R-10]・[R-11] で出る（tsuzuri の R-9 は変異生存率の記録の間隔・R-10 は lint で deny にする書き方・R-11 は編集時の止めの本数の下限）。床はこの 3 行の値も対象も読まない（(a) 6）が、本便は席の裁定のとおり 156 の形のまま運ばない。
 3. **撤退条件。** (1) 要件書・判断の記録・憲法・床の定数の字を変えないと書けないと分かったら、止めて席へ返す。(2) 本便の後に §1 (c) 5 の 6 か所のほかに既存の歯が落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(3) 本便の後に folio2 自身の床 4 本の結果か、folio2 の素の床の標準出力と標準エラーか、`folio build` の出力が 1 byte でも変われば、止めて席へ返す。
 
 ## 2. 範囲
@@ -180,7 +206,7 @@
 
 | id | 名 | 役 |
 | --- | --- | --- |
-| labels | 名札の読み | `rules.rs` が置き場の名と置き場の id の集合で 6 つの id の名札を引く（在れば id・無ければ検査の名） |
+| labels | 名札の読み | `rules.rs` が置き場の名だけで外かどうかを判じ、外なら 6 つの id の名札を検査の名にする（置き場の表に同じ id が在っても） |
 | print | 出力の口 | `main.rs` の素の床・--proposed・parts --check が出すときだけ名札を引く |
 | pieces | 番号の片 | `floor.rs` の関数が まだ分からない の行の folio2 の番号の片を外で落とす（`check.rs`・`anchor.rs`・`link.rs`・`seal.rs`・`polarity.rs` が呼ぶ） |
 | teeth | 歯 | 単体の f203_ 2 本・`tests/mechanism_live.rs` の f203_ 1 本・`tests/constitution_range.rs` の f203_ 1 本・既存の歯 4 file 6 か所の字の期待 |
@@ -200,11 +226,11 @@ schema = 1
 
 [[contract]]
 id = "gx"
-title = "外の置き場で違反の名札と まだ分からない の行が folio2 の番号を名指さない（台帳 f2-648.236 の前半・便 156 の形・便 202 と同じ外の判じ方）: crates/folio/src/rules.rs に置き場の名札の読み（名は adr::place_name・外の判定は floor::abroad・置き場の id は check::load_pair の憲法と規則の表から refs::known_ids）と 6 つの id の検査の名の表（A-2 改訂と判断の記録・N-4 改訂の承認・P-7 と P-7.1 id の再利用と改番・P-8 撤退条件・R-3 部品目録）を足し、crates/folio/src/main.rs の出力の口 3 か所（素の床・--proposed・parts --check）が出すときだけ名札を引く（外の置き場は置き場に在る id ならその id・無ければ検査の名）。便 202 の番号の片の関数を crates/folio/src/polarity.rs から crates/folio/src/floor.rs へ移し、crates/folio/src/check.rs（骨格の印の条 P-17.3・値域の FR25 の 6 か所）・crates/folio/src/anchor.rs（A-2 / N-4 の・P-10.3 の 3 行）・crates/folio/src/link.rs（撤退条件の種類の FR25）・crates/folio/src/seal.rs（封の一覧が無い行の P-10.3）の まだ分からない の行の番号の片を通す。folio2 の置き場と名の無い口の字と判定は変えない。歯は floor.rs と rules.rs の単体の f203_ 2 本と tests/mechanism_live.rs の f203_ 1 本（骨格 folio init を外の置き場の最小の写しにする）と tests/constitution_range.rs の f203_ 1 本（骨格の値域の まだ分からない の 5 通り）と、写しの名が外に当たる既存の歯 4 file 6 か所の字の期待（tests/adr.rs・tests/link.rs・tests/face_srs_adrs.rs・tests/constitution_range.rs）。実装の見本は origin の枝 impl/d203 の commit ec92308（base 1c7f927）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 1c7f927"
+title = "外の置き場で違反の名札と まだ分からない の行が folio2 の番号を名指さない（台帳 f2-648.236 の前半・席の裁定 2026-09-29・便 202 と同じ外の判じ方）: crates/folio/src/rules.rs に置き場の名札の読み（名は adr::place_name・外の判定は floor::abroad・置き場の憲法と規則の表は読まない）と 6 つの id の検査の名の表（A-2 改訂と判断の記録・N-4 改訂の承認・P-7 と P-7.1 id の再利用と改番・P-8 撤退条件・R-3 部品目録）を足し、crates/folio/src/main.rs の出力の口 3 か所（素の床・--proposed・parts --check）が出すときだけ名札を引く（外の置き場では置き場の憲法と規則の表に同じ id が在っても検査の名・名札に id を出すのは床が置き場の行を id で引いて読む検査だけで、便 156 の R-9〜R-11 と行 R-17 の名札は変えない）。便 202 の番号の片の関数を crates/folio/src/polarity.rs から crates/folio/src/floor.rs へ移し、crates/folio/src/check.rs（骨格の印の条 P-17.3・値域の FR25 の 6 か所）・crates/folio/src/anchor.rs（A-2 / N-4 の・P-10.3 の 3 行）・crates/folio/src/link.rs（撤退条件の種類の FR25）・crates/folio/src/seal.rs（封の一覧が無い行の P-10.3）の まだ分からない の行の番号の片を通す。folio2 の置き場と名の無い口の字と判定は変えない。歯は floor.rs と rules.rs の単体の f203_ 2 本と tests/mechanism_live.rs の f203_ 1 本（骨格 folio init を外の置き場の最小の写しにする）と tests/constitution_range.rs の f203_ 1 本（骨格の値域の まだ分からない の 5 通り）と、写しの名が外に当たる既存の歯 4 file 6 か所の字の期待（tests/adr.rs・tests/link.rs・tests/face_srs_adrs.rs・tests/constitution_range.rs）。実装の見本は origin の枝 impl/d203 の commit 8c2d81b（base 1c7f927）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 1c7f927"
 req = ["FR5", "FR22", "FR25"]
 section = "1"
 write-set = ["crates/folio/src/floor.rs", "crates/folio/src/polarity.rs", "crates/folio/src/rules.rs", "crates/folio/src/main.rs", "crates/folio/src/check.rs", "crates/folio/src/anchor.rs", "crates/folio/src/link.rs", "crates/folio/src/seal.rs", "crates/folio/tests/mechanism_live.rs", "crates/folio/tests/adr.rs", "crates/folio/tests/link.rs", "crates/folio/tests/face_srs_adrs.rs", "crates/folio/tests/constitution_range.rs", "crates/folio/tests/polarity.rs"]
 verify = ["cargo nextest run -p folio --bin folio f203_", "cargo nextest run -p folio --test mechanism_live f203_", "cargo nextest run -p folio --test mechanism_live", "cargo nextest run -p folio --test polarity", "cargo nextest run -p folio --test adr", "cargo nextest run -p folio --test link", "cargo nextest run -p folio --test face_srs_adrs", "cargo nextest run -p folio --test constitution_range", "cargo nextest run -p folio --bin folio floor::tests", "cargo nextest run -p folio --bin folio polarity::tests", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "binary の単体の f203_ の 2 本（番号の片は名の無い口と folio2 の置き場で片のまま・名の等しくない置き場で外の字、名札は folio2 の置き場で 6 つの id のまま・外で置き場に在る id はその id・無い id は検査の名・表に無い名札は変わらない）が緑、tests/mechanism_live.rs の f203_ の 1 本（骨格の素の床と編集時の口と parts --check の名札と まだ分からない の行に folio2 の条と規範文の番号が無く、同じ中身の folio2 の名の写しは今の字）が緑、tests/mechanism_live.rs の歯の全部が緑、tests/polarity.rs の歯の全部（便 200・202 の字と判定）が緑、tests/adr.rs の歯の全部が緑、tests/link.rs の歯の全部が緑、tests/face_srs_adrs.rs の歯の全部が緑、tests/constitution_range.rs の歯の全部（f203_ の 1 本の骨格の値域の まだ分からない の 5 通りに FR25 が無いことと、folio2 の置き場の値域の字）が緑、binary の単体の floor::tests の全部（外の字の落とし方の式）が緑、binary の単体の polarity::tests の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数は着地の直前の main と同じである"
+done = "binary の単体の f203_ の 2 本（番号の片は名の無い口と folio2 の置き場で片のまま・名の等しくない置き場で外の字、名札は folio2 の置き場で 6 つの id のまま・外の置き場で 6 つとも検査の名・表に無い名札は変わらない）が緑、tests/mechanism_live.rs の f203_ の 1 本（骨格の素の床と編集時の口と parts --check の名札と まだ分からない の行に folio2 の条と規範文の番号が無く、同じ id の条 P-8 や行 R-3 を足した骨格でも名札は検査の名で、同じ中身の folio2 の名の写しは今の字）が緑、tests/mechanism_live.rs の歯の全部が緑、tests/polarity.rs の歯の全部（便 200・202 の字と判定）が緑、tests/adr.rs の歯の全部が緑、tests/link.rs の歯の全部が緑、tests/face_srs_adrs.rs の歯の全部が緑、tests/constitution_range.rs の歯の全部（f203_ の 1 本の骨格の値域の まだ分からない の 5 通りに FR25 が無いことと、folio2 の置き場の値域の字）が緑、binary の単体の floor::tests の全部（外の字の落とし方の式）が緑、binary の単体の polarity::tests の全部が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数は着地の直前の main と同じである"
 <!-- contracts:end -->
