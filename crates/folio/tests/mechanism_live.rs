@@ -528,7 +528,27 @@ fn f203_abroad_labels_and_unknowns_name_no_folio2_number() {
     add_rows(&p.dir(), "thresholds", &[("R-3", threshold("R-3", "部品目録に無い型の数", "0 件"))]);
     assert_eq!(parts(), ["[R-3] index.html: 部品目録に無い class「zz-unknown」"]);
 
-    // (d) 同じ中身で名だけ folio2 の置き場の名にした写しは今の字（名札 N-4・A-2 / N-4 と P-10.3・条 P-17.3）
+    // (d) 凍結 anchor の索引の entries が空・索引の版の anchor file が無い骨格: まだ分からない の行は（P-10.3）の片が落ちる
+    let x = Work::skeleton("f203-index");
+    let index = x.dir().join("anchors/index.yaml");
+    fs::create_dir_all(index.parent().unwrap()).unwrap();
+    for (entries, want) in [
+        (
+            "entries: []\n",
+            "index.yaml: 索引はあるが entries が空＝比較元が立たない（まだ分からない）。索引と anchor は消さない・空にしない",
+        ),
+        (
+            "entries:\n- version: v1.0\n  previous: null\n  digest: acb52acd04b5d3a1feaf9ad5f0138f7614ce31964144b46ead914bde86e866ed\n",
+            "anchor の列が切れている: 索引にある版 v1.0 の anchor file が無いか読めない＝差分検査は「まだ分からない」。anchors/ は消さない",
+        ),
+    ] {
+        fs::write(&index, format!("kind: constitution-anchor-index\n{entries}")).unwrap();
+        x.commit();
+        let out = x.check(&[]);
+        assert!(unknown_lines(&out.stderr).contains(&want.to_string()), "{}", show(&out));
+    }
+
+    // (e) 同じ中身で名だけ folio2 の置き場の名にした写しは今の字（名札 N-4・A-2 / N-4 と P-10.3・条 P-17.3）
     let h = Work::skeleton("f203-home");
     accept_adr1(&h.dir());
     edit(&h.dir().join("constitution.yaml"), |t| t.replacen("  id: 未記入\n", "  id: folio2-constitution\n", 1));
