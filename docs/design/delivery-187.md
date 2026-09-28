@@ -4,9 +4,9 @@
 - 条: P-3.1（決定的に検査できる項目は床）・P-3.3（床の合格を完成として扱わない）・P-4.1（生成できなかった結果を異常なしにしない）・P-6.3（読み手を 2 つにしない＝床は面の関数そのものを呼ぶ）・P-15.2（編集時の guard が後で呼ぶ床の関数を、面と同じにしておく）・P-10.1（期待の字は歯の側の手書き）。
 - 出所: 持ち主の指示（2026-09-28 16:3x JST・逐語「床は通るのにページ生成が止まる穴の束は進めて良い」）。台帳 f2-648.249（要件書・入口・憲法の床が面の要る形を見ない）・f2-648.274（判断の記録の帰結の項が写像に読まれても床は合格）・f2-648.242（設計ノートの承認欄の一覧の形の値）。元の表は f2-648.245（9 か所・うち章の上限は便 179 で済み）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gh` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 11 本（src 5・歯の file 6〔新 1・本文不変 5〕）。縮む file・消す file・新しい dir は無い。
-- 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流 6467915 の組み立てに write-set 11 本を渡した `folio ceiling --gate --dir design-intent --write-set …` は **（門の字）**。
+- 門: 対象外。write-set に設計文書の正本（`design-intent/` の下）が無い。本流 6467915 の組み立てに write-set 11 本を渡した `folio ceiling --gate --dir design-intent --write-set …` は **0（通す・設計文書の正本を書き換えない便）**（起草の記録の gate-187.log）。
 - 前提: **base = 本流 6467915**（便 185 の着地の後）。この契約の数はすべて base の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d187`（commit **（見本の commit）**・親は本流 6467915 を取り込んだ merge）。`git diff 6467915 （見本の commit）` が便の全体の差分（6 file・（差分の行と byte））。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout （見本の commit） -- <write-set の file>`）。write-set の外は変えない。
+- 実装の見本: origin の枝 `impl/d187`（commit **0d4de9f**・3ad67a6〔本便〕に本流 6467915 の merge 94ee033 と歯の 2 行を積んだもの）。`git diff 6467915 0d4de9f` が便の全体の差分（6 file・+670 −10・34,801 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 0d4de9f -- <write-set の file>`）。write-set の外は変えない。
 - 並行の便との重なり: base の時点で本便の write-set を書き換える未着地の便の契約は無い。便 185（索引・`graph.rs` ほか）は着地済みで、本便は索引の床（`graph::check_index`）の後ろに段を 1 つ足すだけ。
 
 ## 1. 設計
@@ -14,7 +14,7 @@
 ### (a) いま起きていること（base 6467915 の実測・参考値）
 
 1. **床と面の読み手が 2 つ。** 床（`folio check`＝`check::check_dir` と索引の口 `graph::check_index`）は面の生成器を 1 度も呼ばない。面（`folio build`＝`site.rs` の `build_all`）は正本を型付きの木（`cursor.rs` の `X`）で辿り、要る欄が無い・型が違う・値域の外・上限を超える・参照が解けない、で Err を返し、build は全部か無しかで 1 file も書かず 2 で終わる。だから床が合格のまま面だけが止まる所が生まれる。tsuzuri の席は設計文書の YAML を直接書くので、床（事後の強制）だけでは止まらない。
-2. **全数（code から・起草の記録の sites.py と sites-6467915.tsv）。** 面の経路（`site.rs`・`face*.rs` 12 本・`figure.rs`）で Err を作るか上げる所は **1019**（189 の関数）。内訳は、正本の形を見る所 **932**、下の層の関数（`adr::`・`note::`・`stamp::` など）の Err を上げる所 **28**、図の道具と環境（道具の置き場・Node・凍結 anchor・道具の出力・様式の file・配信先）**31**、build の経路の外（`folio face` と `folio figure` の口）**28**。床が同じ関数でこの条件を見ている所は、面が床の関数を呼ぶ下の層の 28 の一部（章の上限〔便 179〕など）だけで、形の 932 は床が別の読み方をするか見ない。1 か所ずつ床に写すと読み手が 2 つのまま 932 本の写しになる（P-6.3）。
+2. **全数（code から・起草の記録の sites.py と sites-6467915.tsv）。** 面の経路（`site.rs`・`face*.rs` 11 本・`figure.rs`）で Err を作るか上げる所は **1019**（189 の関数）。内訳は、正本の形を見る所 **932**、下の層の関数（`adr::`・`note::`・`stamp::` など）の Err を上げる所 **28**、図の道具と環境（道具の置き場・Node・凍結 anchor・道具の出力・様式の file・配信先）**31**、build の経路の外（`folio face` と `folio figure` の口）**28**。床が同じ関数でこの条件を見ている所は、面が床の関数を呼ぶ下の層の 28 の一部（章の上限〔便 179〕など）だけで、形の 932 は床が別の読み方をするか見ない。1 か所ずつ床に写すと読み手が 2 つのまま 932 本の写しになる（P-6.3）。
 3. **割れの実測（突然変異・起草の記録の sweep.py）。** 床の土台（`tests/fixtures/floor_base/design-intent/` を git の 1 commit にした写し・素の床は合格 0 / 0）の YAML の欄と一覧の項を 1 つずつ消す・一覧に・表に・別の字に・空に替えた写し 8606 のうち、**床が合格で面が止まる 808**。土台に提案中の判断の記録 1 本と発効した設計ノート 1 本を足した写しの、その 2 file の 493 のうち **55**。合わせて 863・面の字の型 425。当てた file ごと（欄が無い / 型が違う / 値域の外 / 参照が解けない / 上限・数 / その他）: 要件書 304・憲法 203・設計ノート 102・入口 87・規則の表 78・支度表 39・判断の記録 30・語彙 10・相談窓口 8・天井 2。folio2 の本流・床の土台・tsuzuri の写し（b229dd9）の素の置き場はどれも床 0 / 0 で build が通る（今の割れ 0）。
 4. **台帳の項が表のどこか（どれも 3. の割れの行・(c) の歯の行）。**
 
@@ -37,7 +37,7 @@
 
 1. **`crates/folio/src/site.rs`。** 床の口（名は check_faces）と違反の種類の定数（名は FACE_KIND・字は「面」）を足す。床のほかの段が何も数えていない（違反・読めない・測れない がどれも 0）ときだけ、build と同じ `build_all` を 2. の図の口と 3. の読み直さない口の中で回し、Err なら面の字のまま種類「面」の違反 1 件に数える（標準出力の行は `[面] <面の字>`）。ほかの段が何かを数えていれば回さない（床は既に合格でなく、同じ原因を 2 度数えない・`graph::check_index` と同じ形）。`write_after_floor`（`--write` の床）は索引の口の後でこれを呼ぶ＝床が落ちれば今どおり 1 file も書かず 1。単体の歯 2 本（(c) の 6・7）と冒頭の注 2 行。
 2. **`crates/folio/src/figure.rs`。** 図の口（名は dry）を足す: 閉包のあいだだけ `render` は型（閉じた一覧）・型付き記述が表・JSON への写し、までを確かめ、道具の置き場・凍結 anchor・道具を撃たずに空の本体を返す（thread_local の旗・閉包を出たら戻す）。道具と Node と凍結 anchor は床の外（床は Node に依らない・道具の答えは今どおり build が まだ分からない で知らせる）。
-3. **`crates/folio/src/cursor.rs`。** 読み直さない口（名は memo）を足す: 閉包のあいだだけ `load` は同じ path の 2 度目から 1 度目に読めた木の写しを返す（読めなかった file は覚えない・閉包を出たら忘れる）。判断の記録の面は 1 枚ごとに憲法・規則の表・要件書を読み直すので、無いと folio2 の debug の床が 1.3 秒から 21 秒になる（ある形で 8.9 秒）。
+3. **`crates/folio/src/cursor.rs`。** 読み直さない口（名は memo）を足す: 閉包のあいだだけ `load` は同じ path の 2 度目から 1 度目に読めた木の写しを返す（読めなかった file は覚えない・閉包を出たら忘れる）。判断の記録の面は 1 枚ごとに憲法・規則の表・要件書を読み直す（folio2 で要件書を 35 回）ので、無いと folio2 の debug の床の面の段だけで約 20 秒かかる（便 185 の前の写しの実測・ある形は (e) の 4）。答えは変えない。
 4. **`crates/folio/src/main.rs`。** `folio check` が索引の口の後で 1. を呼ぶ（注 1 行）。凍結と書き出しの旗の後始末（`freeze::after`）はその後で、今どおり。
 5. **`crates/folio/src/face_note.rs`。** 契約表の行の `verify` と `done` を在るときだけ出す（器の導出 file `contracts/schema.toml` で need が conditional・要否は床〔`note.rs`〕が導出 file から数える）。無いと done の段落も検証の札も出さない。ほかの欄は今どおり。
 6. **変えないもの。** 床のほかの段の判定と字・面の生成器の字と出力（素の置き場の build は base と全 file が byte で同じ＝(e) の 3）・図の道具を撃つ build の道・`folio face` と `folio figure` の口・設計文書の正本（生成区間を含む）・憲法と要件書と判断の記録の字・外部 crate。
@@ -53,7 +53,7 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 5. **f187_contract_rows_without_verify_and_done_build（向き (b)）。** 土台の設計ノート example の契約表の行 a から verify と done を外すと、床は合格 0 / 0 のまま、`folio face --face note --id example` が 0 で書け、行 a の記事に done の段落も検証の札も無い。
 6. **単体 f187_memo_reads_a_file_once_inside_and_every_time_outside（`site.rs` の tests の区間）。** 閉包の中では file を消した後の 2 度目の `load` が 1 度目と同じ木、外では Err。
 7. **単体 f187_dry_render_checks_the_shape_without_the_tool（同じ区間）。** 図の口の中では道具の置き場の無い dir でも空の本体、型が表に無い・記述が表でないは今どおり Err、外に出ると空の本体を返さない。
-8. **RED の実測。** （RED の字）
+8. **RED の実測。** 歯の file だけ（見本 0d4de9f の字）を base に当てると、binary の 5 本とも落ちる（base の床は割れの写しで合格のまま・nextest の rc 100・起草の記録の red-187-final.log）。base の `--bin folio f187_` は 0 本（nextest の rc 4）。
 
 ### (d) 採らなかった形
 
@@ -64,14 +64,14 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本の写しで workspace の nextest **（nextest の数）**・clippy 0 警告・床 4 本 rc 0。字の期待を直した既存の歯は無い。
-2. **突然変異（見本の src だけを 1 通りずつ変え、f187_ の 7 本を撃つ）。** （変異の字）
+1. **既存の歯。** 見本の写しで workspace の nextest **1057 / 1057**（base 1050 + f187_ の 7 本・94ee033 の時点。歯の 2 行を足した 0d4de9f で floor_faces は 5 / 5）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・verify の 8 行とも rc 0（verify-187.log）。字の期待を直した既存の歯は無い。
+2. **突然変異（見本の src だけを 1 通りずつ変え、f187_ の 7 本を撃つ）。** 14 通りとも落ちる（生き残り 0・mut-187.log）。check が面の段を呼ばない・--write の床が呼ばない・測れない が在っても回す・違反が在っても回す・違反でなく まだ分からない に数える・字を面の字から変える・床で図の道具を撃つ・図の口が形を確かめる前に返る・図の口を出ても旗を戻さない・読み直さない口を出ても写しを返す・何も覚えない・done を要る欄に戻す・verify を要る欄に戻す・面の段が判断の記録と設計ノートの面を組まない。
 3. **外の置き場と folio2 自身（見本の binary）。** folio2 の本流 6467915・床の土台・tsuzuri の写し（b229dd9）とも床 0 / 0 のまま（新しく落ちる正本 0）、build は base と全 file が byte で同じ（37・17・42 file）。突然変異の写しでは、床の土台の割れ 808 のうち 805 は床が面の字で 違反 1 に落とし、残る 3 は (b) の 5. の行で面が通るようになる（割れでなくなる）。追加の 2 file の割れ 55 は 55 とも落とす。割れでない写し 7798 と 438 は床の答え（3 値・違反の数・まだ分からない の数）が 1 件も動かない。骨格（git の 1 commit・測れない 6）4340 は床の答えが 1 件も動かない。
-4. **時間。** folio2 の本流の `folio check` は release で 0.49 秒 → 1.29 秒・debug で約 1.3 秒 → 約 9 秒（面を 37 枚組む）。workspace の nextest の所要は base と同じ幅（8 分前後）。
+4. **時間。** folio2 の本流 6467915 の `folio check` は release で 0.49 秒 → 1.29 秒・debug で 1.02 秒 → 4.72 秒（面を 37 枚組む）。debug の `folio build --write` は 18.2 秒 → 21.6 秒（床の段の分）で、出力の 37 file は byte で同じ。workspace の nextest の所要は base と同じ幅（8 分前後）。
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は `+crates/folio/tests/floor_faces.rs`。`crates/folio/tests/site.rs`・`crates/folio/tests/note.rs`・`crates/folio/tests/face_note.rs`・`crates/folio/tests/outside_faces.rs`・`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分（差分の byte）。
+1. **write-set の印。** 新しい file は `+crates/folio/tests/floor_faces.rs`。`crates/folio/tests/site.rs`・`crates/folio/tests/note.rs`・`crates/folio/tests/face_note.rs`・`crates/folio/tests/outside_faces.rs`・`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分は 6 file・+670 −10・34,801 byte（`git diff 6467915 0d4de9f | wc -c`）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 5 本（python と awk の 2 実装で一致・cap-187.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
@@ -97,7 +97,7 @@ binary 経由の歯は `crates/folio/tests/floor_faces.rs`（新）。写しは�
 ### (g) 門と受付
 
 1. **門。** 冒頭のとおり対象外。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/floorgap の本契約で（precheck の字）。
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/floorgap の本契約で 契約に起因する断り 0（preflight ok・`f187_` は base で 0 件）。
 3. **着地の後。** 席は tsuzuri へ「`folio check` が面の生成器と同じ関数で面を組む（面が組めない置き場は種類 面 の違反・字は build の まだ分からない の字と同じ・図の道具は撃たない）。tsuzuri の今の置き場（b229dd9）の床は変わらない」を返す。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
@@ -144,7 +144,7 @@ schema = 1
 
 [[contract]]
 id = "gh"
-title = "床が build と同じ関数で面を組み、面が組めない置き場を面の字のまま違反に数える（床の穴の束・台帳 f2-648.249・.274・.242）: crates/folio/src/site.rs に床の口と違反の種類 面 を足し、床のほかの段が違反も読めないも測れないも数えていないときだけ、build と同じ build_all を crates/folio/src/figure.rs の図を撃たない口（型と型付き記述の形までを確かめ、道具・Node・凍結 anchor を撃たない）と crates/folio/src/cursor.rs の読み直さない口（閉包のあいだ同じ正本の木を 1 度だけ読む）の中で回し、Err を面の字のまま違反 1 件に数える。crates/folio/src/main.rs の folio check と site.rs の --write の床が索引の口の後でこれを呼ぶ。crates/folio/src/face_note.rs は契約表の行の verify と done を在るときだけ出す（器の導出 file で conditional）。床のほかの段の判定と字・面の字と出力・図の道具を撃つ build の道・設計文書の正本は変えない。歯は crates/folio/tests/floor_faces.rs の f187_ の 5 本と site.rs の単体の 2 本。実装の見本は origin の枝 impl/d187 の commit （見本の commit）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 6467915"
+title = "床が build と同じ関数で面を組み、面が組めない置き場を面の字のまま違反に数える（床の穴の束・台帳 f2-648.249・.274・.242）: crates/folio/src/site.rs に床の口と違反の種類 面 を足し、床のほかの段が違反も読めないも測れないも数えていないときだけ、build と同じ build_all を crates/folio/src/figure.rs の図を撃たない口（型と型付き記述の形までを確かめ、道具・Node・凍結 anchor を撃たない）と crates/folio/src/cursor.rs の読み直さない口（閉包のあいだ同じ正本の木を 1 度だけ読む）の中で回し、Err を面の字のまま違反 1 件に数える。crates/folio/src/main.rs の folio check と site.rs の --write の床が索引の口の後でこれを呼ぶ。crates/folio/src/face_note.rs は契約表の行の verify と done を在るときだけ出す（器の導出 file で conditional）。床のほかの段の判定と字・面の字と出力・図の道具を撃つ build の道・設計文書の正本は変えない。歯は crates/folio/tests/floor_faces.rs の f187_ の 5 本と site.rs の単体の 2 本。実装の見本は origin の枝 impl/d187 の commit 0d4de9f で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 6467915"
 req = ["FR5", "FR10"]
 section = "1"
 write-set = ["crates/folio/src/site.rs", "crates/folio/src/main.rs", "crates/folio/src/figure.rs", "crates/folio/src/cursor.rs", "crates/folio/src/face_note.rs", "+crates/folio/tests/floor_faces.rs", "crates/folio/tests/site.rs", "crates/folio/tests/note.rs", "crates/folio/tests/face_note.rs", "crates/folio/tests/outside_faces.rs", "crates/folio/tests/floor_cases.rs"]
