@@ -82,7 +82,7 @@ binary の歯は新しい `crates/folio/tests/ruling.rs` の 5 本。土台（�
 
 ### (f) 大きさ・verify と done の対応
 
-1. **write-set の印。** `+crates/folio/src/ruling.rs` と `+crates/folio/tests/ruling.rs` は新しい file（既存の dir の下）。`-crates/folio/src/adr.rs`・`-crates/folio/src/floor.rs`・`-crates/folio/src/link.rs`・`-crates/folio/src/note.rs` は縮む。ほかは印なし。差分 103,132 byte（`git diff 78a793f a2f8606 | wc -c`・36 file・+736 −184）。
+1. **write-set の印。** 新しい file の `crates/folio/src/ruling.rs` と `crates/folio/tests/ruling.rs`（既存の dir の下）は頭に `+`。縮む `crates/folio/src/adr.rs`・`crates/folio/src/floor.rs`・`crates/folio/src/link.rs`・`crates/folio/src/note.rs` は頭に `-`。ほかは印なし。差分 103,132 byte（`git diff 78a793f a2f8606 | wc -c`・36 file・+736 −184）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 9 本。各行を ceil(字数 / 120) で数えて足す（空行は 1）。起草役は python と awk の 2 実装で数え、一致した（cap-18x.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
