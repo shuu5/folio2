@@ -488,6 +488,43 @@ fn f197_no_source_file_spells_the_answer_words() {
     assert!(hits.is_empty(), "回答の値の字を持つ: {hits:?}");
 }
 
+/// 歯 6（検証役の非 blocking N1・変異 V3）: 相談窓口の生成区間の写しの 4 欄は実装の定数を引く。crates/folio/src/ の各 file の
+/// `#[cfg(test)]` より前で、行き先の固定の値の字 "inject" と回答の欄の一覧の字 ["yes", "no"] は intake.rs に 1 回ずつだけ在り
+/// （空白を除いて数える＝定数の宣言だけ）、床の木 INTAKE_FLOOR の 4 欄は定数の名を引く（"recommend" は質問の行の欄の名と同じ字
+/// なので数えず、名を引くことを見る）。
+#[test]
+fn f197_only_intake_spells_the_copied_values() {
+    let src = repo_root().join("crates/folio/src");
+    let mut at = Vec::new();
+    let mut intake = String::new();
+    for entry in fs::read_dir(&src).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|e| e.to_str()) != Some("rs") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_string_lossy().into_owned();
+        let text = fs::read_to_string(&path).unwrap();
+        let head = text.split("#[cfg(test)]").next().unwrap_or_default();
+        let flat: String = head.chars().filter(|c| !c.is_whitespace()).collect();
+        for word in ["\"inject\"", "[\"yes\",\"no\"]"] {
+            at.extend(std::iter::repeat_n(format!("{name}: {word}"), flat.matches(word).count()));
+        }
+        if name == "intake.rs" {
+            intake = flat;
+        }
+    }
+    at.sort();
+    assert_eq!(at, ["intake.rs: \"inject\"", "intake.rs: [\"yes\",\"no\"]"], "写しの値の字を持つ file");
+    for want in [
+        "(\"values_count\",Floor::Num(ANSWER_BRANCHES.len()))",
+        "(\"branches\",Floor::Strs(&ANSWER_BRANCHES))",
+        "(\"default_fixed\",Floor::Val(DEFAULT_RECOMMEND))",
+        "(\"fixed\",Floor::Strs(&[INJECT_TARGET]))",
+    ] {
+        assert!(intake.contains(want), "INTAKE_FLOOR が定数を引かない: {want}");
+    }
+}
+
 /// 歯 5（便 197 に同乗・台帳 f2-648.227）: 実の rules.yaml の生成区間の除外（excluded）は、what が人の作業の時間と AI の費用の
 /// 2 語で、why が道具の測れる機械の待ち時間を除外に入れない字を持つ。期待は歯の中の手書き。
 #[test]
