@@ -483,7 +483,14 @@ fn nested(case: &str, git: bool) -> (Work, PathBuf) {
     )
     .unwrap();
     if git {
-        let init = Command::new("git")
+        // 環境変数 GIT_* は継承しない（hook の中で撃たれても一時の根に版管理を作る）
+        let mut cmd = Command::new("git");
+        for (key, _) in std::env::vars_os() {
+            if key.to_string_lossy().starts_with("GIT_") {
+                cmd.env_remove(key);
+            }
+        }
+        let init = cmd
             .args(["init", "-q"])
             .current_dir(&w.root)
             .output()
