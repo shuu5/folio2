@@ -6,7 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gb` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 36 本（src 9・歯の file 7・設計文書の正本 1・fixture と凍結 anchor 19）。新しい file は 2 本（頭に `+`・既存の dir `crates/folio/src/` と `crates/folio/tests/` の下）。縮む file は 4 本（頭に `-`）。消す file・新しい dir は無い。
 - 門: 対象。write-set に設計文書の正本 `design-intent/constitution.yaml` が在る。本流の組み立て（78a793f の binary）に write-set 36 本を渡した `folio ceiling --gate --dir design-intent --write-set …` は **0（通す・印の周 2026-09-27-round51〔判定 合格〕に、書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）**。
 - 前提: **base = 本流 78a793f**（ADR-31 と要件書 第 1.53 版が発効し、規則の表の行 R-10 と D-8 の ruling が本判断の承認の裁定 id に引き直された main）。この契約の数はすべて 78a793f の写しの実測（参考値・規則の表の行 D-13）。受付の時点の main が 78a793f と違えば、その main で数え直す。
-- 実装の見本: origin の枝 `impl/d181`（commit **a2f8606**・親 78a793f）が本便の後の中身で、`git diff 78a793f a2f8606` が便の全体の差分（36 file・+736 −184・103,132 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout a2f8606 -- <write-set の file>`）。write-set の外は変えない。
+- 実装の見本: origin の枝 `impl/d181`（commit **a2f8606**・親 78a793f）が本便の後の中身で、`git diff 78a793f a2f8606` が便の全体の差分（36 file・+736 −184・103,145 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout a2f8606 -- <write-set の file>`）。write-set の外は変えない。
 - 割った便: ADR-31 の便 A は、差分が審査の上限 120,000 byte を超える（割る前の見本で 135,170 byte ＋ 歯）ので 2 便に割った。**本便 181（行 gb）= 床**（文法・決定の欄の歩き手・床の判定・fixture と既存の歯の字）、**便 182（行 gc・docs/design/delivery-182.md）= 欄の決まりの写し**（判断の記録の欄の決まり `design-intent/adr/schema.yaml` の生成区間へ、文法の字面と決定の欄の閉じた一覧を写す・fixture の写し 17 本）。順は 181 → 182（182 の見本 impl/d182 は a2f8606 の上）。二つの write-set は `crates/folio/src/adr.rs`・`crates/folio/src/ruling.rs`・`crates/folio/tests/ruling.rs`・`crates/folio/tests/graph.rs`・`tests/fixtures/schema/node-digest-anchor.txt` で重なる。
 - 並行の便との重なり: base の時点で、本便の write-set を書き換える未着地の便の契約は便 182 だけ（便 179・180 は着地済み＝本流 0fb780e・63a25a9）。受付の時点で precheck が重なりを見る。
 
@@ -82,7 +82,7 @@ binary の歯は新しい `crates/folio/tests/ruling.rs` の 5 本。土台（�
 
 ### (f) 大きさ・verify と done の対応
 
-1. **write-set の印。** 新しい file の `crates/folio/src/ruling.rs` と `crates/folio/tests/ruling.rs`（既存の dir の下）は頭に `+`。縮む `crates/folio/src/adr.rs`・`crates/folio/src/floor.rs`・`crates/folio/src/link.rs`・`crates/folio/src/note.rs` は頭に `-`。ほかは印なし。差分 103,132 byte（`git diff 78a793f a2f8606 | wc -c`・36 file・+736 −184）。
+1. **write-set の印。** 新しい file の `crates/folio/src/ruling.rs` と `crates/folio/tests/ruling.rs`（既存の dir の下）は頭に `+`。縮む `crates/folio/src/adr.rs`・`crates/folio/src/floor.rs`・`crates/folio/src/link.rs`・`crates/folio/src/note.rs` は頭に `-`。ほかは印なし。差分 103,145 byte（`git diff 78a793f a2f8606 | wc -c`・36 file・+736 −184）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 9 本。各行を ceil(字数 / 120) で数えて足す（空行は 1）。起草役は python と awk の 2 実装で数え、一致した（cap-18x.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
