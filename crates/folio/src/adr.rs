@@ -596,7 +596,7 @@ fn check_between(records: &[(String, Node)], report: &mut Report) {
             if let Some(x) = present(d, k)
                 && x.as_str().and_then(|x| find(records, x)).is_none()
             {
-                report.violation(
+                report.link(
                     "adr",
                     format!("{id}: {k} {} の判断の記録が実在しない", show(Some(x))),
                 );
@@ -620,7 +620,7 @@ fn check_between(records: &[(String, Node)], report: &mut Report) {
             if let Some(nx) = n.as_str().and_then(|n| find(records, n))
                 && scalar(nx.get("supersedes")) != Some(id.as_str())
             {
-                report.violation(
+                report.link(
                     "adr",
                     format!(
                         "{id}: 後継 {} の supersedes に {id} が無い（双方向）",
@@ -655,7 +655,7 @@ fn check_between(records: &[(String, Node)], report: &mut Report) {
                 break; // 実在しない後継は上で数えてある
             };
             if seen.contains(&nid) {
-                report.violation(
+                report.link(
                     "adr",
                     format!(
                         "{id}: retired の後継の列が輪になっている（{}→{nid}）＝発効している後継が無い（P-7.2）",
@@ -698,7 +698,7 @@ fn check_decided_by(schema: &Node, records: &[(String, Node)], report: &mut Repo
     }
     for x in items {
         if x.as_str().and_then(|x| find(records, x)).is_none() {
-            report.violation(
+            report.link(
                 "adr",
                 format!(
                     "{SCHEMA_FILE} meta.decided_by の {} が実在しない（欄の決まりの出所の判断が消えている）",

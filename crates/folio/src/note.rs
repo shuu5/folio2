@@ -590,7 +590,7 @@ fn check_meta(file: &str, note: &NoteDoc, note_ids: &HashSet<&str>, report: &mut
         if let Some(v) = field(meta, key)
             && !(note_ids.contains(v) && v != note.id)
         {
-            report.violation(
+            report.link(
                 KIND,
                 format!("{file}: meta.{key}「{v}」の設計ノートが実在しない"),
             );
@@ -676,7 +676,7 @@ fn check_section(
                     );
                 }
                 for id in m.pointers.iter().filter(|id| !known.contains(*id)) {
-                    report.violation(
+                    report.link(
                         KIND,
                         format!("{file}: {at}: 散文の参照 id「{id}」が実在しない"),
                     );
@@ -925,7 +925,7 @@ fn resolve_ids(
             for (i, item) in items.iter().enumerate() {
                 match item.as_str() {
                     Some(v) if known.contains(v) => {}
-                    Some(v) => report.violation(
+                    Some(v) => report.link(
                         KIND,
                         format!("{file}: {at} の {key}[{i}]: id「{v}」が実在しない"),
                     ),
