@@ -535,7 +535,9 @@ fn f194_abroad_regions_leave_no_broken_joins() {
     assert!(!adr.contains("grill_note:"), "{adr}");
     let note = f174_region(&fs::read_to_string(w.place().join("design-note/schema.yaml")).unwrap());
     // 落とした文を指す「どちらも」は語だけが落ちて文の中身は残り、出所の台帳の id を落とした括弧は「持ち主の裁定」ごと落ちる
-    assert!(!note.contains("どちらも"), "{note}");
+    // （ほかの注の括弧の中の「どちらも」は指す語でないので、見るのは derived_note の行だけ）
+    let derived = note.lines().find(|l| l.trim_start().starts_with("derived_note:")).unwrap_or_default();
+    assert!(derived.contains("導出物の置き場") && !derived.contains("どちらも"), "{derived}");
     assert!(
         note.contains("のはそのため。面の生成器も様式の file も呼ばず、導出物の置き場（--out）は消費側が宣言する（既定なし）。値に二重引用符"),
         "{note}"
