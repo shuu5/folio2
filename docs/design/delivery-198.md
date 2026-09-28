@@ -21,13 +21,13 @@
 
 ### (b) 直す先
 
-1. **`crates/folio/src/verdict.rs`。** `Report` に欄 `links: Vec<usize>`（つながりの違反の `violations` の添字）と、関数 `mark`（違反の数）と `links_from(mark)`（印の後に積んだ違反をつながりに数える）を足す。`violation`・`verdict`・字・数は変えない。
+1. **`crates/folio/src/verdict.rs`。** `Report` に欄 `links: Vec<usize>`（つながりの違反の `violations` の添字）と、関数 mark（違反の数を印にする）と関数 links_from（印の後に積んだ違反をつながりに数える）を足す（どちらも新しい名）。`violation`・`verdict`・字・数は変えない。
 2. **`crates/folio/src/check.rs`。** `check_dir` の中で、`refs::check_refs` と `vocab::check_vocab` の 2 本、`link::check_link` と `anchor::check_anchor` の 2 本、`mentions::check_mentions` の 1 本を、それぞれ `mark` と `links_from` で包む（3 か所・注 2 行）。撃つ順・引数・違反の字と数は変えない。
 3. **`crates/folio/src/proposed.rs`（新）。**
-   - `floor(dir, flag)`: `check_dir` と `check_index` を順に撃つ床の 1 本の関数。`folio check` と口の両方がこれを撃つ（条 P-15.2）。
-   - `judge(dir, rel, content)`: `rel` が置き場からの相対の字（成分が全部ふつうの名・絶対 path と `..` と `.` と空は断る）であることを確かめ、置き場を一時の作業場所（`std::env::temp_dir()` の下の `folio-proposed-<pid>-<nanos>/<置き場の dir 名>`）へ丸ごと写す（symlink は symlink のまま）。器の導出 file は `note::external_path(dir)` で解き、在れば写しの根の `contracts/schema.toml`（`floor_note::EXTERNAL_PATH`）へ写す（版管理の外の写しは置き場の親の下を読む）。写しのまま `floor` を撃ち（前）、`rel` に `content` を書いて `floor` を撃つ（後）。後の違反のうち前に無いもの（種類と字の組を重複ごと数える差）を、後の `links` に在れば `links` へ、無ければ `stop` へ分け、後の「まだ分からない」（unknowns と pendings）のうち前に無いものを `unknowns` へ入れる。字の中の写しの path は置き場の path に戻して返す。一時の作業場所は `Drop` で消す。
-   - `Judged::verdict`: 新しい「まだ分からない」が在れば まだ分からない、`stop` が在れば 不合格、どちらも無ければ 合格（つながりは数えない）。
-4. **`crates/folio/src/main.rs`。** `folio check` に旗 `--proposed <PATH>` を足す（ほかの 6 つの旗と同時に撃てない＝`conflicts_with_all`）。旗があれば標準入力を全部読み（UTF-8 でなければ まだ分からない 2）、`proposed::judge` を撃ち、止める行を標準出力に `[種類] 字`、つながりを標準エラーに `# つながり（編集は止めない・事後の床が数える）: [種類] 字`、新しい まだ分からない を標準エラーに `# まだ分からない: 字`、要約を標準出力に `folio check --proposed: <判定>（新しい違反 N・つながり K・まだ分からない M）` で出し、判定の終了コード（0・1・2）で終える。`judge` が断れば標準エラーに `folio check --proposed: まだ分からない（<理由>）` の 1 行で 2。旗が無いときは今までの `check_dir` と `check_index` の 2 行を `proposed::floor` の 1 行にする（出力と終了は変えない）。`mod proposed;` と `use crate::verdict::Verdict;` を足す。
+   - 関数 floor（新しい名・引数は置き場と旗）: `check_dir` と `check_index` を順に撃つ床の 1 本の関数。`folio check` と口の両方がこれを撃つ（条 P-15.2）。
+   - 関数 judge（新しい名・引数は置き場と相対の字と中身）: 相対の字が置き場からの相対の字（成分が全部ふつうの名・絶対 path と `..` と `.` と空は断る）であることを確かめ、置き場を一時の作業場所（`std::env::temp_dir()` の下の `folio-proposed-<pid>-<nanos>/<置き場の dir 名>`）へ丸ごと写す（symlink は symlink のまま）。器の導出 file は `note::external_path(dir)` で解き、在れば写しの根の `contracts/schema.toml`（`floor_note::EXTERNAL_PATH`）へ写す（版管理の外の写しは置き場の親の下を読む）。写しのまま `floor` を撃ち（前）、`rel` に `content` を書いて `floor` を撃つ（後）。後の違反のうち前に無いもの（種類と字の組を重複ごと数える差）を、後の `links` に在れば `links` へ、無ければ `stop` へ分け、後の「まだ分からない」（unknowns と pendings）のうち前に無いものを `unknowns` へ入れる。字の中の写しの path は置き場の path に戻して返す。一時の作業場所は `Drop` で消す。
+   - 型 Judged（新しい名・止める行・つながりの行・まだ分からない の 3 つの列）の関数 verdict: 新しい「まだ分からない」が在れば まだ分からない、`stop` が在れば 不合格、どちらも無ければ 合格（つながりは数えない）。
+4. **`crates/folio/src/main.rs`。** `folio check` に旗 `--proposed <PATH>` を足す（ほかの 6 つの旗と同時に撃てない＝`conflicts_with_all`）。旗があれば標準入力を全部読み（UTF-8 でなければ まだ分からない 2）、proposed.rs の関数 judge を撃ち、止める行を標準出力に `[種類] 字`、つながりを標準エラーに `# つながり（編集は止めない・事後の床が数える）: [種類] 字`、新しい まだ分からない を標準エラーに `# まだ分からない: 字`、要約を標準出力に `folio check --proposed: <判定>（新しい違反 N・つながり K・まだ分からない M）` で出し、判定の終了コード（0・1・2）で終える。`judge` が断れば標準エラーに `folio check --proposed: まだ分からない（<理由>）` の 1 行で 2。旗が無いときは今までの `check_dir` と `check_index` の 2 行を proposed.rs の関数 floor の 1 行にする（出力と終了は変えない）。`mod proposed;` と `use crate::verdict::Verdict;` を足す。
 5. **`crates/folio/tests/modules.rs`。** 層の割り当ての表に区切り proposed を層 3 として 1 行足す（読む相手は check〔2〕・note〔2〕・graph〔3〕・floor_note と phase〔1〕・verdict〔0〕、名指す側は main〔5〕）。
 6. **変えないもの。** 素の `folio check` の出力・判定・終了コード・凍結の旗と `--emit-amends` と `--emit-rulings`・網の関数の中身・違反の字・設計文書の正本と生成区間・憲法と要件書と判断の記録の字・`folio build` の出力。網の外の関数の中の突き合わせの字（設計ノート・計画・判断の記録どうし・封の欠け・入口と相談窓口と天井の英字の語）の族は便 199 が運ぶ（本便ではまだ止める側に数える）。
 
@@ -141,7 +141,7 @@ binary 経由の歯は `crates/folio/tests/proposed.rs`（新）。どれも床�
 
 ## 2. 範囲
 
-- 入れる: `folio check --proposed`（旗・標準入力・判定・出力の分け方）・`proposed.rs` の `floor` と `judge` と写し・`verdict.rs` の `links` と `mark` と `links_from`・`check.rs` の網の 5 つの関数の包み・`main.rs` の素の床の `proposed::floor` への置き換え・層の表の 1 行・歯の file の f198_ の 9 本と単体の 2 本。
+- 入れる: `folio check --proposed`（旗・標準入力・判定・出力の分け方）・`proposed.rs` の関数 floor と judge と写し・`verdict.rs` の欄 links と関数 mark と links_from・`check.rs` の網の 5 つの関数の包み・`main.rs` の素の床の proposed.rs の関数 floor への置き換え・層の表の 1 行・歯の file の f198_ の 9 本と単体の 2 本。
 - 入れない: 網の外の関数の中の字の族・極性一覧・規則の表と憲法と要件書と判断の記録の字・設計文書の正本と生成区間・器の hook・外部 crate・新しい dir。
 
 ## 3. 部品
