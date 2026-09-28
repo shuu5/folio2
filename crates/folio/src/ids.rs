@@ -398,8 +398,8 @@ mod tests {
         assert!(note.contains("crates/folio/src/ids.rs") && note.contains("P-5.6"), "{note}");
     }
 
-    /// 便 196: 写しの正本の定数の字（引用符付き）は、src の各 file の最初の `#[cfg(test)]` より前では持ち主の file にしか無い
-    /// （床の木は定数を引き、同じ一覧を 2 回書かない）。
+    /// 便 196: 写しの正本の定数の字（引用符付き）は、src の各 file の最初の `#[cfg(test)]` より前では持ち主の file の
+    /// 定数の中の回数だけ在る（床の木は定数を引き、同じ一覧を 2 回書かない）。
     #[test]
     fn f196_only_the_owner_spells_the_copied_constants() {
         let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -413,18 +413,18 @@ mod tests {
             }
         }
         assert!(bodies.len() > 50, "src の file が読めない");
-        for (needle, owner) in [
-            ("\"ids-anchor\"", "ids.rs"),
-            ("&[\"shall\", \"title\"]", "ids.rs"),
-            ("&[\"required\", \"optional\", \"conditional\"]", "floor_note.rs"),
-            ("&[\"text\", \"list\"]", "floor_note.rs"),
+        for (needle, owner, times) in [
+            ("\"ids-anchor\"", "ids.rs", 1),
+            ("&[\"shall\", \"title\"]", "ids.rs", 2),
+            ("&[\"required\", \"optional\", \"conditional\"]", "floor_note.rs", 1),
+            ("&[\"text\", \"list\"]", "floor_note.rs", 1),
         ] {
-            let found: Vec<&str> = bodies
+            let found: Vec<(&str, usize)> = bodies
                 .iter()
-                .filter(|(_, body)| body.contains(needle))
-                .map(|(name, _)| name.as_str())
+                .map(|(name, body)| (name.as_str(), body.matches(needle).count()))
+                .filter(|(_, n)| *n > 0)
                 .collect();
-            assert_eq!(found, [owner], "{needle}");
+            assert_eq!(found, [(owner, times)], "{needle}");
         }
     }
 }
