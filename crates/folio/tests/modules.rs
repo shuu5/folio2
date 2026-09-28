@@ -360,3 +360,37 @@ fn f195_the_id_space_lists_are_declared_only_in_refs() {
     assert!(!head.contains("\"GOAL\""), "prose.rs が要件 id の頭を自分で持つ");
     assert!(head.contains("refs::SRS_ID_PREFIXES"), "prose.rs が refs.rs の要件 id の頭を引かない");
 }
+
+/// 正本の file と、参照 id の空間の一覧の字（検証役の非 blocking N1）。
+const F195_SPELLED: [(&str, &str, &[&str]); 6] = [
+    ("refs", "RULE_SECTIONS", &["thresholds", "discipline"]),
+    (
+        "refs",
+        "SRS_ID_SECTIONS",
+        &["goals", "requirements", "nonfunctional", "acceptance", "constraints", "actors", "outputs"],
+    ),
+    ("refs", "RELATION_NAMESPACES", &["reqs", "rules", "articles", "sections"]),
+    ("refs", "SRS_ID_PREFIXES", &["FR", "NFR", "AC", "CON", "GOAL"]),
+    ("prose", "ARTICLE", &["P-", "A-", "N-"]),
+    ("prose", "RULE", &["R-", "D-"]),
+];
+
+/// 歯 2 の 2（検証役の変異 V4）: 1 枚に寄せた 6 file（refs・link・note・prose・mentions・graph）のうち、`#[cfg(test)]` より前で
+/// 参照 id の空間の一覧を字で持つ（空白を除いて数える・式の中の 2 枚目も数える）のは正本の file の 1 回だけ。
+/// ほかの file に残る 2 枚目（vocab.rs・adr.rs・rules.rs・面の 4 file）は本便の外（台帳 f2-648.76 に残す）。
+#[test]
+fn f195_the_merged_files_spell_no_id_space_list() {
+    for (owner, name, items) in F195_SPELLED {
+        let list = items.iter().map(|i| format!("\"{i}\"")).collect::<Vec<_>>().join(",");
+        let at: Vec<&str> = ["refs", "link", "note", "prose", "mentions", "graph"]
+            .into_iter()
+            .flat_map(|f| {
+                let src = read(f);
+                let head = src.split("#[cfg(test)]").next().unwrap_or_default();
+                let flat: String = head.chars().filter(|c| !c.is_whitespace()).collect();
+                std::iter::repeat_n(f, flat.matches(&list).count())
+            })
+            .collect();
+        assert_eq!(at, [owner], "{name} の字を持つ file");
+    }
+}

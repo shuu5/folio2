@@ -1118,4 +1118,35 @@ mod tests {
             assert!(ids_in(h).len() >= 2, "folio2 の置き場の注が番号を持たない: {h}");
         }
     }
+
+    /// 歯 6（便 195・検証役の非 blocking N1・変異 V3）: 実の graph.yaml の生成区間の ids と mentions の一覧は、正本の定数そのものと
+    /// 字も順も同じ（床の木が定数を引かずに字を手で持つと、定数を変えた途端に落ちる）。
+    #[test]
+    fn f195_the_real_region_equals_the_constants() {
+        let text = fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../design-intent/graph.yaml")).unwrap();
+        let root = yaml::parse(&text).unwrap().root;
+        let schema = root.get("schema").unwrap();
+        let strs = |node: &Node| -> Vec<String> {
+            node.as_seq().unwrap().iter().map(|n| n.as_str().unwrap().to_string()).collect()
+        };
+        let ids = schema.get("ids").unwrap();
+        let prefixes = ids.get("prefixes").unwrap();
+        let m = schema.get("mentions").unwrap();
+        let pairs: [(&Node, &[&str]); 11] = [
+            (ids.get("rule_sections").unwrap(), &refs::RULE_SECTIONS),
+            (ids.get("srs_sections").unwrap(), &refs::SRS_ID_SECTIONS),
+            (ids.get("relation_namespaces").unwrap(), &refs::RELATION_NAMESPACES),
+            (prefixes.get("article").unwrap(), &prose::ARTICLE),
+            (prefixes.get("rule").unwrap(), &prose::RULE),
+            (prefixes.get("srs").unwrap(), &refs::SRS_ID_PREFIXES),
+            (m.get("targets").unwrap(), &mentions::TARGETS),
+            (m.get("typed").unwrap(), &mentions::TYPED),
+            (m.get("provenance").unwrap(), &mentions::PROVENANCE),
+            (m.get("top_skipped").unwrap(), &mentions::TOP_SKIPPED),
+            (m.get("excluded").unwrap(), &mentions::EXCLUDED),
+        ];
+        for (node, want) in pairs {
+            assert_eq!(strs(node), want.iter().map(|s| s.to_string()).collect::<Vec<_>>());
+        }
+    }
 }
