@@ -463,29 +463,49 @@ fn load_graph(dir: &Path, report: &mut Report) -> Option<Node> {
     load(dir, "graph", report)
 }
 
+/// 決定の欄の床の違反の名札（便 181・便 204 の裁定の時刻も同じ名札）。
+const RULING_KIND: &str = "裁定 id";
+
 /// 決定の欄の裁定 id の形（便 181・判断の記録 ADR-31 決定 (1)(3)）。歩き手が拾った欄ごとに、裁定 id を 1 つも切り出せなければ
 /// 違反（欄が無い・空・字でない〔一覧・表〕も同じ）、骨格が書く欄の値が骨格の印（未記入）なら まだ分からない（裁定の前）。
-/// どの形の種類で足りるかと台帳に在るかは見ない（器と人の持ち分）。
+/// どの形の種類で足りるかと台帳に在るかは見ない（器と人の持ち分）。規則の表の行は、同じ段で裁定の時刻も数える（便 204・
+/// `check_time`・裁定の欄が骨格の印の行は裁定の前なので数えない）。
 fn check_rulings(sites: &[ruling::Site], report: &mut Report) {
-    const KIND: &str = "裁定 id";
     for site in sites {
         let at = format!("{}: {}", site.file, site.at);
         match site.value {
-            Some(Node::Scalar(s)) if site.skeleton() && adr::unfilled(s) => report.pending(format!(
-                "{at} が {}（骨格の印・裁定の前＝条 P-17.3）",
-                adr::UNFILLED
-            )),
+            Some(Node::Scalar(s)) if site.skeleton() && adr::unfilled(s) => {
+                report.pending(format!("{at} が {}（骨格の印・裁定の前＝条 P-17.3）", adr::UNFILLED));
+                continue;
+            }
             Some(Node::Scalar(s)) if ruling::has_ruling(s) => {}
             Some(Node::Scalar(s)) => report.violation(
-                KIND,
+                RULING_KIND,
                 format!("{at}「{s}」に台帳 id が無い（決定の欄・形は adr/schema.yaml の ruling_pattern）"),
             ),
             Some(Node::Seq(_) | Node::Map(_)) => report.violation(
-                KIND,
+                RULING_KIND,
                 format!("{at} が字でない（一覧か表）＝台帳 id を切り出せない"),
             ),
-            None | Some(Node::Null) => report.violation(KIND, format!("{at} が無い＝台帳 id が無い")),
+            None | Some(Node::Null) => report.violation(RULING_KIND, format!("{at} が無い＝台帳 id が無い")),
         }
+        if let Some(row) = site.row {
+            check_time(&format!("{}: 行 {} の {}", site.file, site.node.unwrap_or("?"), ruling::TIME), row, report);
+        }
+    }
+}
+
+/// 規則の表の行の裁定の時刻（便 204）。欄が無い・空・字でない（一覧・表）・形（`ruling::TIME_FORMAT`）の違うは違反。裁定の欄が
+/// 埋まった行の時刻が骨格の印（未記入）でも違反（時刻の無い裁定）。暦に在る日かと、裁定 id の日時との一致は見ない。
+fn check_time(at: &str, row: &Node, report: &mut Report) {
+    match row.get(ruling::TIME) {
+        Some(Node::Scalar(s)) if ruling::is_time(s) => {}
+        Some(Node::Scalar(s)) => report.violation(
+            RULING_KIND,
+            format!("{at}「{s}」が裁定の時刻の形でない（年-月-日か UTC の分・形は rules.yaml の ruled_at_format）"),
+        ),
+        Some(Node::Seq(_) | Node::Map(_)) => report.violation(RULING_KIND, format!("{at} が字でない（一覧か表）＝裁定の時刻が無い")),
+        None | Some(Node::Null) => report.violation(RULING_KIND, format!("{at} が無い＝裁定の時刻が無い")),
     }
 }
 
@@ -900,7 +920,7 @@ fn check_rules(root: &Node, report: &mut Report) {
         }
     }
     duplicate_ids(FILE, all, report);
-    for v in rules::key_violations(root) {
+    for v in rules::key_violations(root).into_iter().chain(rules::kind_violations(root)) {
         report.violation("schema", format!("{FILE}: {v}"));
     }
 }

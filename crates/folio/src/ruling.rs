@@ -6,6 +6,8 @@
 //! 裁定 id の在否を見る（`has_ruling`）。正規表現は使わない（字の走査・文法の字は ASCII だけ）。
 //! 文法の字面 `PATTERN`・形の種類・決定の欄の閉じた一覧 `FIELDS`・骨格の欄・数えない役は、判断の記録の欄の決まり
 //! （adr/schema.yaml）の生成区間に写る（便 182・`floor_adr.rs` の FLOOR）。
+//! 規則の表の行の裁定の時刻（`TIME`・便 204・条 P-17.1）は、歩き手が決定の欄に行を添え（`Site::row`）、床が同じ段で形（`is_time`）を
+//! 数える。形の字面 `TIME_FORMAT` は規則の表の生成区間に写る（`rules.rs` の FLOOR）。
 
 use std::collections::HashMap;
 use std::fs;
@@ -109,6 +111,26 @@ pub(crate) fn has_ruling(s: &str) -> bool {
     !rulings(s).is_empty()
 }
 
+/// 規則の表の行の裁定の時刻の欄の名（便 204）。
+pub(crate) const TIME: &str = "ruled_at";
+
+/// 裁定の時刻の形の写し（人が読む字面・床は字の走査で判定する）。年-月-日か、UTC の分（年-月-日T時:分Z）。
+pub(crate) const TIME_FORMAT: &str = r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$";
+
+/// 裁定の時刻の形か（`TIME_FORMAT`）。年-月-日は判断の記録の日付と同じ `adr::is_date`、UTC の分はその後ろに「T」時 2 桁「:」
+/// 分 2 桁「Z」。暦に在る日かは見ない。
+pub(crate) fn is_time(s: &str) -> bool {
+    let Some(date) = s.get(..10) else {
+        return false;
+    };
+    crate::adr::is_date(date)
+        && match &s.as_bytes()[10..] {
+            [] => true,
+            [b'T', h1, h2, b':', m1, m2, b'Z'] => [h1, h2, m1, m2].iter().all(|c| c.is_ascii_digit()),
+            _ => false,
+        }
+}
+
 /// 語をつなぐ字（語頭の判定・前の字がこれなら語頭でない）。ASCII でない字の byte はどれも当たらない。
 fn joins(c: u8) -> bool {
     c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-' | b'.')
@@ -190,6 +212,8 @@ pub(crate) struct Site<'a> {
     pub(crate) path: String,
     pub(crate) node: Option<&'a str>,
     pub(crate) value: Option<&'a Node>,
+    /// 欄を持つ規則の表の行（便 204・床が裁定の時刻の欄 `TIME` を引く・ほかの欄は None）。
+    pub(crate) row: Option<&'a Node>,
 }
 
 impl Site<'_> {
@@ -219,10 +243,11 @@ fn file_of(field: &str) -> &str {
 }
 
 /// 決定の欄を一覧の順に全部拾う（ADR-31 決定 (1)）。欄を持つ入れ物（承認欄の表・行・承認欄の行）が在れば、欄が無くても
-/// 1 つに数える（値 None）。入れ物が表でない・一覧でない形は拾わない（各 file の形の床が数える）。
+/// 1 つに数える（値 None）。入れ物が表でない・一覧でない形は拾わない（各 file の形の床が数える）。規則の表の行の欄には
+/// 行を添える（便 204・裁定の時刻）。
 pub(crate) fn sites<'a>(tree: &Tree<'a>) -> Vec<Site<'a>> {
     let mut out = Vec::new();
-    let mut push = |field: &'static str, file: &str, at: String, path: String, node: Option<&'a str>, value: Option<&'a Node>| {
+    let mut push = |field: &'static str, file: &str, at: String, path: String, node: Option<&'a str>, value: Option<&'a Node>, row: Option<&'a Node>| {
         out.push(Site {
             field,
             file: file.to_string(),
@@ -230,37 +255,38 @@ pub(crate) fn sites<'a>(tree: &Tree<'a>) -> Vec<Site<'a>> {
             path,
             node,
             value,
+            row,
         });
     };
     let c = tree.constitution;
     if let Some(ap) = c.get("meta").and_then(|m| m.get("approval")).filter(|a| a.as_map().is_some()) {
         let path = "meta.approval.ruling";
-        push(ENACTMENT, file_of(ENACTMENT), path.into(), path.into(), None, ap.get("ruling"));
+        push(ENACTMENT, file_of(ENACTMENT), path.into(), path.into(), None, ap.get("ruling"), None);
     }
     for (a, article) in rows(c.get("articles")) {
         let id = article.get("id").and_then(Node::as_str);
         for (n, (k, am)) in rows(article.get("amended_by")).enumerate() {
             let at = format!("条 {} の amended_by[{n}].ruling", id.unwrap_or("?"));
-            push(AMENDMENT, file_of(AMENDMENT), at, format!("articles[{a}].amended_by[{k}].ruling"), id, am.get("ruling"));
+            push(AMENDMENT, file_of(AMENDMENT), at, format!("articles[{a}].amended_by[{k}].ruling"), id, am.get("ruling"), None);
         }
     }
     for (field, section) in [(THRESHOLD, "thresholds"), (DISCIPLINE, "discipline")] {
         for (k, row) in rows(tree.rules.get(section)) {
             let id = row.get("id").and_then(Node::as_str);
             let at = format!("行 {} の ruling", id.unwrap_or("?"));
-            push(field, file_of(field), at, format!("{section}[{k}].ruling"), id, row.get("ruling"));
+            push(field, file_of(field), at, format!("{section}[{k}].ruling"), id, row.get("ruling"), Some(row));
         }
     }
     for (id, record) in tree.records {
         if let Some(ap) = record.get("approval").filter(|a| a.as_map().is_some()) {
             let path = "approval.ruling";
-            push(RECORD, &format!("adr/{id}.yaml"), path.into(), path.into(), Some(id), ap.get("ruling"));
+            push(RECORD, &format!("adr/{id}.yaml"), path.into(), path.into(), Some(id), ap.get("ruling"), None);
         }
     }
     for (file, root) in &tree.notes {
         for (n, row) in approval_rows(root) {
             let path = format!("meta.approval[{n}].ruling");
-            push(NOTE, file, path.clone(), path, None, row.get("ruling"));
+            push(NOTE, file, path.clone(), path, None, row.get("ruling"), None);
         }
     }
     for (file, root) in &tree.notes {
@@ -271,7 +297,7 @@ pub(crate) fn sites<'a>(tree: &Tree<'a>) -> Vec<Site<'a>> {
             for (k, row) in rows(section.get("rows")) {
                 let id = row.get("id").and_then(Node::as_str).unwrap_or("?");
                 let path = format!("sections[{s}].rows[{k}].ruling");
-                push(TABLE, file, format!("§{n} の行 {id} の ruling"), path, None, row.get("ruling"));
+                push(TABLE, file, format!("§{n} の行 {id} の ruling"), path, None, row.get("ruling"), None);
             }
         }
     }
@@ -281,7 +307,7 @@ pub(crate) fn sites<'a>(tree: &Tree<'a>) -> Vec<Site<'a>> {
             let role = row.get("role").and_then(Node::as_str);
             if !role.is_some_and(|r| SKIP_ROLES.contains(&r)) {
                 let path = format!("meta.approval[{n}].stamp");
-                push(field, file_of(field), path.clone(), path, None, row.get("stamp"));
+                push(field, file_of(field), path.clone(), path, None, row.get("stamp"), None);
             }
         }
     }
@@ -492,6 +518,23 @@ mod tests {
             assert_eq!(at.get(path), Some(&line), "{path}");
         }
         assert_eq!(at.len(), 11, "{at:?}");
+    }
+
+    /// 歯（便 204）: 裁定の時刻は年-月-日か UTC の分だけを通し、字面の写しは手書きの字と同じ（ASCII でない字の位置でも止まらない）。
+    #[test]
+    fn f204_the_time_is_the_date_or_the_utc_minute() {
+        assert_eq!(TIME_FORMAT, r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$");
+        assert_eq!(TIME, "ruled_at");
+        for ok in ["2026-09-28", "2026-09-24T22:39Z", "0000-00-00T00:00Z"] {
+            assert!(is_time(ok), "{ok}");
+        }
+        let bad = [
+            "", "2026/09/28", "2026-9-28", "2026-09-28 07:18 JST", "2026-09-28T22:39", "2026-09-28T2:39Z", "2026-09-28T22:39:00Z",
+            "2026-09-28T22:39Zx", "2026-09-28t22:39z", " 2026-09-28", "2026-09-28 ", "未記入", "２０２６-09-28", "2026-09-2８", "2026-09-28T22:3９Z",
+        ];
+        for s in bad {
+            assert!(!is_time(s), "{s}");
+        }
     }
 
     /// 歯（便 182）: 決定の欄の一覧は 12 種類で重ならず、骨格の欄と 5 正本の stamp の欄を含む（便 183 で判断の表の行を足した）。

@@ -171,6 +171,32 @@ pub fn key_violations(rules: &Node) -> Vec<String> {
     out
 }
 
+/// 閾値の行の種別の床（便 204）: 種別が値域の中で、種別と憲法の機構の対応（`FLOOR` の kind_map_to_constitution・閾値の行に
+/// だけ適用する）の左辺に無い閾値の行の字（human-review は開発規律の行の作法・種別 schema の違反・`check.rs` が出す）。
+/// 値域の外の種別は面の床が数える（重ねない）。
+pub fn kind_violations(rules: &Node) -> Vec<String> {
+    let rows = rules.get(RULES_TOP_LEVEL[1]).and_then(Node::as_seq).unwrap_or_default();
+    rows.iter()
+        .filter_map(|row| {
+            let kind = row.get("kind").and_then(Node::as_str)?;
+            let id = row.get("id").and_then(Node::as_str).unwrap_or("?");
+            (RuleKind::from_name(kind).is_some() && !maps_to_constitution(kind)).then(|| {
+                format!("行 {id} の kind「{kind}」は閾値の行に置けない（kind_map_to_constitution の左辺に無い＝開発規律の行の作法）")
+            })
+        })
+        .collect()
+}
+
+/// 種別が `FLOOR` の kind_map_to_constitution の左辺に在るか（生成区間と同じ木から引く・便 204）。
+fn maps_to_constitution(kind: &str) -> bool {
+    let Floor::Map(fields) = &FLOOR else {
+        return false;
+    };
+    fields
+        .iter()
+        .any(|(key, map)| *key == "kind_map_to_constitution" && matches!(map, Floor::Map(m) if m.iter().any(|(left, _)| *left == kind)))
+}
+
 /// 作法の行（D-n）が必ず持つ欄。
 pub const DISCIPLINE_REQUIRED: [&str; 7] = [
     "id", "article", "what", "kind", "status", "ruling", "ruled_at",
@@ -307,6 +333,13 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
             "その行の散文が依っている、article の条以外の id の一覧（ほかの行・要件書の id・判断の記録・別の条と規範文）。各項は id の形（P-5.2）で、その行自身の id と article の値は書かない。未解決は行 R-4 の 1 つ目の数えが拾い、判断の記録の未実在は A-2 の網が拾う（R-4 の what と値と母集団は変えない）",
         ),
     ),
+    ("ruled_at_format", Floor::Val(crate::ruling::TIME_FORMAT)),
+    (
+        "ruled_at_note",
+        Floor::Val(
+            "行の裁定の時刻の欄 ruled_at の形（ruled_at_format）。年-月-日か、UTC の分（年-月-日T時:分Z）。床（folio check）は全行で、裁定の欄 ruling と同じ歩き手で数え（条 P-17.1）、欄が無い・空・字でない（一覧・表）・形の違う は違反とする。裁定の欄が骨格の印（未記入）の行は裁定の前として時刻を数えず（条 P-17.3）、裁定の欄が埋まった行の時刻が骨格の印なら違反とする。暦に在る日かと、裁定の欄の日時との一致は見ない",
+        ),
+    ),
     (
         "enums",
         Floor::Map(&[
@@ -361,7 +394,7 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
     (
         "kind_map_to_constitution_note",
         Floor::Val(
-            "R 行にだけ適用する（D 行は作法＝条の機構とは別）。右辺は憲法の値域 mechanism_kind の値",
+            "R 行にだけ適用する（D 行は作法＝条の機構とは別）。右辺は憲法の値域 mechanism_kind の値。閾値の行（R 行）の kind は左辺のどれかで、左辺に無い human-review（D 行の作法）を閾値の行に置けば床（folio check）が落とす",
         ),
     ),
     (
@@ -473,6 +506,22 @@ mod tests {
         assert!(plan_note(&two).unwrap_err().contains("2 本ある"));
         let discipline = "thresholds: []\ndiscipline:\n  - {id: D-1, value: surface-plan, key: plan-note}\n";
         assert_eq!(plan_note(&crate::yaml::parse(discipline).unwrap().root), Ok(None));
+    }
+
+    /// 便 204 (c): 閾値の行の種別は kind_map_to_constitution の左辺（deny・build-check・detect）だけを通し、human-review の閾値の
+    /// 行だけを字にする。値域の外の種別と開発規律の行は数えない（面の床と作法の行の持ち分）。
+    #[test]
+    fn f204_a_threshold_row_takes_only_a_kind_mapped_to_the_constitution() {
+        let v = |rows: &str| kind_violations(&crate::yaml::parse(rows).unwrap().root);
+        let row = |id: &str, k: &str| format!("  - {{id: {id}, kind: {k}}}\n");
+        let all: String = ["deny", "build-check", "detect", "bogus"].iter().enumerate().map(|(n, k)| row(&format!("R-{n}"), k)).collect();
+        assert!(v(&format!("thresholds:\n{all}discipline:\n{}", row("D-1", "human-review"))).is_empty());
+        assert_eq!(
+            v(&format!("thresholds:\n{}{}", row("R-1", "deny"), row("R-2", "human-review"))),
+            ["行 R-2 の kind「human-review」は閾値の行に置けない（kind_map_to_constitution の左辺に無い＝開発規律の行の作法）"]
+        );
+        let mapped: Vec<&str> = RuleKind::NAMES.into_iter().filter(|k| maps_to_constitution(k)).collect();
+        assert_eq!(mapped, ["deny", "build-check", "detect"]);
     }
 
     /// 種別と憲法の機構の対応の右辺は憲法の値域 mechanism_kind の名（1 か所から出る）。
