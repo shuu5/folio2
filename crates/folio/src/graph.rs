@@ -17,7 +17,6 @@ use std::path::Path;
 use crate::floor::Floor;
 use crate::floor_note::CONTRACT_TABLE;
 use crate::note;
-use crate::ruling;
 use crate::sha256;
 use crate::verdict::{Report, Verdict};
 use crate::yaml::{self, Node, json_str};
@@ -232,14 +231,14 @@ impl Index {
     /// 切り出し、欄が節点を持てば（条の改訂来歴・規則の表の行・判断の記録の承認欄）その節点に、設計ノートの承認欄の行なら同じ
     /// file の設計ノートの行の全部に、欄の順・切り出した順で付ける。ほかの節点を持たない欄（憲法の発効の承認・承認欄の stamp・
     /// 判断の表の行）は付けない。値が字でない欄は切り出さない（床の違反）。
-    fn ruled(&mut self, tree: &ruling::Tree) {
-        for site in ruling::sites(tree) {
+    fn ruled(&mut self, tree: &crate::ruling::Tree) {
+        for site in crate::ruling::sites(tree) {
             let Some(Node::Scalar(s)) = site.value else {
                 continue;
             };
             let heirs: Vec<String> = match site.node {
                 Some(id) => vec![id.to_string()],
-                None if site.field == ruling::NOTE => self
+                None if site.field == crate::ruling::NOTE => self
                     .nodes
                     .iter()
                     .filter(|(_, (kind, file, _))| *kind == NODE_KINDS[11] && *file == site.file)
@@ -247,7 +246,7 @@ impl Index {
                     .collect(),
                 None => continue,
             };
-            let cut: Vec<_> = ruling::rulings(s)
+            let cut: Vec<_> = crate::ruling::rulings(s)
                 .into_iter()
                 .map(|r| (r.text.to_string(), r.form.name(), r.bead.to_string()))
                 .collect();
@@ -581,7 +580,7 @@ fn build(dir: &Path) -> Result<Index, String> {
         return Err("節点が 1 つも無い".to_string());
     }
     let null = Node::Null;
-    let tree = ruling::Tree {
+    let tree = crate::ruling::Tree {
         constitution: &c,
         rules: &r,
         srs: &s,
