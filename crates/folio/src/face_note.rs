@@ -20,6 +20,7 @@ use crate::adr;
 use crate::catalog::Component;
 use crate::cursor::{self, R, X, esc};
 use crate::face::{self, Frame, anchor, hint};
+use crate::face_adr;
 use crate::face_index_read;
 use crate::floor_note::EXTERNAL_PATH;
 use crate::note;
@@ -524,7 +525,7 @@ fn id_links(env: &Env<'_>, x: &X<'_>) -> R<Vec<String>> {
 /// 器の導出 file（床と同じ式 `note::external_path` で解く）を行走査で読み、field の name を宣言の順に返す。
 /// 読めない・期待する形でない は「まだ分からない」（要件書 FR10・AC8）。
 fn load_external(dir: &Path) -> R<Vec<String>> {
-    let bad = |why: String| format!("{EXTERNAL_PATH}: 器の導出 file が読めない: {why}");
+    let bad = |why: String| cursor::unreadable(format!("{EXTERNAL_PATH}: 器の導出 file が読めない: {why}"));
     let path = note::external_path(dir).map_err(bad)?;
     if path.is_symlink() {
         return Err(bad("symlink は認めない".to_string()));
@@ -703,10 +704,10 @@ fn section_chapter(
     Ok(())
 }
 
-/// 散文の節。空行で段落に分け、段落の中の改行は空白 1 つに。各段落に便 27 の列挙の分割を掛ける。
+/// 散文の節。空行で段落に分け、段落の中の改行は空白 1 つに。各段落に便 27 の列挙の分割を掛ける（印の数えは判断の記録の面と同じ関数）。
 fn prose(o: &mut Vec<String>, body: &str) {
     for para in paragraphs(body) {
-        let marks = item_marks(&para);
+        let marks = face_adr::item_marks(&para);
         if marks.len() < 2 {
             o.push(format!("<p>{para}</p>"));
             continue;
@@ -743,36 +744,6 @@ fn paragraphs(body: &str) -> Vec<String> {
         out.push(cur.join(" "));
     }
     out
-}
-
-/// 文の頭の列挙の印「(k) 」の位置（開きの括弧の byte・印の直後の byte）。印と数えるのは、印の直前
-/// （末尾の空白を除く）が本文の先頭か句点で、かつ番号が 1 から 1 ずつ増えて続くときだけ（便 27 §1 (b)）。
-fn item_marks(body: &str) -> Vec<(usize, usize)> {
-    let b = body.as_bytes();
-    let mut marks = Vec::new();
-    let mut want = 1u32;
-    let mut i = 0;
-    while i < b.len() {
-        // 半角の開き括弧 + ASCII の数字 1 つ以上 + 半角の閉じ括弧 + 半角空白 1 つ
-        if b[i] == b'(' {
-            let mut j = i + 1;
-            while j < b.len() && b[j].is_ascii_digit() {
-                j += 1;
-            }
-            if j > i + 1 && b.get(j) == Some(&b')') && b.get(j + 1) == Some(&b' ') {
-                let head = body[..i].trim_end();
-                let at_head = head.is_empty() || head.ends_with('。');
-                if at_head && body[i + 1..j].parse::<u32>() == Ok(want) {
-                    marks.push((i, j + 2));
-                    want += 1;
-                    i = j + 2;
-                    continue;
-                }
-            }
-        }
-        i += 1;
-    }
-    marks
 }
 
 fn pill(s: &str) -> String {
@@ -905,7 +876,8 @@ fn table_chapter(
 fn contract_row(r: &mut Row, row: &X<'_>, secs: &[Sec<'_>], env: &Env<'_>) -> R<()> {
     r.rt = row.ef("title")?;
     r.badges.push(pill(&row.ef("size")?));
-    r.norm = Some(row.ef("done")?);
+    // verify と done は器の導出 file で conditional（在るときだけ出す・要否は床が数える・便 187）
+    r.norm = row.g("done")?.map(|x| x.e()).transpose()?;
 
     // 節（同じ文書の該当の節の章へ・節が無ければ「（まだ分からない）」）
     let sec = row.f("section")?.text()?;
@@ -919,12 +891,14 @@ fn contract_row(r: &mut Row, row: &X<'_>, secs: &[Sec<'_>], env: &Env<'_>) -> R<
     if !reqs.is_empty() {
         r.chips.push(hint("要件", &reqs.join("・")));
     }
-    let verify = row
-        .f("verify")?
-        .seq()?
-        .iter()
-        .map(|q| Ok(format!("<code>{}</code>", q.e()?)))
-        .collect::<R<Vec<_>>>()?;
+    let verify = match row.g("verify")? {
+        Some(v) => v
+            .seq()?
+            .iter()
+            .map(|q| Ok(format!("<code>{}</code>", q.e()?)))
+            .collect::<R<Vec<_>>>()?,
+        None => Vec::new(),
+    };
     if !verify.is_empty() {
         r.chips.push(hint("検証", &verify.join("<br>")));
     }

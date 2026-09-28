@@ -267,16 +267,22 @@ pub(crate) fn has_contract_table(root: &Node) -> bool {
 
 // ── (a) 器の導出 file（行走査で読む） ──
 
-/// 器の導出 file の path を解く唯一の式（便 123・ADR-16 決定 (2)(キ)・床と面の生成器と導出の命令が共有する）。
-/// 置き場を含む版管理の根が在ればその下（置き場そのものが根でも同じ）、無ければ置き場の親の下。
-/// 根の下に file が無くても親へは倒さない（探す先は 1 つ・P-4.1）。Err は読めない理由の字。
-pub(crate) fn external_path(dir: &Path) -> Result<PathBuf, String> {
+/// 置き場の根を解く唯一の式（便 123・ADR-16 決定 (2)(キ)）: 置き場を含む版管理の根が在ればそこ（置き場そのものが根でも同じ）、
+/// 無ければ置き場の親。器の導出 file の置き場（`external_path`）と `folio derive --from-root` の --out の起点（便 192）が共有する。
+/// Err は読めない理由の字。
+pub(crate) fn root_of(dir: &Path) -> Result<PathBuf, String> {
     if let Some(top) = gitcheck::toplevel(dir) {
-        return Ok(top.join(EXTERNAL_PATH));
+        return Ok(top);
     }
     dir.parent()
-        .map(|p| p.join(EXTERNAL_PATH))
+        .map(Path::to_path_buf)
         .ok_or_else(|| "正本の置き場の親 dir が無い".to_string())
+}
+
+/// 器の導出 file の path を解く唯一の式（便 123・ADR-16 決定 (2)(キ)・床と面の生成器と導出の命令が共有する）。
+/// 根（`root_of`）の下。根の下に file が無くても親へは倒さない（探す先は 1 つ・P-4.1）。Err は読めない理由の字。
+pub(crate) fn external_path(dir: &Path) -> Result<PathBuf, String> {
+    root_of(dir).map(|top| top.join(EXTERNAL_PATH))
 }
 
 /// 器の導出 file（`external_path` で解く）を読む。読めない・期待する形でない は「まだ分からない」。
@@ -367,20 +373,6 @@ fn quoted_pair(line: &str) -> Option<(String, String)> {
 
 // ── id 空間 ──
 
-/// rules 行の節（便 1 と同じ）。
-const RULE_SECTIONS: [&str; 2] = ["thresholds", "discipline"];
-
-/// 要件書の id を持つ節（便 1 と同じ）。
-const SRS_ID_SECTIONS: [&str; 7] = [
-    "goals",
-    "requirements",
-    "nonfunctional",
-    "acceptance",
-    "constraints",
-    "actors",
-    "outputs",
-];
-
 /// 節の行（表）。一覧でない節・表でない行は数えない（便 0・便 1 の側が数えてある）。
 fn maps<'a>(root: &'a Node, section: &str) -> Vec<&'a Node> {
     root.get(section)
@@ -400,7 +392,7 @@ fn base_known_ids(
     adr: Option<&Adr>,
 ) -> HashSet<String> {
     let articles = maps(constitution, "articles");
-    let rule_rows: Vec<&Node> = RULE_SECTIONS.iter().flat_map(|s| maps(rules, s)).collect();
+    let rule_rows: Vec<&Node> = refs::RULE_SECTIONS.iter().flat_map(|s| maps(rules, s)).collect();
     let mut known = refs::known_ids(&articles, &rule_rows, srs, &mut Report::default());
     if let Some(adr) = adr {
         known.extend(link::adr_ids(adr).iter().map(|id| (*id).to_string()));
@@ -411,7 +403,7 @@ fn base_known_ids(
 /// 要件書の id（契約表の行の req の解決先）。
 fn requirement_ids(srs: &Node) -> HashSet<String> {
     let mut ids = HashSet::new();
-    for section in SRS_ID_SECTIONS {
+    for section in refs::SRS_ID_SECTIONS {
         for row in maps(srs, section) {
             if let Some(id) = row.get("id").and_then(Node::as_str) {
                 ids.insert(id.to_string());

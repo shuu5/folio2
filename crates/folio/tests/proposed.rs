@@ -19,6 +19,9 @@ const GONE: &str = "[P-7] FR19 が消えた（baseline の anchors/ids-*.yaml �
 const DUP: &str = "[重複キー] rules.yaml: 行 id「R-2」が重複";
 const REFUSED: &str = "folio check --proposed: まだ分からない（口は数えていない）";
 const INDEX: &str = "[索引の節点] srs.yaml: 索引の節点 FR1 の行を行の逐語で切れない（id か節の見出しの key が引用符つきか裸の形でない＝folio graph --print が組めない）";
+const RAIL7: &str = "  - {n: 7, who: folio, what: 組み立てて、見せる, reqs: [FR7]}\n";
+const RAIL8: &str = "  - {n: 7, who: folio, what: 組み立てて、見せる, reqs: [FR7]}\n  - {n: 8, who: folio, what: 余分の段, reqs: [FR7]}\n";
+const FACE: &str = "[面] srs.yaml.rail: 段が 8 で上限 7（部品目録の pipeline-rail の max_nodes）を超える";
 
 fn copy_tree(src: &Path, dst: &Path) {
     fs::create_dir_all(dst).unwrap();
@@ -192,7 +195,7 @@ fn f198_stop_line_is_a_line_of_the_floor() {
         r.out,
         [
             BOGUS.to_string(),
-            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()
         ]
     );
     assert_eq!(w.snapshot(), before, "口が置き場を書いた");
@@ -212,7 +215,7 @@ fn f198_link_is_not_stopped_but_the_floor_counts_it() {
     assert_eq!(
         r.out,
         [
-            "folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0）".to_string(),
+            "folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string(),
             format!("{LINK_HEAD}{DANGLING}")
         ]
     );
@@ -236,7 +239,7 @@ fn f198_old_violations_do_not_stop() {
     assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
     assert_eq!(
         r.out,
-        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()]
+        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()]
     );
 }
 
@@ -337,7 +340,7 @@ fn f198_fixing_an_unreadable_place_is_not_unknown() {
     assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
     assert_eq!(
         r.out,
-        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 1）".to_string()]
+        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 1・面の段は数えない）".to_string()]
     );
     w.write("srs.yaml", &original);
     assert_eq!(w.floor().code, 0);
@@ -377,7 +380,7 @@ fn f198_sealed_body_change_is_stopped() {
         r.out,
         [
             SEAL.to_string(),
-            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()
         ]
     );
     w.write("adr/ADR-4.yaml", &text);
@@ -398,7 +401,7 @@ fn f198_frozen_id_removal_is_stopped() {
         r.out[..2],
         [
             GONE.to_string(),
-            "folio check --proposed: 止める（新しい違反 1・つながり 4・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+            "folio check --proposed: 止める（新しい違反 1・つながり 4・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()
         ]
     );
     w.write("srs.yaml", &text);
@@ -428,7 +431,7 @@ fn f198_one_more_of_the_same_words_is_new() {
         r.out,
         [
             DUP.to_string(),
-            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+            "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()
         ]
     );
 }
@@ -470,7 +473,7 @@ fn f198_tmpdir_in_another_work_tree_is_not_read() {
             r.out,
             [
                 CONTRACT.to_string(),
-                "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0）".to_string()
+                "folio check --proposed: 止める（新しい違反 1・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()
             ]
         );
     }
@@ -516,7 +519,7 @@ fn f198_lines_come_in_the_order_stop_unknown_summary_link() {
         [
             INDEX.replace("FR1", "FR2"),
             format!("# まだ分からない: {unknown}"),
-            "folio check --proposed: まだ分からない（新しい違反 1・つながり 1・まだ分からない 1・書く前から在る まだ分からない 0）".to_string(),
+            "folio check --proposed: まだ分からない（新しい違反 1・つながり 1・まだ分からない 1・書く前から在る まだ分からない 0・面の段は数えない）".to_string(),
             format!("{LINK_HEAD}{DANGLING}")
         ]
     );
@@ -527,4 +530,23 @@ fn f198_lines_come_in_the_order_stop_unknown_summary_link() {
         assert!(f.out.contains(&l), "素の床に無い: {l}");
     }
     assert!(f.err.contains(&format!("# まだ分からない: {unknown}")), "{:?}", f.err);
+}
+
+/// 便 198 (c) 19（改訂 d・便 187 の後）: 面を組んで初めて分かる崩れ（便 187 の面の段）は口が止めず（0）、数えていないことを要約の括弧の中で
+/// 名乗り（ADR-33 決定 (6)）、同じ中身を書いた置き場の素の床は面の字で落とす。
+#[test]
+fn f198_face_stage_is_left_to_the_floor() {
+    let w = Work::new("faces");
+    let text = w.edited("srs.yaml", RAIL7, RAIL8);
+    let r = w.propose("srs.yaml", &text);
+    assert_eq!(r.code, 0, "{:?} {:?}", r.out, r.err);
+    assert_eq!(
+        r.out,
+        ["folio check --proposed: 通す（新しい違反 0・つながり 0・まだ分からない 0・書く前から在る まだ分からない 0・面の段は数えない）".to_string()]
+    );
+    assert!(r.err.is_empty(), "{:?}", r.err);
+    w.write("srs.yaml", &text);
+    let f = w.floor();
+    assert_eq!(f.code, 1, "{:?} {:?}", f.out, f.err);
+    assert!(f.out.iter().any(|l| l == FACE), "{:?}", f.out);
 }
