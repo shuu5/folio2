@@ -10,15 +10,11 @@
 
 #![allow(dead_code)]
 
-use std::collections::HashSet;
 use std::path::Path;
 
 use crate::adr;
-use crate::check;
 use crate::constitution_enums::{MechanismKind, Stage};
 use crate::floor::{self, Floor};
-use crate::refs;
-use crate::verdict::Report;
 use crate::yaml::Node;
 
 /// 規則の表の最上位の節の閉じた一覧（`FLOOR` の top_level・thresholds と discipline は人が書き、schema は生成区間・ほかの名は未知の節）。
@@ -44,8 +40,10 @@ pub fn label(rules: &Node, row: &'static str) -> &'static str {
         .map_or(row, |(_, name)| name)
 }
 
-/// 違反の名札の閉じた一覧の続き（便 203・台帳 f2-648.236）: folio2 の条・規範文・規則の表の行の id の名札と、外の置き場に
-/// その id が無いときの検査の名。名札は文言の字面（行 D-11 の写しの外）。
+/// 違反の名札の閉じた一覧の続き（便 203・台帳 f2-648.236）: folio2 の条と規範文の意味から来る検査と、置き場の行を引かない検査の
+/// 名札の id と、外の置き場で出す検査の名。名札に id を出すのは、床が置き場の行をその id の字で引いて値か対象を読む検査だけで
+/// （便 156 の `LABELS`・行 R-17 ほか）、この一覧の検査は置き場の行を引かないので、外では置き場の表に同じ id が在っても検査の名
+/// （同じ id が置き場で別の意味を持ちうる・持ち主の裁定 2026-09-27 の外の利用者 tsuzuri）。名札は文言の字面（行 D-11 の写しの外）。
 pub const ABROAD_LABELS: [(&str, &str); 6] = [
     ("A-2", "改訂と判断の記録"),
     ("N-4", "改訂の承認"),
@@ -55,39 +53,23 @@ pub const ABROAD_LABELS: [(&str, &str); 6] = [
     ("R-3", "部品目録"),
 ];
 
-/// 置き場の違反の名札の読み（便 203）。folio2 の置き場と名の無い口（`floor::abroad` が偽）は名札の字のまま。外の置き場は
-/// `ABROAD_LABELS` の id のうち、置き場の憲法の条と規範文と規則の表の行（参照 id の解決先と同じ `refs::known_ids`）に無いものを
-/// 検査の名にする（便 156 の `label` と同じ形・出力の口で 1 度だけ引く）。
+/// 置き場の違反の名札の読み（便 203）。folio2 の置き場と名の無い口（`floor::abroad` が偽）は名札の字のまま、外の置き場は
+/// `ABROAD_LABELS` の id を検査の名にする（出力の口で 1 度だけ引く・書く前と後の突き合わせは元の字で数える）。
 pub struct Labels {
     abroad: bool,
-    ids: HashSet<String>,
 }
 
 impl Labels {
-    /// 置き場 `dir` の読み（名は `adr::place_name`・憲法と規則の表は床と同じ読み口 `check::load_pair`・読めなければ id は空）。
+    /// 置き場 `dir` の読み（名は `adr::place_name`・外の判定は便 202 と同じ `floor::abroad`）。
     pub fn of(dir: &Path) -> Labels {
-        let abroad = floor::abroad(adr::place_name(dir).ok().as_deref());
-        match abroad.then(|| check::load_pair(dir).ok()).flatten() {
-            Some((constitution, rules)) => Labels::new(abroad, &constitution, &rules),
-            None => Labels::new(abroad, &Node::Null, &Node::Null),
+        Labels {
+            abroad: floor::abroad(adr::place_name(dir).ok().as_deref()),
         }
-    }
-
-    fn new(abroad: bool, constitution: &Node, rules: &Node) -> Labels {
-        let articles: Vec<&Node> = constitution.get("articles").and_then(Node::as_seq).unwrap_or_default().iter().collect();
-        let rows: Vec<&Node> = RULES_TOP_LEVEL[1..]
-            .iter()
-            .filter_map(|s| rules.get(s))
-            .filter_map(Node::as_seq)
-            .flatten()
-            .collect();
-        let ids = refs::known_ids(&articles, &rows, &Node::Null, &mut Report::default());
-        Labels { abroad, ids }
     }
 
     /// 出力に出す名札。
     pub fn shown<'a>(&self, kind: &'a str) -> &'a str {
-        if !self.abroad || self.ids.contains(kind) {
+        if !self.abroad {
             return kind;
         }
         ABROAD_LABELS
@@ -549,36 +531,24 @@ mod tests {
         assert_eq!(KIND_DETECT_MAPS_TO, ["none"]);
     }
 
-    /// 違反の名札の続き（便 203）: folio2 の置き場（外でない）は置き場に id が無くても名札のまま、外の置き場は置き場の憲法の条と
-    /// 規範文と規則の表の行に在る id ならその id、無ければ検査の名（期待の字は手書き）。閉じた一覧に無い名札は変えない。
+    /// 違反の名札の続き（便 203）: folio2 の置き場（外でない）は名札のまま、外の置き場は一覧の id を検査の名にする（置き場の表を
+    /// 見ない＝同じ id を持つ置き場でも検査の名・期待の字は手書き）。一覧に無い名札（行を引く R-9・R-17 と検査の名）は変えない。
     #[test]
-    fn f203_labels_name_only_ids_the_place_has_abroad() {
-        let none = Node::Null;
-        let home = Labels::new(false, &none, &none);
-        let bare = Labels::new(true, &none, &none);
-        let names = [
+    fn f203_labels_name_the_check_abroad_even_where_the_place_has_the_id() {
+        let home = Labels { abroad: false };
+        let abroad = Labels { abroad: true };
+        for (id, name) in [
             ("A-2", "改訂と判断の記録"),
             ("N-4", "改訂の承認"),
             ("P-7", "id の再利用と改番"),
             ("P-7.1", "id の再利用と改番"),
             ("P-8", "撤退条件"),
             ("R-3", "部品目録"),
-        ];
-        for (id, name) in names {
-            assert_eq!(home.shown(id), id);
-            assert_eq!(bare.shown(id), name);
+        ] {
+            assert_eq!((home.shown(id), abroad.shown(id)), (id, name));
         }
-        for kind in ["adr", "schema", "R-9", "P-18", "polarity"] {
-            assert_eq!((home.shown(kind), bare.shown(kind)), (kind, kind));
+        for kind in ["adr", "schema", "R-9", "R-17", "P-18", "polarity"] {
+            assert_eq!((home.shown(kind), abroad.shown(kind)), (kind, kind));
         }
-        let constitution = crate::yaml::parse(
-            "articles:\n  - {id: N-4, statements: [{id: N-4.1}]}\n  - {id: P-7, statements: [{id: P-7.1}]}\n",
-        )
-        .unwrap()
-        .root;
-        let rules = crate::yaml::parse("thresholds:\n  - {id: R-3}\ndiscipline:\n  - {id: D-1}\n").unwrap().root;
-        let has = Labels::new(true, &constitution, &rules);
-        let got: Vec<&str> = names.iter().map(|(id, _)| has.shown(id)).collect();
-        assert_eq!(got, ["改訂と判断の記録", "N-4", "P-7", "P-7.1", "撤退条件", "R-3"]);
     }
 }

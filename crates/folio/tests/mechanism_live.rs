@@ -10,8 +10,9 @@
 //! 便 200（docs/design/delivery-200.md §1 (d)）: 土台と骨格は欄 key が in-loop-min の行も持たないので、下限を数えなかった知らせが
 //! 行 R-17 の知らせの次に出る（歯は tests/polarity.rs）。
 //! 便 202（docs/design/delivery-202.md §1 (e)）: 骨格（外の置き場）の知らせは folio2 の条の番号の項が落ちた字（IN_LOOP_OFF_ABROAD）。
-//! 便 203（docs/design/delivery-203.md §1 (c)）: 骨格では、違反の名札（素の床・編集時の口・folio parts）が置き場に無い folio2 の id を
-//! 名指さず検査の名になり、まだ分からない の行から folio2 の番号の片が落ちる。同じ中身で名だけ folio2 にした写しは今の字（f203_ の 1 本）。
+//! 便 203（docs/design/delivery-203.md §1 (c)）: 骨格では、違反の名札（素の床・編集時の口・folio parts）が folio2 の id を名指さず
+//! 検査の名になり（置き場が同じ id の条か行を持っても同じ）、まだ分からない の行から folio2 の番号の片が落ちる。同じ中身で名だけ
+//! folio2 にした写しは今の字（f203_ の 1 本）。
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -497,6 +498,14 @@ fn f203_abroad_labels_and_unknowns_name_no_folio2_number() {
     edit(&r.dir().join("adr/ADR-1.yaml"), |t| {
         t.replacen("retreat: {kind: ruling, condition: 未記入}\n", "retreat: {}\n", 1)
     });
+    // 置き場が同じ id の条 P-8（別の意味）を持っても、名札は検査の名（tsuzuri の条 P-8 は値の型の区別）
+    edit(&r.dir().join("constitution.yaml"), |t| {
+        t.replacen("  counts: {always: 1,", "  counts: {always: 2,", 1).replacen(
+            "    relations: {rules: [R-2, R-8, R-16]}\n",
+            "    relations: {rules: [R-2, R-8, R-16]}\n  - id: P-8\n    title: 値の型\n    tier: always\n    binds: both\n    statements:\n      - {id: P-8.1, pattern: ubiquitous, strength: must, text: 宣言した値と測った値を型で区別する。}\n    plain: 宣言した値と測った値を型で区別する。\n    rationale: []\n    mechanism: {kind: none, live: now, note: 判断の規則であって機械では検査できない。}\n    relations: {rules: []}\n",
+            1,
+        )
+    });
     r.commit();
     let out = r.check(&[]);
     assert_eq!(
@@ -510,7 +519,7 @@ fn f203_abroad_labels_and_unknowns_name_no_folio2_number() {
         show(&out)
     );
 
-    // (c) folio parts --check: 部品目録に無い class の名札は、置き場に行 R-3 が無ければ検査の名、在れば R-3（面は 1 度だけ組む）
+    // (c) folio parts --check: 部品目録に無い class の名札は検査の名で、置き場に行 R-3 を足しても同じ（床は行 R-3 を引かない・面は 1 度だけ組む）
     let p = Work::skeleton("f203-parts");
     let site = p.root.join("site");
     let built = folio(&["build"], &p.dir(), &["--out", site.to_str().unwrap(), "--write"]);
@@ -526,7 +535,7 @@ fn f203_abroad_labels_and_unknowns_name_no_folio2_number() {
     };
     assert_eq!(parts(), ["[部品目録] index.html: 部品目録に無い class「zz-unknown」"]);
     add_rows(&p.dir(), "thresholds", &[("R-3", threshold("R-3", "部品目録に無い型の数", "0 件"))]);
-    assert_eq!(parts(), ["[R-3] index.html: 部品目録に無い class「zz-unknown」"]);
+    assert_eq!(parts(), ["[部品目録] index.html: 部品目録に無い class「zz-unknown」"]);
 
     // (d) 凍結 anchor の索引の entries が空・索引の版の anchor file が無い骨格: まだ分からない の行は（P-10.3）の片が落ちる
     let x = Work::skeleton("f203-index");
