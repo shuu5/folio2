@@ -433,11 +433,12 @@ fn f202_abroad_place_names_no_folio2_article() {
     assert!(lines(&listed.stdout).contains(&"R-9 · post · fail-closed · 規則の表の閾値の行".to_string()), "{}", show(&listed));
     assert!(p18(&listed).is_empty(), "{}", show(&listed));
 
-    // 説明の字（置き場に依らない）も folio2 の便の番号を持たない
+    // 説明の字（置き場に依らない）も folio2 の便の番号と条の番号を持たない
     let help = Command::new(env!("CARGO_BIN_EXE_folio")).args(["check", "--help"]).output().expect("folio を起動できない");
     let help = String::from_utf8_lossy(&help.stdout).to_string();
     assert!(help.contains("（正本が読めなければ まだ分からない 2）"), "{help}");
     assert!(!help.contains("便 200"), "{help}");
+    assert!(!help.contains("P-18"), "{help}");
 
     // folio2 の置き場（土台の名）は今の字のまま: 違反の名札 P-18 と末尾の（P-18.4）・知らせの 条 P-18.4
     let edits = keyed_r13("99 本以上");
