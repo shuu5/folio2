@@ -62,6 +62,7 @@
 //! 便 175（delivery-175.md §1 (b)(c)）: 天井の正本の生成区間から trigger と trigger_note の 17 行が外れ、索引の欄の決まりの注から周の引き金の
 //! 2 文が外れた（CEILING_REGION_*・F95_GRAPH_* を、前の anchor を行と字で直した写しを sha256sum で測り直した値に）。
 //! 便 177（delivery-177.md §1 (b)(c)）: 索引の欄の決まりの注 digest_note から印の 1 文が外れた（F95_GRAPH_* を同じ手順で測り直した値に）。
+//! 便 196: 要件書の生成区間の末尾に id の一覧の anchor の定数の写し ids_anchor の 7 行と注 1 行（F77_REGIONS の srs.yaml を測り直した値に）。
 
 use std::fs;
 use std::io::Write;
@@ -93,9 +94,9 @@ const F77_REGIONS: [(&str, &str, usize, usize, &str); 3] = [
     (
         "srs.yaml",
         "tests/fixtures/schema/srs-region.txt",
-        30,
-        1183,
-        "e9a27f7e8b401a2acec57c63360b8f1e8d107a7fd9c00a53a1fe32da3c6c9664",
+        38,
+        1771,
+        "5dc9e967e073edf2c95962ad20eb5455afd8e7d8913904cc3ef20dc9751742cc",
     ),
     (
         "vocabulary.yaml",
