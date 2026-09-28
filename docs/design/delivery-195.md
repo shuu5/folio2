@@ -7,7 +7,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gp` が指す §1 だけ。write-set 12 本（src 6・歯の file 4〔本文不変 1〕・設計文書 1・fixture 1）・新しい file も dir も無い。
 - 門: **0（通す）**。本流 44c14ac の組み立てに write-set 12 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え（印の周 51 に、書き換える file を場所とする支持された 止める は無い）。
 - 前の便: **base = 本流 44c14ac**（便 185・192〜194 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d195/`（run・red・mut・cap・anchor・tz の script）。
-- 見本: origin の枝 `impl/d195`（**80aec6c**・本流 44c14ac を merge した commit）。`git diff 44c14ac 80aec6c` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
+- 見本: origin の枝 `impl/d195`（**26e2956**・本流 44c14ac を merge した後に検証役の N1 の歯 2 本〔(c) の 6・7〕を積んだ commit）。`git diff 44c14ac 26e2956` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
 
 ## 1. 設計
 
@@ -40,7 +40,9 @@
 3. **graph::tests::f195_abroad_region_keeps_the_lists_and_the_unmarked_notes**（単体・`graph.rs`）。外の置き場の名で導出しても型付きの欄の行は folio2 と同じ字で、2 つの注は番号の括弧だけが落ちた字になる。**base では欄が無い＝RED。**
 4. **mentions::tests::f195_receives_answers_every_pair_as_before**（単体・`mentions.rs`）。受け皿の 10 × 10 の答え（受ける組 40）を歯の中の行列で固定する。**答えを保つ歯＝base でも緑が正しい**（変異 M2〜M6 を落とす）。
 5. **mentions::tests::f195_receives_table_is_keyed_by_the_kind_names**（単体・`mentions.rs`）。RECEIVES の鍵が 10 の種類の名を宣言の順に持ち、値がどれも種類の名である。見本の新しい定数を引くので base には当てない。
-- 既存の歯の直し: `tests/schema_docs.rs` の F95_GRAPH_*（graph.yaml の区間の行数・byte 数・要約値）を便の後の値に。歯だけを base に当てると、落ちるのは 1〜3 と F95 の 3 本だけ（215 本中 6）。
+6. **graph::tests::f195_the_real_region_equals_the_constants**（単体・`graph.rs`）。実の graph.yaml の生成区間の ids と mentions の 11 の一覧が、正本の定数そのものと字も順も同じ（床の木が定数を引かずに字を手で持つと、定数を変えた途端に落ちる）。見本の定数を引くので base には当てない。
+7. **f195_the_merged_files_spell_no_id_space_list**（`tests/modules.rs`）。1 枚に寄せた 6 file（refs・link・note・prose・mentions・graph）のうち、`#[cfg(test)]` より前で参照 id の空間の一覧を字で持つ（空白を除いて数える・式の中の 2 枚目も数える）のは正本の file の 1 回だけ。**base では link・note ほかが持つ＝RED。** ほかの file に残る 2 枚目（(i) の 2）は数えない。
+- 既存の歯の直し: `tests/schema_docs.rs` の F95_GRAPH_*（graph.yaml の区間の行数・byte 数・要約値）を便の後の値に。歯だけを base に当てると、落ちるのは 1〜3・7 と F95 の 3 本だけ（1〜5 と F95 は 215 本中 6・7 は `tests/modules.rs` で 2 と並んで落ちる）。
 
 ### (d) 採らなかった形
 
@@ -51,8 +53,8 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **落ちる既存の歯は無い**（F95 の 3 本は (c) のとおり同じ便で値を直す）。便の全部を当てた写しで workspace の nextest 1075 / 1075（+5 = f195_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
-2. **突然変異 14 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 80aec6c で撃ち直し・落ちる歯の顔ぶれは前の base と同じ）。
+1. **落ちる既存の歯は無い**（F95 の 3 本は (c) のとおり同じ便で値を直す）。便の全部を当てた写しで workspace の nextest 1077 本（+7 = f195_・80aec6c の全体の run が 1075 / 1075 で、積んだ歯 2 本は verify の行で緑）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
+2. **突然変異 14 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 80aec6c で撃ち直し・落ちる歯の顔ぶれは前の base と同じ）。検証役の変異のうち V3（床の木が TARGETS を字で持ち、定数の順を変える）は (c) の 6 が、V4（link.rs が規則の表の 2 節を式の中に字で持つ）は (c) の 7 が落とす（26e2956 で実測）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -71,15 +73,15 @@
 
 | file | base | 便の後 | 便の後の余地 |
 | --- | ---: | ---: | ---: |
-| graph.rs | 1036 | 1135 | 365 |
+| graph.rs | 1036 | 1166 | 334 |
 | link.rs | 661 | 647 | 853 |
 | mentions.rs | 348 | 449 | 1051 |
 | note.rs | 1016 | 1002 | 498 |
 | prose.rs | 327 | 327 | 1173 |
 | refs.rs | 431 | 434 | 1066 |
 
-3. **size は M**（最小の余地は graph.rs の 365 ≥ 300）。
-4. **verify は 6 行**で、done の塊と 1 対 1: `--test graph f195_`・`--test schema_docs f95_ f89_`（写しの anchor と歯の file の上限）・`--test modules`（層と 1 枚の歯）・`--bin folio f195_`（単体の歯 3 本・外の置き場の導出を含む）・`--test check f93_`（行 R-17 の既存の歯）・clippy。外の置き場の区間の字は単体の歯 3 が見る（`tests/place_name.rs` は小さな直しの便 194 が書くので verify に入れない）。base では f195_ の行が 0 件で終了コード 4、ほかは緑。
+3. **size は M**（最小の余地は graph.rs の 334 ≥ 300）。
+4. **verify は 6 行**で、done の塊と 1 対 1: `--test graph f195_`・`--test schema_docs f95_ f89_`（写しの anchor と歯の file の上限）・`--test modules`（層と 1 枚の歯 2 本）・`--bin folio f195_`（単体の歯 4 本・外の置き場の導出と定数との一致を含む）・`--test check f93_`（行 R-17 の既存の歯）・clippy。外の置き場の区間の字は単体の歯 3 が見る（`tests/place_name.rs` は小さな直しの便 194 が書くので verify に入れない）。base では f195_ の行が 0 件で終了コード 4、ほかは緑。
 
 ### (g) 受付・並行の便
 
@@ -95,12 +97,12 @@
 ### (i) 連絡・運ばないもの・撤退条件
 
 1. **利用者への連絡**（195〜197 の着地の後に 1 回・席が送る）: folio を便 197 の後の版にしたら、置き場の根で `folio schema --dir design-intent --write` を 1 回撃ち、書き直った file を全部 commit する（本便の分は graph.yaml）。撃つまでは schema --check が落ちる。
-2. **運ばないもの。** `vocab.rs`・`face_srs.rs`・`face_adr.rs` の規則の表の 2 節（thresholds・discipline）の字の写しと `adr.rs` の要件 id の頭の一覧（範囲の外の写し）・配信の接続先の式（台帳 .76 の後半・置き場が決まっていない）・行 R-17 の注の「後続である」の字（本便の後に古くなる＝席の一括）。
+2. **運ばないもの。** 式の中に残る参照 id の空間の字の 2 枚目（`vocab.rs` の規則の表の 2 節と要件 id の頭・`adr.rs` の要件 id と条と規則行の頭・`rules.rs` の規則の表の 2 節・面の 4 file〔`face_note.rs`・`face_srs.rs`・`face_adr.rs`・`face_constitution_read.rs`〕・範囲の外の写し）・配信の接続先の式（台帳 .76 の後半・置き場が決まっていない）・行 R-17 の注の「後続である」の字（本便の後に古くなる＝席の一括）。
 3. **撤退条件。** (1) F95 のほかに既存の歯が 1 本でも落ちたら、歯も fixture も直さずに止めて席へ返す。(2) 着地の後の main で、folio2 の床 4 本か `folio build` の出力が (h) の 1 の差のほかで着地の直前と違えば止めて席へ返す。
 
 ## 2. 範囲
 
-- 入れる: §1 (b) の 1〜4 と (c) の歯 5 本と F95 の値の直し。
+- 入れる: §1 (b) の 1〜4 と (c) の歯 7 本と F95 の値の直し。
 - 入れない: §1 (b) の 5・(i) の 2・命令の旗・新しい file と dir・外部 crate・台帳への記帳。
 
 ## 3. 部品
@@ -119,18 +121,18 @@
 ## 5. 依存
 
 - 外部 crate と新しい dir は無い。前提の着地は便 185（base に入る）。
-- 着地の後に席が見ること: 本流の target/debug/folio を組み直す。台帳 .184 を閉じ、.76 は後半（配信の式）を残す。
+- 着地の後に席が見ること: 本流の target/debug/folio を組み直す。台帳 .184 を閉じる。**.76 は閉じない**: 前半のうち式の中の 2 枚目（(i) の 2 の vocab.rs・adr.rs・rules.rs・面の 4 file）と後半（serve.rs の配信の接続先の式）が残る＝残りの在り処を .76 の notes に書いて開けたままにする。
 
 <!-- contracts:begin -->
 schema = 1
 
 [[contract]]
 id = "gp"
-title = "台帳 f2-648.76 の前半と f2-648.184: 参照 id の空間（要件書の id を持つ節・規則の表の節・憲法の relations の名前空間・id の頭）と行 R-17 の読みの 5 つの閉じた一覧（対象の file・型付きの欄・来歴の欄・読まない最上位・数えない語形と、節ごとの行の種類・受け皿の表）を、索引の欄の決まり graph.yaml の生成区間へ写す（行 D-11）。refs.rs の定数を 1 枚の正本にして link・note・prose・mentions・graph の写しを消し、mentions.rs の受け皿の match を種類の名の表 RECEIVES にし、graph.rs の FLOOR に ids と mentions と注 2 つを足して folio schema --write で書く。判定の答えは変えない。歯は f195_ 5 本と F95 の値の直し。base = main 44c14ac"
+title = "台帳 f2-648.76 の前半と f2-648.184: 参照 id の空間（要件書の id を持つ節・規則の表の節・憲法の relations の名前空間・id の頭）と行 R-17 の読みの 5 つの閉じた一覧（対象の file・型付きの欄・来歴の欄・読まない最上位・数えない語形と、節ごとの行の種類・受け皿の表）を、索引の欄の決まり graph.yaml の生成区間へ写す（行 D-11）。refs.rs の定数を 1 枚の正本にして link・note・prose・mentions・graph の写しを消し、mentions.rs の受け皿の match を種類の名の表 RECEIVES にし、graph.rs の FLOOR に ids と mentions と注 2 つを足して folio schema --write で書く。判定の答えは変えない。歯は f195_ 7 本と F95 の値の直し。base = main 44c14ac"
 req = ["FR19", "FR5"]
 section = "1"
 write-set = ["crates/folio/src/graph.rs", "crates/folio/src/link.rs", "crates/folio/src/mentions.rs", "crates/folio/src/note.rs", "crates/folio/src/prose.rs", "crates/folio/src/refs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/modules.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/check.rs", "design-intent/graph.yaml", "tests/fixtures/schema/graph-region.txt"]
 verify = ["cargo nextest run -p folio --test graph f195_", "cargo nextest run -p folio --test schema_docs f95_ f89_", "cargo nextest run -p folio --test modules", "cargo nextest run -p folio --bin folio f195_", "cargo nextest run -p folio --test check f93_", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "M"
-done = "f195_ の binary 経由の 2 本（tests/graph.rs・tests/modules.rs）と単体の 3 本が緑、tests/schema_docs.rs の f95_ と f89_ の歯（graph.yaml の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、tests/modules.rs の層の歯が緑、tests/check.rs の f93_ の歯（行 R-17）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
+done = "f195_ の binary 経由の 3 本（tests/graph.rs 1・tests/modules.rs 2）と単体の 4 本が緑、tests/schema_docs.rs の f95_ と f89_ の歯（graph.yaml の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、tests/modules.rs の層の歯が緑、tests/check.rs の f93_ の歯（行 R-17）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
 <!-- contracts:end -->

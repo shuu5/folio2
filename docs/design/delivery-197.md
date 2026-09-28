@@ -3,11 +3,11 @@
 - 要件: FR1（相談窓口）・FR19（欄の決まりの生成区間は床の定数から決定的に導出する）。規範文・確かめ方・受入基準は変えない。
 - 条: P-6.3（同じ内容を 2 つの面が持つとき一方を正本にし他方は導出）・P-6.4（2 つの面を人が書き一致を検査で強制しない）・P-5.6・P-5.1。
 - 出所: 判断の記録 ADR-11 決定 (3)(ア)・(4)⑥（相談窓口の回答の値は file が正本で、実装は実行時に読む・台帳 **f2-648.74**）と規則の表の行 D-11。同乗は台帳 **f2-648.227**（除外の字が機械の待ち時間まで除外に読める・天井の 46 周目の忠実さの気づき・席の依頼 2026-09-28 18:1x）。
-- 承認: .74 は file の値に従う形へ実装を直し（folio2 と土台と tsuzuri では答えが 1 byte も変わらない）、その読み方の写しを足す。.227 は欄の決まりの字の直しで規則の表の行ではない。どちらも行 D-17 の 4 つに当たらないと読み、席の裁定で受け付ける（.227 は席の依頼の読みと同じ）。
+- 承認: .74 は file の値に従う形へ実装を直し（folio2 と土台と tsuzuri では答えが 1 byte も変わらない）、その読み方の写しを足す＝行 D-17 の 4 つに当たらないと読み、席の裁定で受け付ける。.227 は行 D-17 の注（実装の型付きの定数で生成区間の規則を変える）に当たり、持ち主の承認（2026-09-28 の束・C）の後に受け付ける（検証役 B1）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾。審査の材料は行 `gr` が指す §1 だけ。write-set 9 本（src 3・歯の file 2・設計文書 2・fixture 2）・新しい file も dir も無い。
 - 門: **0（通す）**。本流 44c14ac の組み立てに write-set 9 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え。
 - 前の便: **base = 本流 44c14ac**（便 185・192〜194 の着地の後）。数は base の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/copies-scripts/d197/`。
-- 見本: origin の枝 `impl/d197`（**8a0abe9**・本流 44c14ac を merge した commit）。`git diff 44c14ac 8a0abe9` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
+- 見本: origin の枝 `impl/d197`（**92972b1**・本流 44c14ac を merge した後に検証役の N1 の歯 1 本〔(c) の 6〕を積んだ commit）。`git diff 44c14ac 92972b1` が便の全体の差分。作業者は write-set の file をこの commit の中身にしてよい。
 
 ## 1. 設計
 
@@ -33,7 +33,8 @@
 3. **f197_real_region_copies_the_answer_rule。** 実の intake.yaml の生成区間の answers と targets の値と注の字、人が書く欄と食い違わないこと（values が 2 つ・default = recommend・各質問に yes と no）。**base では区間に無い＝RED。**
 4. **f197_no_source_file_spells_the_answer_words。** src の各 file の最初の `#[cfg(test)]` より前に引用符付きの はい / いいえ が無い。**base では sheet.rs の 2 つ＝RED。**
 5. **f197_rules_excluded_names_only_human_time_and_ai_cost。** 実の rules.yaml の生成区間の excluded.what がちょうど 2 語で、why が機械の待ち時間を除外に入れない字を持つ。**base では旧い字＝RED。**
-- 一時の写しは既存の歯の口（一時 dir に case と process id・Drop で消す）に揃え、固定の /tmp の名を使わない。歯だけを base に当てると、落ちるのは 1〜5 と、anchor と区間の数が変わる既存の歯 8 本（F77・F85・rules の区間の歯・単体 rules_floor_derives_the_frozen_anchor_byte_for_byte）だけ。
+6. **f197_only_intake_spells_the_copied_values。** src の各 file の最初の `#[cfg(test)]` より前で、行き先の固定の値 inject と回答の欄の一覧 [yes, no] の引用符付きの字は `intake.rs` の定数の宣言に 1 回ずつだけ在り（空白を除いて数える）、床の木 INTAKE_FLOOR の 4 欄は定数の名を引く（recommend は質問の行の欄の名と同じ字なので数えず、名を引くことを見る）。**base では INTAKE_FLOOR に 4 欄が無い＝RED。**
+- 一時の写しは既存の歯の口（一時 dir に case と process id・Drop で消す）に揃え、固定の /tmp の名を使わない。歯だけを base に当てると、落ちるのは 1〜6 と、anchor と区間の数が変わる既存の歯 8 本（F77・F85・rules の区間の歯・単体 rules_floor_derives_the_frozen_anchor_byte_for_byte）だけ。
 
 ### (d) 採らなかった形
 
@@ -43,8 +44,8 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. **落ちる既存の歯は無い**（anchor と区間の数の値は (b) の 4 のとおり同じ便で直す）。便の全部を当てた写しで workspace の nextest 1075 / 1075（+5 = f197_）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
-2. **突然変異 17 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 8a0abe9 で撃ち直し・落ちる歯の数は前の base と同じ）。
+1. **落ちる既存の歯は無い**（anchor と区間の数の値は (b) の 4 のとおり同じ便で直す）。便の全部を当てた写しで workspace の nextest 1076 本（+6 = f197_・8a0abe9 の全体の run が 1075 / 1075 で、積んだ歯 1 本は verify の行で緑）・clippy 0 警告・床 4 本 rc 0・`folio build` 37 file は base と byte で同じ。
+2. **突然変異 17 通り・生き残り 0**（見本の src だけを 1 通りずつ変え、verify の歯の束を撃った・base 44c14ac の見本 8a0abe9 で撃ち直し・落ちる歯の数は前の base と同じ）。検証役の変異のうち V3（INTAKE_FLOOR が inject を字で持つ）は (c) の 6 が落とす（92972b1 で実測）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -89,7 +90,7 @@
 
 ## 2. 範囲
 
-- 入れる: §1 (b) の 1〜4 と (c) の歯 5 本と anchor・区間の数の直し。
+- 入れる: §1 (b) の 1〜4 と (c) の歯 6 本と anchor・区間の数の直し。
 - 入れない: §1 (b) の 5・(i) の 2・命令の旗・床の新しい判定・新しい file と dir・外部 crate・台帳への記帳。
 
 ## 3. 部品
@@ -107,7 +108,7 @@
 
 ## 5. 依存
 
-- 外部 crate と新しい dir は無い。前提の着地は便 185（base に入る）。
+- 外部 crate と新しい dir は無い。前提の着地は便 185（base に入る）。受付の前提は .227 の持ち主の承認（2026-09-28 の束・C）。
 - 着地の後に席が見ること: 本流の target/debug/folio を組み直す。台帳 .74 と .227 を閉じ、行 R-20 の便へ知らせる。
 
 <!-- contracts:begin -->
@@ -115,11 +116,11 @@ schema = 1
 
 [[contract]]
 id = "gr"
-title = "台帳 f2-648.74 と f2-648.227: 支度表の命令 sheet.rs が回答の値 はい / いいえ を定数で持つのをやめ、相談窓口の正本 intake.yaml の answers.values を読んで 1 つ目を yes・2 つ目を no の行き先の回答とし、values が 2 つでなければ --write が断る（判断の記録 ADR-11 決定 (3)(ア)(4)⑥）。その読み方と固定の値 inject・recommend を intake.rs の床の木 INTAKE_FLOOR から相談窓口の正本の生成区間へ写し（行 D-11）、規則の表の欄の決まりの除外 EXCLUDED_WHAT と why を人の作業の時間と AI の費用に狭める。2 file は folio schema --write で書く。folio2 と tsuzuri の答えは変えない。歯は f197_ 5 本。base = main 44c14ac"
+title = "台帳 f2-648.74 と f2-648.227: 支度表の命令 sheet.rs が回答の値 はい / いいえ を定数で持つのをやめ、相談窓口の正本 intake.yaml の answers.values を読んで 1 つ目を yes・2 つ目を no の行き先の回答とし、values が 2 つでなければ --write が断る（判断の記録 ADR-11 決定 (3)(ア)(4)⑥）。その読み方と固定の値 inject・recommend を intake.rs の床の木 INTAKE_FLOOR から相談窓口の正本の生成区間へ写し（行 D-11）、規則の表の欄の決まりの除外 EXCLUDED_WHAT と why を人の作業の時間と AI の費用に狭める。2 file は folio schema --write で書く。folio2 と tsuzuri の答えは変えない。歯は f197_ 6 本。base = main 44c14ac"
 req = ["FR1", "FR19"]
 section = "1"
 write-set = ["crates/folio/src/sheet.rs", "crates/folio/src/intake.rs", "crates/folio/src/rules.rs", "crates/folio/tests/sheet.rs", "crates/folio/tests/schema_docs.rs", "design-intent/intake.yaml", "design-intent/rules.yaml", "tests/fixtures/schema/intake-region.txt", "tests/fixtures/schema/rules-region.txt"]
 verify = ["cargo nextest run -p folio --test sheet f197_", "cargo nextest run -p folio --test sheet", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio sheet_resolve sheet_map rules_floor_", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "tests/sheet.rs の f197_ の歯 5 本が緑、tests/sheet.rs の歯の全部（支度表の凍結 anchor を含む）が緑、tests/schema_docs.rs の歯の全部（相談窓口の正本と規則の表の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、sheet.rs の単体の歯 2 本と rules.rs の床の木の単体の歯 3 本が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
+done = "tests/sheet.rs の f197_ の歯 6 本が緑、tests/sheet.rs の歯の全部（支度表の凍結 anchor を含む）が緑、tests/schema_docs.rs の歯の全部（相談窓口の正本と規則の表の生成区間の凍結 anchor・行数・byte 数・要約値と歯の file の上限）が緑、sheet.rs の単体の歯 2 本と rules.rs の床の木の単体の歯 3 本が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が 9 file とも一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
 <!-- contracts:end -->
