@@ -301,9 +301,9 @@ fn f186_file_line_and_field_point_at_the_source() {
     }
 }
 
-/// 歯 4: 終了コードは素の床と同じ（合格 0・違反 1・骨格の印の まだ分からない 2）で、標準出力は JSON の行だけ（「#」の注・
-/// 違反・要約は標準エラー）。違反のある写しでも切り出せた欄の行は出る。書き出しは置き場を書き換えない。旗は他の旗と同時に
-/// 撃てない。
+/// 歯 4: 終了コードは素の床と同じ（合格 0・違反 1・骨格の印の まだ分からない 2・索引の床〔folio graph が組めるか〕だけが
+/// 落ちる写しも 1）で、標準出力は JSON の行だけ（「#」の注・違反・要約は標準エラー）。違反のある写しでも切り出せた欄の行は
+/// 出る。書き出しは置き場を書き換えない。旗は他の旗と同時に撃てない。
 #[test]
 fn f186_the_exit_code_is_the_plain_floor_and_stdout_is_json_only() {
     let json = |r: &Run| r.out.iter().all(|l| l.starts_with("{\"ruling\":\"") && l.ends_with("\"}") && !l.starts_with('#'));
@@ -331,6 +331,18 @@ fn f186_the_exit_code_is_the_plain_floor_and_stdout_is_json_only() {
     w.set("rules.yaml", "{id: R-10,", "ruling", "未記入");
     let (plain, emit) = (w.run(&[]), w.emit());
     assert_eq!((plain.code, emit.code, emit.out.len()), (2, 2, 66));
+
+    // 索引の床だけが落ちる写し（要件 FR1 の id を単引用符にすると、索引が行の逐語で切れない）
+    let w = Work::new("rc-index", FLOOR_BASE);
+    let (from, to) = ("\n  - id: FR1\n", "\n  - id: 'FR1'\n");
+    let srs = w.read("srs.yaml");
+    assert_eq!(srs.matches(from).count(), 1);
+    w.write("srs.yaml", &srs.replacen(from, to, 1));
+    let (plain, emit) = (w.run(&[]), w.emit());
+    assert_eq!((plain.code, emit.code, emit.out.len()), (1, 1, 67));
+    let index: Vec<&String> = plain.out.iter().filter(|l| l.starts_with('[')).collect();
+    assert!(index.len() == 1 && index[0].starts_with("[索引の節点] srs.yaml: 索引の節点 FR1 の行を"), "{index:?}");
+    assert!(json(&emit) && emit.err.lines().any(|l| l == index[0]), "{}", emit.err);
 
     let real = Work::new("rc-real", REAL);
     let (plain, emit) = (real.run(&[]), real.emit());
