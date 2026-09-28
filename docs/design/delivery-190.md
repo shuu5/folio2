@@ -122,13 +122,12 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
    5. `cargo nextest run -p folio --test floor_cases` = 床の fixture（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む）。
    6. `cargo clippy --workspace --all-targets -- -D warnings` = 0 警告。
 5. **verify の歯の file と write-set。** `--test` で名指す歯の file（gitcheck・schema・floor_cases）は全部 write-set に在る。`--bin folio` の歯の在り処（gitcheck.rs）も write-set に在る。
-6. **並行の便との重なり（2026-09-28 17:3x の時点・origin の impl/d187 94ee033 と impl/d195 56567e9 を読んだ）。** 着地の順は 185 → 床の穴（187〜189）→ 本便 → 小さな直し（192〜194）→ 写しの負債（195〜197）→ 編集時の止め（198〜）。
+6. **並行の便との重なり（2026-09-28 17:3x の時点・origin の impl/d187 94ee033 と impl/d195 56567e9 を読んだ）。** 着地の順は 185 → 床の穴（187 の 1 本）→ 本便 → 小さな直し（192〜194）→ 写しの負債（195〜197）→ 編集時の止め（198〜）。
 
 | 並行の便 | 重なりうる file | 扱い |
 | --- | --- | --- |
 | 185（着地済み 6467915） | 無し | base に含む |
 | 床の穴 187（impl/d187 0d4de9f・起草役の知らせ） | `tests/floor_cases.rs` だけ（両便とも本文を変えない verify の scope・字はぶつからない）。ほかは cursor.rs・face_note.rs・figure.rs・main.rs・site.rs・新 tests/floor_faces.rs と本文不変の tests 5 本 | 順は 187 が先・数え直し不要（受付の先撃ちで live な run との重なり 1 件が出たら順序どおり） |
-| 床の穴 188・189（切るかは未定・切ったら起草役が知らせる） | 知らせが来てから数える | 先に着地して write-set が重なったら、見本を積み直して (b) 4・5 と (e) を数え直す |
 | 写しの負債 195（impl/d195） | 無し（graph.rs・link.rs・mentions.rs・note.rs・prose.rs・refs.rs・tests/modules.rs・tests/schema_docs.rs・graph.yaml・graph-region.txt） | 本便が先 |
 | 写しの負債 196・197（見本は未 push） | 判断の記録の欄の決まりの生成区間を書くなら同上 | 本便が先。写しの負債の便が数え直す |
 | 編集時の止め 198〜 | `gitcheck.rs`（置き場の横断の検査を編集時に撃つなら） | 本便が先 |
