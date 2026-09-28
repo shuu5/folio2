@@ -182,6 +182,7 @@ R-7	079e6811
 R-8	62ce1f2d
 R-9	b0ded496
 ai-session	a06d2523
+example#a	4914ab68
 folio-v1	5ccc2ed6
 folio-v2	18fcd723
 owner	b852a79f
@@ -189,5 +190,5 @@ prep-sheet	de2c6e1c
 scribe2	98133617
 three-faces	111536ed
 verdict	f2d63709
-# 残差 sha256 126775b20ea690107b1168e307e6073f503396febb17a31d5ebe25a39c4c2311
-# 節点 190・本文の byte 244963・辺の欄の byte 4832・残差の byte 145131・合計 394926
+# 残差 sha256 bb32c00c828670d86e0c72eef5dce64010a065bf4de4342f0d4f73bf5e47f989
+# 節点 191・本文の byte 245205・辺の欄の byte 4858・残差の byte 144863・合計 394926
