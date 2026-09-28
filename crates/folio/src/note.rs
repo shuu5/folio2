@@ -586,14 +586,17 @@ fn check_meta(file: &str, note: &NoteDoc, note_ids: &HashSet<&str>, report: &mut
         }
     }
 
+    // 別のノートの不在はつながり・自分自身を指す字は 1 つの file の形で止める（便 199）
     for key in ["supersedes", "superseded_by"] {
         if let Some(v) = field(meta, key)
             && !(note_ids.contains(v) && v != note.id)
         {
-            report.link(
-                KIND,
-                format!("{file}: meta.{key}「{v}」の設計ノートが実在しない"),
-            );
+            let msg = format!("{file}: meta.{key}「{v}」の設計ノートが実在しない");
+            if v == note.id {
+                report.violation(KIND, msg);
+            } else {
+                report.link(KIND, msg);
+            }
         }
     }
     if status == Some(STATUS_RETIRED) && field(meta, "superseded_by").is_none() {
