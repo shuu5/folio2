@@ -34,7 +34,7 @@
 3. **本物の違反（同じ binary で落ちる・本便の後も同じ数で落とす）。** 本物 1: 今の枝で anchor の削除を commit → 違反 1。本物 2: 根の無い枝（orphan）へ切って anchors/ を外す → 違反 2（元の枝の履歴）。本物 3: 今の枝で anchor の書き換えを commit → 違反「中身が違う」1。
 4. **実の例。** 台帳 .177（2026-09-24・取り込んでいない枝 docs/adr17 の constitution-v1.3.yaml で本流 628c547 の床が違反 1）と .258（2026-09-27・止めた便 170 の枝と控えの枝 impl/f2-648.254-run1 の adr-seals.yaml で本流の根の床が違反 1・本物の design-intent を撃つ歯 5 本も手元で落ちた）。folio2 の写しで、封の一覧が入る前の本流 b0f09d4 に控えの枝の参照を持たせると、本流の binary は `[anchor] anchors/adr-seals.yaml は版管理の履歴に在ったが作業ツリーに無い` を出す。CI は浅い写しで落ちない。
 5. **判断の記録。** ADR-2 決定 (3) の字「全ての参照（ref）の履歴を見て…」の字どおりの帰結で、ADR-34（proposed）がこの範囲を狭める（ADR-2 の本文は変えない・ADR-30 決定 (1)）。今の規範の字は `design-intent/adr/schema.yaml` の生成区間の注 anchor_note（「全ての参照（--all）の履歴を見る」）と limits_note（「全ての参照の照合」）が持つ（床の定数 `crates/folio/src/floor_adr.rs` の写し）。
-6. **base の歯（参考値）。** workspace の nextest {BASE_N} / {BASE_N}・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` {BUILD_N} file。`git grep -n f190_ -- crates` は 0 件・行 id `gk` は 0 件。
+6. **base の歯（参考値）。** workspace の nextest 1050 / 1050・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --write` 38 file。`git grep -n f190_ -- crates` は 0 件・行 id `gk` は 0 件。
 
 ### (b) 直す先
 
@@ -43,7 +43,7 @@
 3. **`crates/folio/src/floor_adr.rs` の注 2 つ。** anchor_note の版管理の項の「全ての参照（--all）の履歴を見る。」を「全ての参照（--all）を読み、照合するのは先頭（HEAD）の祖先の履歴と、HEAD と共通の祖先を持たない根の無い枝の履歴だけ（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない・判断の記録 ADR-34）。」に、limits_note の「全ての参照の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで。」を「根の無い枝の履歴の照合・同じ形式の anchor の中身の照合・列の根の digest の固定まで（HEAD と共通の祖先を持つ取り込んでいない枝の履歴は数えない＝anchor の前の commit から切り直した枝を先頭にする細工は参照の付け替えと同じく床の外・判断の記録 ADR-34）。」にする。注なので床（folio check）は数えない。
 4. **`design-intent/adr/schema.yaml`。** `folio schema --dir design-intent --write` で生成区間を書き直す（上の 2 行だけが変わる・28,247 → 28,724 byte）。手では書かない。
 5. **凍結 anchor。** `tests/fixtures/schema/adr-region.txt` を新しい生成区間（begin と end の行を除く）に測り直し、`crates/folio/tests/schema.rs` の定数 3 つ（REGION_LINES 151 のまま・REGION_BYTES 28247 → 28724・REGION_SHA256 → fcb96235…f4263）を直す。値は folio と独立の数え（python の hashlib・起草の記録の anchors-190.py）。
-6. **変えないもの。** 違反と「まだ分からない」の字（「読めない」の括弧の中の命令の名だけ rev-list を足す）・先頭の木との照合・除外・未追跡・版管理の根・浅い写し・環境変数の遮断・列の根の digest・凍結の命令の振る舞い（`seen` は同じ範囲の `ever` から組む）・`toplevel`・憲法と要件書と判断の記録の字・生成区間の注 2 つの外・`folio build` の出力（{BUILD_N} file・base と byte で同じ）・folio2 自身の床 4 本の結果。
+6. **変えないもの。** 違反と「まだ分からない」の字（「読めない」の括弧の中の命令の名だけ rev-list を足す）・先頭の木との照合・除外・未追跡・版管理の根・浅い写し・環境変数の遮断・列の根の digest・凍結の命令の振る舞い（`seen` は同じ範囲の `ever` から組む）・`toplevel`・憲法と要件書と判断の記録の字・生成区間の注 2 つの外・`folio build` の出力（38 file・base と byte で同じ）・folio2 自身の床 4 本の結果。
 
 ### (c) 歯（f190_・base で 0 件）
 
@@ -68,7 +68,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本 080d9f7 の写しで workspace の nextest **{IMPL_N} / {IMPL_N}**（base + f190_ の 9 本）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0・schema --check 一致）・`folio build --write` {BUILD_N} file（base と全 file が byte で同じ）。字の期待を直した既存の歯は `tests/schema.rs` の凍結 anchor の定数 2 つだけ（(b) 5）。
+1. **既存の歯。** 見本 080d9f7 の写しで workspace の nextest **1059 / 1059**（base + f190_ の 9 本）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0・schema --check 一致）・`folio build --write` 38 file（base と全 file が byte で同じ）。字の期待を直した既存の歯は `tests/schema.rs` の凍結 anchor の定数 2 つだけ（(b) 5）。
 2. **突然変異（見本の写しの src だけを 1 通りずつ変え、f190_ の 9 本を撃つ・M2・M3・M11 は tests/floor_cases と tests/schema も撃つ）。** 11 通りとも落ちる（生き残り 0・mut-190.log）。
 
 | 変異 | 落ちる歯（番号は (c)・ほか） |
@@ -86,7 +86,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 | M11 注を元の字に戻す（実装だけ変える） | tests/schema の 8 本（生成区間が導出と違う） |
 
 3. **外の置き場（tsuzuri の写し・参考値）。** HEAD a618238（枝 154 本・先頭の外の commit 146・anchors/ に触れる commit 6 はどれも先頭の祖先）で、base と見本の binary の床の出力が byte で同じ（合格 違反 0・まだ分からない 0）。取り込むと `folio schema --check` が判断の記録の欄の決まりの注 2 つで落ちる（床は注を数えないので落ちない）＝着地の後に `folio schema --write` を 1 回。
-4. **実の例の写し。** folio2 の本流 b0f09d4 の写し（控えの枝の参照つき）で、base の違反「anchors/adr-seals.yaml は版管理の履歴に在ったが作業ツリーに無い」1 が見本で 0。folio2 の今の写し（参照 400 本余り）では base・見本とも合格。
+4. **実の例の写し。** folio2 の本流 b0f09d4 の写し（控えの枝の参照つき）で、base の違反「anchors/adr-seals.yaml は版管理の履歴に在ったが作業ツリーに無い」1 が見本で 0。folio2 の今の写し（参照 428 本）では base・見本とも床 4 本 rc 0・合格。
 5. **命令の時間。** 増える `rev-list` は folio2 の写し（参照 400 本余り・commit 1,432）で 0.02 秒。
 
 ### (f) 大きさ・余地・verify と done の対応
@@ -120,7 +120,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 ### (g) 門と受付
 
 1. **門。** 冒頭のとおり 0（通す）。
-2. **受付。** ADR-34 の発効（持ち主の承認・枝 docs/trust の取り込み）の後。受付の先撃ち（precheck）は枝 docs/trust の本契約で 契約に起因する断り {PRECHECK}。
+2. **受付。** ADR-34 の発効（持ち主の承認・枝 docs/trust の取り込み）の後。受付の先撃ち（precheck）は枝 docs/trust の本契約で 契約に起因する断り 0（preflight ok・`f190_` は base で 0 件・起草の記録の precheck-190.log）。
 3. **着地の後。** 席は tsuzuri へ「床の版管理の照合は取り込んでいない枝の履歴を数えない（ADR-34）・`folio schema --write` を 1 回（判断の記録の欄の決まりの注 2 つ）」を返す。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
