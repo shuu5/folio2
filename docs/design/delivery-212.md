@@ -18,7 +18,7 @@
 2. 解いた依存の一覧 `Cargo.lock` の package は 36 本で、folio を除く外の部品は **35 本**（`cargo tree --workspace --target all -e normal,build,dev` の重複を除いた名の数も 35）。encoding_rs を引くのは yaml-rust2 だけで（`cargo tree -i encoding_rs`）、encoding_rs だけが引く部品が 8 本在る: cfg-if・core_detect・multiversion・multiversion-macros・multiversion_no_op・rustversion・scopeguard・simdutf8（multiversion-macros は multiversion から）。
 3. 使ってよい条件（ライセンス）: 35 本のうち MIT か Apache-2.0 の選び以外の条件が要るのは encoding_rs（`(Apache-2.0 OR MIT) AND BSD-3-Clause`）と foldhash（`Zlib`・yaml-rust2 が必ず引く hashlink から）の 2 本（`cargo metadata` の license の欄）。
 4. folio の src と build.rs が使う yaml-rust2 の口は、`Yaml`・`YamlLoader::load_from_str`・`YamlEmitter`・`yaml::Hash`・`parser::{Event, MarkedEventReceiver, Parser}`・`scanner::{Marker, TScalarStyle}` だけ。字の符号を見分けて読む口（`YamlDecoder`・`YAMLDecodingTrap`）は 0 か所（`git grep`）。
-5. **振る舞いが同じ根拠（yaml-rust2 0.10.4 の source）**: 機能 `encoding` が切り替えるのは `src/yaml.rs` の `mod encoding`（`YamlDecoder`・`YAMLDecodingTrap`・`YAMLDecodingTrapFn` とその再公開）と、その歯（`cfg(all(test, feature = "encoding"))`）だけ。folio が使う読み（scanner・parser・`YamlLoader`）と書き（`YamlEmitter`）には機能の切り替え（`cfg(feature …)`）が 1 つも無く、読みは既定の機能の有無に依らず UTF-8 の字だけを受ける。見本の写しで床 4 本の答えと `folio build` の出力（40 file の sha）が base と同じだった（(h)）。
+5. **振る舞いが同じ根拠（yaml-rust2 0.10.4 の source）**: 機能 `encoding` が切り替えるのは `src/yaml.rs` の `mod encoding`（`YamlDecoder`・`YAMLDecodingTrap`・`YAMLDecodingTrapFn` とその再公開）と、その機能が在るときだけ組む歯だけ。folio が使う読み（scanner・parser・`YamlLoader`）と書き（`YamlEmitter`）には機能の有無で組み方を変える印（cfg の feature の条件）が 1 つも無く、読みは既定の機能の有無に依らず UTF-8 の字だけを受ける。見本の写しで床 4 本の答えと `folio build` の出力（40 file の sha）が base と同じだった（(h)）。
 
 ### (b) 直す先（変えないもの）
 
