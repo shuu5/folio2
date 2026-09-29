@@ -114,7 +114,7 @@
 | `crates/folio/src/rules.rs` | 498 | 1002 | 593（+95・単体の歯 2 本を含む） | 907 |
 | `crates/folio/src/ruling.rs` | 515 | 985 | 521（+6） | 979 |
 
-3. **size は S。** file ごとの増分の最大は rules.rs の +95（単体の歯を含む）で S の見積 100 の内。余地の最小（check.rs の base 328）は S の 100 を超える。便 203 が先に着地しても check.rs の余地は S の 100 を超える見込み（(g) 3）。
+3. **size は S。** file ごとの増分の最大は rules.rs の +95（単体の歯を含む）で S の見積 100 の内。余地の最小（check.rs の base 328）は S の 100 を超える。便 203 の見本と重ねた木でも check.rs の余地は 294 で S の 100 を超える（M の 300 は割る・(g) 3）。
 4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の先端 1bc273b で 6 行とも rc 0（起草の記録の verify-impl-1bc273b.log）。
    1. `cargo nextest run -p folio --bin folio f204_` = (c) 1・2（2 本）。
    2. `cargo nextest run -p folio --test ruling f204_` = (c) 3〜6（4 本）。
@@ -137,6 +137,7 @@
 | ほかの 21 本 | 無し | 在る | 無し |
 
    `check_rulings` の字を変えない形にしたのは、便 203 がその骨格の印の行を書き換えるから（(d) の外・最初の見本 6635999 は同じ行を書き換えていた）。着地の順は 203 → 204（依頼）。**便 203 が先に着地したら、見本を本流に取り込み、余地（check.rs と rules.rs）と verify の 6 行と workspace の nextest の本数と RED を数え直してから運ぶ。** 取り消されたレーンの枝 impl/d201（`ruling.rs`）とも衝突 0。ほかの impl/* の枝は本流に着地済み。
+   **203 の見本と重ねた実測（2026-09-29 09:3x〜09:4x・参考値）。** 見本 impl/d203 d41ba90 の上に本便の見本 1bc273b を `git merge --no-commit` で重ねた木（scratch の写し・commit は作らない）: 衝突 0（自動の merge・23 file）・workspace の nextest 1157 / 1157（base 1147 + 便 203 の 4 本 + 本便の 6 本）・clippy 0 警告・床 4 本 rc 0（folio2 の素の床は合格 0）・`folio build --write` 39 file・verify の 6 行とも rc 0（2・4・11・28・9 本〔rules::tests は便 203 の 1 本を含む〕と clippy）・余地は check.rs 1180 → 1206（320 → 294・S の 100 を超える）・rules.rs 549 → 644（951 → 856）・ruling.rs 515 → 521（985 → 979）（python と awk で一致・起草の記録の stack.log と stack-cap.log・stack.sh）。**203 の着地の木が見本 d41ba90 と同じなら、本便の数え直しは要らない。**
 4. **着地の後（外の置き場）。** tsuzuri は pin を上げるときに `folio schema --write` を 1 回撃って commit する（rules.yaml の生成区間の 3 行増・1 行減・(e) 3）。規則の表の行は書き直さなくても床が通る（29 行とも UTC の分）。席は tsuzuri へこの 1 行を返す。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
