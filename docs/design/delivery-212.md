@@ -4,7 +4,7 @@
 - 条: A-3.1（外部ライブラリを増やす・減らすとき、予算〔規則の表の行 R-6〕と使ってよい条件〔ライセンス〕に照らし、持ち主の確認を得る）・要件書の制約 CON2（確認の義務は A-3.1 が持つ）・P-12.1 / P-12.2（承認は行 R-8 の対話面を通ったものだけ・逐語と日付を台帳の notes に）。行 R-6 の値は未定のまま変えない。
 - 出所: tsuzuri の設計席の求め（2026-09-29・持ち込みの前の 3 本目の直し F3）。tsuzuri の持ち主が 2026-09-29T11:32Z に「folio の外の部品 encoding_rs（ライセンスに BSD-3-Clause が要る）を持ち込みの前に外す」を選んだ。**この知らせは folio2 の承認ではない**（P-12.1）。
 - **受付の前提（順）**: 外の部品を減らすことへの folio2 の持ち主の承認（A-3.1・行 R-8 の対話面）を、逐語と日付で台帳の notes に記帳した**後で**便を受け付ける。
-  - 承認（席が埋める）: 逐語「　」・日付 　・台帳の notes の所 　
+  - 承認: 逐語「推奨で良い」・日付 2026-09-29 21:33 JST・台帳の notes の所 = f2-648 notes【2026-09-29 21:33 JST 持ち主の承認（対話面 R-8）】（席の問いの推奨は「はい」・台帳 f2-648.275.15）
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `hg` が指す §1 だけ。write-set 3 本（manifest 1・解いた依存の一覧 1・新しい歯の file 1）・新しい dir は無い・src は無い。
 - 門: **0（通す）**。本流の binary で `folio ceiling --gate --dir design-intent --write-set crates/folio/Cargo.toml Cargo.lock +crates/folio/tests/deps.rs` の答えは「通す（設計文書の正本を書き換えない便）」。
 - 前の便: **base = 本流 0c910db**（起草の時点）。受付の前に本流は b99daea（便 211 の契約 6b4ba70 と着地 b99daea・serve.rs と tests/serve.rs）へ進んだが、write-set の 3 本・workspace の Cargo.toml・Cargo.lock は 0c910db と b99daea で byte で同じ＝数え直しは要らない（検証役が b99daea に差分を当てて衝突 0・組み立ての後の Cargo.lock は見本と byte で同じ・verify 3 行 緑を確かめた）。数は base と見本の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/f3-scripts/`（chain.sh・run.sh・mut.py・count.sh・tree.sh）。便 211（行 hf）の契約の取り込みとは file が重ならない（§1 (g)）。
