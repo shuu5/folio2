@@ -5,13 +5,13 @@
 - 条: P-4.2（行が無い・2 本・形が違うは まだ分からない）・P-5.1（上限の値は置き場の規則の表の型付きの行）・P-6.3（値を読む関数 1 つ・数える関数 1 つ・面と床が同じ字）・P-7.2（下げる道は廃止を状態で表すこと）・P-15.2（編集時の口の止める行は素の床にも同じ字で在る）。
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `hb` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 24 本（§1 (f) 1）。新しい file・縮む file・消す file・新しい dir は無い。
 - 門: **0（通す）**。本流の binary（main root の `target/debug/folio`・13:48 の組み立て）を枝 docs/d207 の木で撃った `folio ceiling --gate --dir design-intent --write-set <write-set の 24 本>` の答え「folio ceiling: 通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）」（起草の記録の gate.log）。
-- 前提: **base = 枝 docs/growth 80a413d**（ADR-35・要件書 第 1.57 版・行 R-23〜R-25 の承認の commit・本流 a5b27df〔便 203・204 の着地〕を merge 済み）。docs/growth が本流に入った後の本流の木は 80a413d と同じ（承認の PR は docs/growth をそのまま入れる）。この契約の数はすべて 80a413d と、その上の見本の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d207`（commit **72d11f1**・親 80a413d・1 commit）。`git diff 80a413d 72d11f1` が便の全体の差分（24 file・+522 −88・105,991 byte）。**作業者は、base に対する見本の差分を write-set の file に当ててよく、write-set の外は変えない。**
-- 並行の便との重なり: 便 208（行 hc・graph.rs）とは書き換える file が重ならない（§1 (g) 3）。便 209（行 hd・note.rs）は本便の着地の後に起草する。
+- 前提: **base = 本流 17736c9**（承認の PR #391 の着地・ADR-35 accepted・要件書 第 1.57 版・行 R-23〜R-25・便 203 と 204 を含む）。17736c9 の木は、起草で撃った枝 docs/growth の 80a413d の木と同じ（tree b89606a・`git rev-parse` で確かめた）。この契約の数は 80a413d の木と、その上の見本の写しの実測（参考値・規則の表の行 D-13）で、同じ木なので 17736c9 の上でもそのまま生きる。
+- 実装の見本: origin の枝 `impl/d207`（commit **f796219**・親 17736c9・1 commit）。`git diff 17736c9 f796219` が便の全体の差分（24 file・+522 −88・105,991 byte）。**作業者は、base に対する見本の差分を write-set の file に当ててよく、write-set の外は変えない。**
+- 並行の便との重なり: 便 208（行 hc）とは file 1 本（`crates/folio/tests/graph_notes.rs`）と、208 の歯の土台の数の定数 2 つが重なる（§1 (g) 3）。**席の裁定（2026-09-29）で本便が先に着地し、208 は本便の着地の木の上で 2 つの定数を直す。**便 209（行 hd・note.rs）は本便の着地の後に起草する。
 
 ## 1. 設計
 
-### (a) いま起きていること（base 80a413d の実測・参考値）
+### (a) いま起きていること（base の木〔17736c9 と 80a413d は同じ木〕の実測・参考値）
 
 1. **上限の行は在るが、道具は読まない。** 規則の表に閾値の行 R-23（生きたノートの本数・1 本 以下）・R-24（1 本の契約表の行の数・1 行 以下）・R-25（計画だけの行の数の合計・1 行 以下）が在る（ADR-35 決定 (5)）。行は欄 key を持たず、注の末尾は「道具がこの行を欄 key で引くのは便 207 からで、便 207 が欄 key を行に足してこの 1 文を消す」。欄 key の閉じた一覧は 3 つ（`crates/folio/src/rules.rs:122` の `KEYS` = note-chapters・plan-note・in-loop-min）で、行に `key: live-notes` を足すと素の床は種別 schema の違反「行 R-n の key「live-notes」が閉じた一覧 [...] に無い」を出す（tsuzuri の写しで 3 行とも違反・`folio build` は 1 file も書かない・起草の記録の tz-207.log）。
 2. **数える関数が無い。** 床（`note.rs:70` の `check_note`）が設計ノートに掛ける上限は章の数だけ（`note.rs:108` で `rules::chapter_cap`〔`rules.rs:167`〕を読み、`note.rs:141` の `over_cap` で比べる）。生きたノートの本数・1 本の契約表の行の数・計画だけの行の数は数えない。
@@ -26,6 +26,7 @@
    - 数の上限の表 `CAPS`（欄 key・単位・数えるものの名）を置く: note-chapters = 章・章／live-notes = 本・生きたノート／note-rows = 行・契約表の行／plan-rows = 行・計画だけの行。
    - `chapter_cap(rules)` を 新しい関数 cap（引数は規則の表と欄 key） に置き換える（章の上限と同じ読み手を 4 つの値で共有する）。値の形は「<正の整数> <単位> 以下」（頭が 0 でない半角の数字・半角の空白 1 つ・単位・半角の空白 1 つ・以下）。行が無い・2 本以上・形が違う（単位の取り違えを含む）は Err。字は今の `chapter_cap` と同じ（「欄 key が {key} の閾値の行が無い」「… が N 本ある」「行 {id} の value「…」が「<正の整数> {単位} 以下」の形でない」）。`CAPS` に無い key は Err「欄 key の {key} は数の上限でない」。
    - 違反の字の関数 `over_cap(at, key, count, cap)` を rules.rs に置く（`note.rs` から移す）。数が上限を超えるときだけ、違反の字「{at}: {数えるもの}が多すぎる（{key} の上限 {cap} {単位} 以下）」と、今の数の字「{at}: {数えるもの}の今の数 {count}（{key} の上限 {cap} {単位} 以下）」の組を返す。違反の字は名指す先・欄 key・上限の値だけを持ち、今の数を持たない（ADR-35 決定 (1)(オ)(ク)）。名指す先は欄 key を採る（行の id は置き場ごとに意味が違う・決定 (1)(オ) の「上限の行の id か欄 key の値」の後者）。
+   - 1 本の契約表の行の数の違反で名指す先 {at} は、そのノートの file の字（`design-note/<id>.yaml`）とする。ADR-35 決定 (1)(オ) の「そのノートの id」を、床のほかの違反と同じ file の字で表す（file の名とノートの id は 1 対 1・独立の検証 N-A）。
    - 床の木 `FLOOR` の `key_note` の末尾に 2 文を足す（3 つの key の値の形・行が無いときの扱い〔まだ分からない〕・違反の字は欄 key と上限の値と名指す先だけで今の数は床の標準エラーの「今の数」の行）。`enums.key` は `KEYS` から導出されるので 6 つになる。
 2. **数える関数を 1 つ置く（`crates/folio/src/note.rs`・ADR-35 決定 (1)(イ)(エ)(カ)）。**
    - 生きたノートの状態の定数 `LIVE`（draft・effective）と、数え `Growth`（本数・1 本ごとの契約表の行の数・計画だけの行の合計）と、数える唯一の関数 growth（引数は読めたノート） を足す。読むのは `load_notes` が読めたノートだけ（床と導出と索引と同じ読み手・下の dir と symlink と読めない file は今のまま まだ分からない）。状態がちょうど draft か effective のノートだけを数える。1 本の行の数は `sections` の項のうち `type` が contract-table の節の `rows` の項の数の和、計画だけの行は全部の生きたノートの `type` が row-plan の節の `rows` の項の数の合計。`rows` が一覧でない節は 0 行。
@@ -71,7 +72,7 @@
 ### (e) 既存の歯・突然変異・外の置き場
 
 1. **既存の歯。** 見本で workspace の nextest を撃つと、§1 (c) に書いた期待の字の直しのほかに、床の土台の数を字で持つ歯 20 本が落ちた（graph 6・graph_notes 2・graph_summary 1〔凍結 anchor で直る〕・hello 2・polarity 3・ruling 1・emit_rulings 4・floor_cases 1〔case mentions-rule-row-counts-the-frozen-base〕・起草の記録の s2-nextest.log）。どれも土台に行 3 本（節点 3・辺 6・裁定の欄 3・閾値の行 3）が入った分の数で、§1 (b) 6 の直しで全部緑になる。folio2 の本流の写しを使う歯（tests/note.rs の Work::new ほか）は、本流の値 1 と見本 2 本だけの design-intent で落ちない（本流の生きたノートは 0 本）。見本の workspace の nextest は 1169 / 1169（base 1159 + f207_ の 10 本）・clippy 0 警告・床 4 本 rc 0（check 合格 0/0）・`folio build` は 40 file のままで、base と中身が違うのは constitution.html の 1 file だけ（行 R-23〜R-25 の欄 key と注の末尾の 1 文・起草の記録の impl-7d617a5-*.log）。
-2. **突然変異（見本の src だけを 1 通りずつ変え、単体と tests/ の 4 本〔note・plan・face_note・schema_docs〕を撃った・見本 72d11f1 と木が同じ 7d617a5 で撃った）。** 変異 17 通りとも、どれかの歯が落ちた（生き残り 0・起草の記録の mut.log と mut-recount.log〔落ちた歯の名の数え直し〕）。
+2. **突然変異（見本の src だけを 1 通りずつ変え、単体と tests/ の 4 本〔note・plan・face_note・schema_docs〕を撃った・見本 f796219 と木が同じ 7d617a5 で撃った）。** 変異 17 通りとも、どれかの歯が落ちた（生き残り 0・起草の記録の mut.log と mut-recount.log〔落ちた歯の名の数え直し〕）。
 
 | 変異 | 変えたもの | 落ちた歯（本） |
 | --- | --- | ---: |
@@ -101,7 +102,7 @@
 ### (f) 大きさ・余地・verify と done の対応
 
 1. **write-set の印。** 新しい file・縮む file・消す file・新しい dir は無い。`crates/folio/src/rules.rs` と `crates/folio/src/note.rs` は単体の歯 f207_ を、`crates/folio/src/proposed.rs` は単体の歯 f198_ の直しを持つので verify の `--bin folio` の scope。内訳は src 6（rules.rs・note.rs・face_note.rs・verdict.rs・main.rs・proposed.rs）・歯の file 4（tests/note.rs・plan.rs・face_note.rs・schema_docs.rs）・土台の数を持つ歯の file 6（tests/graph.rs・graph_notes.rs・hello.rs・polarity.rs・ruling.rs・emit_rulings.rs）・設計文書 1（design-intent/rules.yaml）・床の土台 2・凍結 anchor 4・床の case 1（tests/floor_cases.yaml）。verify の `--test note`・`--test plan`・`--test face_note`・`--test schema_docs` の scope の file は全部 write-set に在る。
-2. **余地（CapHeadroom）。** write-set の src の 6 本（base 80a413d と見本 72d11f1・python と awk の 2 実装で一致・起草の記録の cap.log）。
+2. **余地（CapHeadroom）。** write-set の src の 6 本（base の木と見本 f796219 の木・python と awk の 2 実装で一致・起草の記録の cap.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
 | --- | ---: | ---: | ---: | ---: |
@@ -113,7 +114,7 @@
 | `crates/folio/src/proposed.rs` | 213 | 1287 | 217（+4） | 1283 |
 
 3. **size は M。** file ごとの増分の最大は rules.rs の +78（単体の歯 2 本を含む）で S の見積 100 に近く、歯と fixture の手直しが多い（便 179 と同じ種類）。余地の最小（note.rs の本便の後 418）は M の 300 を超える。
-4. **verify は 8 行**で、done の 8 つの塊と 1 対 1 に揃える。見本 72d11f1 で 8 行とも rc 0（3・6・1・47・35・28・11 本と clippy 0 警告・起草の記録の verify-impl-7d617a5.log・7d617a5 は 72d11f1 と木が同じ）。
+4. **verify は 8 行**で、done の 8 つの塊と 1 対 1 に揃える。見本 f796219 の木で 8 行とも rc 0（3・6・1・47・35・28・11 本と clippy 0 警告・起草の記録の verify-impl-7d617a5.log・7d617a5 は 72d11f1 と木が同じ）。
    1. `cargo nextest run -p folio --bin folio f207_` = (c) 1〜3（3 本）。
    2. `cargo nextest run -p folio --test note f207_` = (c) 4〜9（6 本）。
    3. `cargo nextest run -p folio --test plan f207_` = (c) 10（1 本）。
@@ -128,7 +129,7 @@
 
 1. **門。** 冒頭のとおり。write-set に `design-intent/rules.yaml`（行 R-23〜R-25 の欄 key と注の末尾の 1 文・生成区間）が在るので門の対象（規則の表の行 D-12）。
 2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d207 の本契約で 契約に起因する断り 0・preflight ok（起草の記録の precheck-final.log・前の 2 回は base に無い新しい名の字面を 10 か所断られ、地の文に直した）。
-3. **便 208（行 hc・起草中・契約は枝 docs/d208）との重なりは 0。** 208 の write-set は `crates/folio/src/graph.rs`・`crates/folio/tests/graph_summary.rs`・`crates/folio/tests/graph_notes.rs` の 3 本で、本便の write-set と共通の file は無い。ただし **file が 1 本と、数の意味が 1 つ重なる。** (1) `crates/folio/tests/graph_notes.rs` は本便も書き換える（土台の要約の行 4 か所）。208 の見本の差分（起草の記録の d208-scripts/c208.patch）を 80a413d に当てた写しと本便の見本は `git merge-tree` で衝突 0（違う行）。(2) 208 の歯 `f208_the_frozen_base_lines_end_with_the_state_of_their_file`（`crates/folio/tests/graph_summary.rs`）は土台の `folio graph --print --summary` の行を数え、定数 `BEFORE_208 = (191, 114_730, 53a7d113…)` と `[10, 1, 180]` を持つ。本便の後の土台では (194, 115_579, 78eab543a65fa0cc38c0e4b5f465705a8d0b411edb4ba8e5e0273050cdc0ac35) と [10, 1, 183] になる（見本の binary で測った）。**器は write-set の重なる便を並べて運ばないので、208 と本便は順に運ぶ。** 208 が先なら本便は受付の前に `graph_summary.rs` の 2 つの定数を直す行を write-set に足して数え直す。本便が先なら 208 が同じ 2 つを直す。どちらを先にするかは席が決める（208 は S で 203・204 を待たない・本便は M）。208 の見本の差分を当てた写しに本便の見本を merge した木で、`--test graph_summary` と `--test graph_notes` を撃つと、落ちるのは 208 の歯 `f208_the_frozen_base_lines_end_with_the_state_of_their_file` の 1 本だけ（[10, 1, 183] ≠ [10, 1, 180]）で、その 2 つの定数を上の値に直すと 16 / 16 緑（起草の記録の merged-208.log）。
+3. **便 208（行 hc・起草中・契約は枝 docs/d208）とは file が 1 本と、数の意味が 1 つ重なる。** 208 の write-set は `crates/folio/src/graph.rs`・`crates/folio/tests/graph_summary.rs`・`crates/folio/tests/graph_notes.rs` の 3 本。 (1) `crates/folio/tests/graph_notes.rs` は本便も書き換える（土台の要約の行 4 か所）。208 の見本の差分（起草の記録の d208-scripts/c208.patch）を base の木に当てた写しと本便の見本は `git merge-tree` で衝突 0（違う行）。(2) 208 の歯 `f208_the_frozen_base_lines_end_with_the_state_of_their_file`（`crates/folio/tests/graph_summary.rs`）は土台の `folio graph --print --summary` の行を数え、定数 `BEFORE_208 = (191, 114_730, 53a7d113…)` と `[10, 1, 180]` を持つ。本便の後の土台では (194, 115_579, 78eab543a65fa0cc38c0e4b5f465705a8d0b411edb4ba8e5e0273050cdc0ac35) と [10, 1, 183] になる（見本の binary で測った）。**器は write-set の重なる便を並べて運ばないので、208 と本便は順に運ぶ。** 208 が先なら本便は受付の前に `graph_summary.rs` の 2 つの定数を直す行を write-set に足して数え直す。本便が先なら 208 が同じ 2 つを直す。**席の裁定（2026-09-29）: 本便が先。** 208 は本便の着地の木の上で、`BEFORE_208` を (194, 115_579, 78eab543…) に、`[10, 1, 180]` を `[10, 1, 183]` に直す（208 の見本は本便の見本 f796219 の上に作り直す）。本便の write-set は 208 の file を足さない。208 の見本の差分を当てた写しに本便の見本を merge した木で、`--test graph_summary` と `--test graph_notes` を撃つと、落ちるのは 208 の歯 `f208_the_frozen_base_lines_end_with_the_state_of_their_file` の 1 本だけ（[10, 1, 183] ≠ [10, 1, 180]）で、その 2 つの定数を上の値に直すと 16 / 16 緑（起草の記録の merged-208.log）。
 4. **ほかのレーン。** origin の impl/* と docs/* の枝のうち本流 a5b27df に入っていないものは、便 196（impl/d196 8c8f9ed・着地済みの 196 の載せ替え）と取り下げた便 201（impl/d201）で、impl/d196 と本便の見本の `git merge-tree` は衝突 0。便 203・204 は 80a413d に入っている（本便の base）。
 5. **便 209（行 hd・後継の欄の先）は本便の後に起草する**（`crates/folio/src/note.rs` と `crates/folio/tests/note.rs` が重なる・ADR-35 決定 (6)）。
 6. **着地の後（外の置き場）。** tsuzuri は folio の組み立てを上げる同じ commit で、値の行 3 本（入れる時点の実測以上・今の写しで 70 本・32 行・26 行）と条の relations.rules に 3 行と `folio schema --write` の生成区間を入れる（(e) 3）。行が無いまま上げると床は まだ分からない 3、行だけ先に入れると今の folio の床が種別 schema の違反 3 で build も止まる。席は tsuzuri へこの 1 行を返す（ADR-35 決定 (7)）。
@@ -174,7 +175,7 @@
 ## 5. 依存
 
 - 外部 crate も外部ライブラリも増やさない。新しい dir は無い。
-- 前提の着地: 枝 docs/growth（ADR-35・要件書 第 1.57 版・行 R-23〜R-25・80a413d）が本流に入ること。本流 a5b27df（便 203・204）は 80a413d に含まれる。
+- 前提の着地: 本流 17736c9（ADR-35・要件書 第 1.57 版・行 R-23〜R-25 の承認の PR #391・便 203・204 を含む）。着地済み。
 - 本便の着地の後に席が見ること: 台帳の本便の件を閉じる。本流の `target/debug/folio` を組み直す。tsuzuri へ §1 (g) 6 の 1 行を返す。便 209 の起草を始める。
 
 <!-- contracts:begin -->
@@ -182,7 +183,7 @@ schema = 1
 
 [[contract]]
 id = "hb"
-title = "数える口（判断の記録 ADR-35 決定 (1)(ア)〜(ク)・(5)・(6)・要件 FR30 と AC33・台帳 f2-648.275.9 の 3 便の 1 つ）: crates/folio/src/rules.rs の欄 key の閉じた一覧 KEYS に live-notes・note-rows・plan-rows を足して 6 つにし、章の上限の読み手 chapter_cap を 4 つの key で共有する cap（値の形は 正の整数・空白・単位〔章・本・行〕・空白・以下 だけ・行が無い 2 本 形が違うは Err）に置き換え、違反の字の関数 over_cap（名指す先・欄 key・上限の値だけを持ち今の数を持たない字と、今の数の字の組）を置き、床の木の key_note に 2 文を足す。crates/folio/src/note.rs に数える唯一の関数 growth（状態がちょうど draft か effective のノートの本数・1 本ごとの契約表の節の行の数・計画だけの行の節の行の合計）と床 check_growth（読めた設計ノートが 1 本でも在れば 3 行を読み、読めなければ まだ分からない、超えたら種別 note の違反）を足し、章の上限も同じ over_cap の字にする。今の数は Report の counts に積み（verdict.rs）、folio check は標準エラーに、folio check --proposed は標準出力の末尾に # 今の数: の行で出す（main.rs・proposed.rs・止める比べは変えない）。面の生成器 face_note.rs は章の上限の断りの字を床と同じ字にし今の数を次の行にする。design-intent/rules.yaml は行 R-23〜R-25 に欄 key を足して注の末尾の便 207 までの 1 文を消し（ruling ほかは変えない）、生成区間は folio schema --write で書く。凍結 anchor rules-region.txt は前の anchor に同じ字を手で足し、床の土台に値 99 の 3 行と条 P-7 の関係の欄を足し、土台の索引の凍結 anchor 3 本と土台の数を字で持つ歯 6 本と床の case 1 つを直す。歯は f207_ の 10 本（単体 3・tests/note.rs 6・tests/plan.rs 1）と f179_ ほかの期待の字の直し。実装の見本は origin の枝 impl/d207 の commit 72d11f1（親 80a413d）で、作業者は base に対する見本の差分を write-set の file に当て、write-set の外は変えない。base = 枝 docs/growth 80a413d（ADR-35 と要件書 第 1.57 版の承認の commit）が本流に入った後の main"
+title = "数える口（判断の記録 ADR-35 決定 (1)(ア)〜(ク)・(5)・(6)・要件 FR30 と AC33・台帳 f2-648.275.9 の 3 便の 1 つ）: crates/folio/src/rules.rs の欄 key の閉じた一覧 KEYS に live-notes・note-rows・plan-rows を足して 6 つにし、章の上限の読み手 chapter_cap を 4 つの key で共有する cap（値の形は 正の整数・空白・単位〔章・本・行〕・空白・以下 だけ・行が無い 2 本 形が違うは Err）に置き換え、違反の字の関数 over_cap（名指す先・欄 key・上限の値だけを持ち今の数を持たない字と、今の数の字の組）を置き、床の木の key_note に 2 文を足す。crates/folio/src/note.rs に数える唯一の関数 growth（状態がちょうど draft か effective のノートの本数・1 本ごとの契約表の節の行の数・計画だけの行の節の行の合計）と床 check_growth（読めた設計ノートが 1 本でも在れば 3 行を読み、読めなければ まだ分からない、超えたら種別 note の違反）を足し、章の上限も同じ over_cap の字にする。今の数は Report の counts に積み（verdict.rs）、folio check は標準エラーに、folio check --proposed は標準出力の末尾に # 今の数: の行で出す（main.rs・proposed.rs・止める比べは変えない）。面の生成器 face_note.rs は章の上限の断りの字を床と同じ字にし今の数を次の行にする。design-intent/rules.yaml は行 R-23〜R-25 に欄 key を足して注の末尾の便 207 までの 1 文を消し（ruling ほかは変えない）、生成区間は folio schema --write で書く。凍結 anchor rules-region.txt は前の anchor に同じ字を手で足し、床の土台に値 99 の 3 行と条 P-7 の関係の欄を足し、土台の索引の凍結 anchor 3 本と土台の数を字で持つ歯 6 本と床の case 1 つを直す。歯は f207_ の 10 本（単体 3・tests/note.rs 6・tests/plan.rs 1）と f179_ ほかの期待の字の直し。実装の見本は origin の枝 impl/d207 の commit f796219（親 17736c9）で、作業者は base に対する見本の差分を write-set の file に当て、write-set の外は変えない。base = 本流 17736c9（ADR-35 と要件書 第 1.57 版の承認の着地・PR #391）"
 req = ["FR30", "FR19", "FR9"]
 section = "1"
 write-set = ["crates/folio/src/rules.rs", "crates/folio/src/note.rs", "crates/folio/src/face_note.rs", "crates/folio/src/verdict.rs", "crates/folio/src/main.rs", "crates/folio/src/proposed.rs", "crates/folio/tests/note.rs", "crates/folio/tests/plan.rs", "crates/folio/tests/face_note.rs", "crates/folio/tests/schema_docs.rs", "crates/folio/tests/graph.rs", "crates/folio/tests/graph_notes.rs", "crates/folio/tests/hello.rs", "crates/folio/tests/polarity.rs", "crates/folio/tests/ruling.rs", "crates/folio/tests/emit_rulings.rs", "design-intent/rules.yaml", "tests/fixtures/floor_base/design-intent/rules.yaml", "tests/fixtures/floor_base/design-intent/constitution.yaml", "tests/fixtures/schema/rules-region.txt", "tests/fixtures/schema/graph-anchor.txt", "tests/fixtures/schema/graph-digest-anchor.txt", "tests/fixtures/schema/node-digest-anchor.txt", "tests/floor_cases.yaml"]
