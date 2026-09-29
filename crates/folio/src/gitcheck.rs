@@ -226,6 +226,44 @@ fn aside(text: &str) -> BTreeSet<String> {
     found
 }
 
+/// `rev-list --parents HEAD` の行（先頭の祖先と親）から、`roots`（今の列の根の anchor を足した commit）のどれとも共通の祖先を
+/// 1 つも持たない commit（別の repo から取り込んだ別の根の列）を返す。`roots` が先頭の祖先に 1 つも無ければ空（狭めない・ADR-36）。
+fn apart(text: &str, roots: &BTreeSet<&str>) -> BTreeSet<String> {
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|l| l.split_whitespace().collect::<Vec<_>>())
+        .filter(|r| !r.is_empty())
+        .collect();
+    let parents: BTreeMap<&str, &[&str]> = rows.iter().map(|r| (r[0], &r[1..])).collect();
+    let mut near: BTreeSet<&str> = BTreeSet::new();
+    let mut todo: Vec<&str> = rows
+        .iter()
+        .map(|r| r[0])
+        .filter(|c| roots.contains(c))
+        .collect();
+    if todo.is_empty() {
+        return BTreeSet::new();
+    }
+    // 根の anchor を足した commit の祖先（自分を含む）
+    while let Some(c) = todo.pop() {
+        if near.insert(c) {
+            todo.extend(parents.get(c).into_iter().flat_map(|p| p.iter().copied()));
+        }
+    }
+    // 残りのうち、その祖先から子へ辿れる commit は共通の祖先を持つ（取り込んでいない枝と同じ組み方）
+    let rest: String = rows
+        .iter()
+        .filter(|r| !near.contains(r[0]))
+        .map(|r| r.join(" ") + "\n")
+        .collect();
+    let joined = aside(&rest);
+    rows.iter()
+        .map(|r| r[0])
+        .filter(|c| !near.contains(c) && !joined.contains(*c))
+        .map(str::to_string)
+        .collect()
+}
+
 /// 本文を床の読み手と同じく型付きで読む（重複キー・読めない本文は None）。
 fn read_blob(bytes: &[u8]) -> Option<Value> {
     let text = std::str::from_utf8(bytes).ok()?;
@@ -325,7 +363,7 @@ pub(crate) fn check_git(dir: &Path, report: &mut Report) -> Option<Tracked> {
             );
         }
     }
-    let (Some(ls), Some(lg), Some(side)) = (
+    let (Some(ls), Some(lg), Some(side), Some(anc)) = (
         git(&top, &["ls-tree", "-r", "--name-only", "HEAD", "--", &rel]),
         // 作業の一時置き場（refs/stash）は数えない・取り込みの commit で本流の側の親を落とさない（--full-history・ADR-34）
         git(
@@ -352,11 +390,13 @@ pub(crate) fn check_git(dir: &Path, report: &mut Report) -> Option<Tracked> {
                 "HEAD",
             ],
         ),
+        // 先頭の祖先と親（別の根の列を組む・ADR-36）
+        git(&top, &["rev-list", "--parents", "HEAD"]),
     ) else {
         report.pending(NO_GIT);
         return None;
     };
-    if !ls.ok() || !lg.ok() || !side.ok() {
+    if !ls.ok() || !lg.ok() || !side.ok() || !anc.ok() {
         report.pending(
             "版管理を読めない（ls-tree / log / rev-list が失敗）＝anchor を版管理と照合できない（まだ分からない）",
         );
@@ -364,9 +404,8 @@ pub(crate) fn check_git(dir: &Path, report: &mut Report) -> Option<Tracked> {
     }
     let tracked: BTreeSet<String> = ls.text().split_whitespace().map(base_name).collect();
     let aside = aside(&side.text());
-    let mut ever: BTreeSet<String> = BTreeSet::new();
-    // anchor 名 → [(commit の頭 7 字, 本文)]（HEAD の祖先と根の無い枝の履歴で追加・変更された anchor）
-    let mut hist: BTreeMap<String, Vec<(String, Vec<u8>)>> = BTreeMap::new();
+    // 履歴の行（commit・状態・anchor 名・追加か変更の constitution- の本文）
+    let mut rows: Vec<(String, char, String, Option<Vec<u8>>)> = Vec::new();
     let mut commit: Option<String> = None;
     for line in lg.text().lines() {
         let line = line.trim();
@@ -382,20 +421,39 @@ pub(crate) fn check_git(dir: &Path, report: &mut Report) -> Option<Tracked> {
             continue;
         };
         let name = base_name(path);
-        if st != 'D' {
-            ever.insert(name.clone());
-        }
+        let mut blob = None;
         if "AMRC".contains(st) && name.starts_with("constitution-") {
             let spec = format!("{cm}:{path}");
             let Some(show) = git(&top, &["show", &spec]) else {
                 report.pending(NO_GIT);
                 return None;
             };
-            if show.ok() {
-                hist.entry(name)
-                    .or_default()
-                    .push((cm[..7].to_string(), show.stdout));
-            }
+            blob = show.ok().then_some(show.stdout);
+        }
+        rows.push((cm.clone(), st, name, blob));
+    }
+    // 今の列の根の anchor（最初の版の anchor の digest）を足した commit と共通の祖先を持たない先頭の祖先は数えない（ADR-36）
+    let first =
+        floor(&["anchor", "file_name"]).replace("<version>", floor(&["anchor", "first_version"]));
+    let digest = |b: &[u8]| read_blob(b)?.get("digest")?.as_str().map(str::to_string);
+    let now = fs::read(anch.join(&first)).ok().and_then(|b| digest(&b));
+    let roots: BTreeSet<&str> = rows
+        .iter()
+        .filter(|r| r.2 == first && now.is_some() && r.3.as_deref().and_then(digest) == now)
+        .map(|r| r.0.as_str())
+        .collect();
+    let apart = apart(&anc.text(), &roots);
+    let mut ever: BTreeSet<String> = BTreeSet::new();
+    // anchor 名 → [(commit の頭 7 字, 本文)]（HEAD の祖先と根の無い枝の履歴で追加・変更された anchor）
+    let mut hist: BTreeMap<String, Vec<(String, Vec<u8>)>> = BTreeMap::new();
+    for (cm, st, name, blob) in rows.into_iter().filter(|r| !apart.contains(&r.0)) {
+        if st != 'D' {
+            ever.insert(name.clone());
+        }
+        if let Some(blob) = blob {
+            hist.entry(name)
+                .or_default()
+                .push((cm[..7].to_string(), blob));
         }
     }
     for name in tracked.difference(&present) {
@@ -473,5 +531,20 @@ mod tests {
         let got: Vec<String> = aside(text).into_iter().collect();
         assert_eq!(got, ["m1", "s1", "s2", "s3", "s4", "x1"]);
         assert!(aside("").is_empty());
+    }
+
+    #[test]
+    fn f210_apart_takes_only_lines_without_a_common_ancestor() {
+        // t0〜t2 は本流（k が今の列の根の anchor を足した）・s1 は t0 から切って m2 で取り込んだ枝
+        // f0・f1 と g0・g1 は別の根の列で、m と m3 で取り込んだ・x と m2 は本流の続き
+        let text =
+            "m3 m2 g1\ng1 g0\ng0\nm2 x s1\nx m\nm t2 f1\nf1 f0\nf0\nt2 k\ns1 t0\nk t1\nt1 t0\nt0\n";
+        let got: Vec<String> = apart(text, &BTreeSet::from(["k"])).into_iter().collect();
+        assert_eq!(got, ["f0", "f1", "g0", "g1"]);
+        // 根の anchor を足した commit が先頭の祖先に無ければ狭めない
+        assert!(apart(text, &BTreeSet::new()).is_empty());
+        assert!(apart(text, &BTreeSet::from(["zz"])).is_empty());
+        // 別の根の列が根の anchor を持てば、その列も数える
+        assert_eq!(apart(text, &BTreeSet::from(["k", "f1"])).len(), 2);
     }
 }

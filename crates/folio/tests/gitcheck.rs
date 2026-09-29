@@ -492,3 +492,229 @@ fn f190_stash_is_not_counted() {
     assert_eq!(count(&out, LOST), 0, "{v:?}");
     assert_eq!(v.len(), 1, "{v:?}");
 }
+
+// ── 便 210（判断の記録 ADR-36）: 別の repo から取り込んだ別の根の列（今の列の根の anchor を持たない列）の履歴は数えない ──
+
+/// 根の無い枝 `name` へ切り、列 T（root-digest-drift）を写して v1.0 の題を `title` に替え、`head` が在れば digest の欄の先頭の字も替えて
+/// commit する（`head` が在れば別の列・無ければ同じ列の書き換え）。`v11` なら v1.1 を足す commit を続ける。枝は `name` のまま。
+fn orphan_column(td: &Path, name: &str, title: &str, head: Option<char>, v11: bool) {
+    git(td, &["checkout", "-q", "--orphan", name]);
+    git(td, &["rm", "-q", "-r", "-f", "."]);
+    copy_tree(
+        &repo_root().join("tests/fixtures/anchor/root-digest-drift"),
+        &td.join("design-intent"),
+    );
+    let path = td.join(V10);
+    let before = fs::read_to_string(&path).unwrap();
+    let mut after = before.replacen("title: 床は数える", &format!("title: {title}"), 1);
+    if let Some(h) = head {
+        let at = after.find("\ndigest: ").expect("digest の欄が無い") + "\ndigest: ".len();
+        assert_ne!(
+            after[at..].chars().next(),
+            Some(h),
+            "digest の字が替わらない"
+        );
+        after.replace_range(at..at + 1, &h.to_string());
+    }
+    assert_ne!(before, after, "変異が当たっていない");
+    fs::write(&path, after).unwrap();
+    git(td, &["add", "-A"]);
+    git(td, &["commit", "-q", "-m", name]);
+    if v11 {
+        add_v11(td);
+        git(td, &["add", "-A"]);
+        git(td, &["commit", "-q", "-m", "v1.1"]);
+    }
+}
+
+/// 共通の祖先を持たない履歴を取り込む（`args` は旗と枝）。
+fn merge_unrelated(td: &Path, args: &[&str]) {
+    let mut all = vec!["merge", "-q", "--allow-unrelated-histories"];
+    all.extend_from_slice(args);
+    git(td, &all);
+}
+
+/// 枝 `branch` を sub-dir `prefix` へ取り込む（commit id を保つ・tsuzuri の予行と同じ形）。
+fn subtree(td: &Path, branch: &str, prefix: &str) {
+    merge_unrelated(td, &["-s", "ours", "--no-commit", branch]);
+    git(td, &["read-tree", &format!("--prefix={prefix}/"), "-u", branch]);
+    git(td, &["commit", "-q", "-m", "import"]);
+}
+
+/// 本流の枝の名。
+fn current(td: &Path) -> String {
+    git(td, &["rev-parse", "--abbrev-ref", "HEAD"])
+}
+
+/// 土台の違反（列の根が床の定数の表に無い）1 行だけで、版管理の違反が無い。
+fn only_the_base(out: &Output) {
+    let v = violations(out);
+    assert_eq!(count(out, LOST) + count(out, SWAPPED), 0, "{v:?}");
+    assert_eq!(v.len(), 1, "{v:?}");
+    assert!(v[0].contains("列の根の表に無い"), "{v:?}");
+}
+
+#[test]
+fn f210_imported_root_under_a_subdir_is_not_counted() {
+    // (i) 別の列（v1.0 の digest が違い v1.1 を持つ）を sub-dir f/ へ取り込む
+    let td = copy_fixture("f210-import", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "f", "床は別", Some('f'), true);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f", "f");
+    only_the_base(&folio_check(&td));
+}
+
+#[test]
+fn f210_premoved_import_is_not_counted() {
+    // (i) の別の形: 別の列の側で先に sub-dir へ移す commit を置いてから、同じ path のまま取り込む
+    let td = copy_fixture("f210-premoved", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "f", "床は別", Some('f'), true);
+    fs::create_dir(td.join("f")).unwrap();
+    git(&td, &["mv", "design-intent", "f/design-intent"]);
+    git(&td, &["commit", "-q", "-m", "move"]);
+    git(&td, &["checkout", "-q", &main]);
+    merge_unrelated(&td, &["--no-edit", "f"]);
+    only_the_base(&folio_check(&td));
+}
+
+#[test]
+fn f210_two_imports_are_not_counted() {
+    // (v) 別の根を 2 つ（f1/ と f2/）取り込む
+    let td = copy_fixture("f210-two", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "f1", "床は別", Some('f'), true);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f1", "f1");
+    orphan_column(&td, "f2", "床は他", Some('e'), true);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f2", "f2");
+    only_the_base(&folio_check(&td));
+}
+
+#[test]
+fn f210_rootless_rewrite_made_first_parent_still_fails() {
+    // (ii) 根の無い枝 x で v1.0 を書き換え（digest の欄は同じ）、x を最初の親にして本流を取り込み、本流を x へ進める
+    let td = copy_fixture("f210-first-parent", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "x", "床は数えた", None, false);
+    merge_unrelated(&td, &["-s", "ours", "--no-edit", &main]);
+    git(&td, &["checkout", "-q", &main]);
+    git(&td, &["merge", "-q", "--ff-only", "x"]);
+    let out = folio_check(&td);
+    assert_eq!(count(&out, SWAPPED), 1, "{:?}", violations(&out));
+}
+
+#[test]
+fn f210_rootless_rewrite_merged_at_the_same_path_still_fails() {
+    // (iii) 根の無い枝 x で v1.0 を書き換え、2 本目の親として同じ path のまま取り込む（衝突は x の側で解く）
+    let td = copy_fixture("f210-same-path", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "x", "床は数えた", None, false);
+    git(&td, &["checkout", "-q", &main]);
+    merge_unrelated(&td, &["--no-edit", "-X", "theirs", "x"]);
+    let out = folio_check(&td);
+    assert_eq!(count(&out, SWAPPED), 1, "{:?}", violations(&out));
+}
+
+#[test]
+fn f210_relocated_original_line_still_fails() {
+    // 本流の元の列を sub-dir junk/ へ移し、根の無い枝 x の書き換えた v1.0 を元の path に置いて本流を進める
+    let td = copy_fixture("f210-relocated", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "x", "床は数えた", None, false);
+    subtree(&td, &main, "junk");
+    git(&td, &["checkout", "-q", &main]);
+    git(&td, &["merge", "-q", "--ff-only", "x"]);
+    let out = folio_check(&td);
+    assert_eq!(count(&out, SWAPPED), 1, "{:?}", violations(&out));
+}
+
+#[test]
+fn f210_deletion_after_import_still_fails() {
+    // 取り込みの後に本流の v1.0 の削除を commit する
+    let td = copy_fixture("f210-import-deletes", "root-digest-drift", true);
+    let main = current(&td);
+    orphan_column(&td, "f", "床は別", Some('f'), true);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f", "f");
+    git(&td, &["rm", "-q", V10]);
+    git(&td, &["commit", "-q", "-m", "del"]);
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert!(
+        v.iter()
+            .any(|l| l.contains("anchors/constitution-v1.0.yaml") && l.contains(LOST)),
+        "{v:?}"
+    );
+}
+
+#[test]
+fn f210_head_without_root_anchor_keeps_counting() {
+    // 今の置き場に根の anchor が無ければ狭めない（取り込んだ列の anchor 3 本を「履歴に在ったが無い」で数える）
+    let td = copy_fixture("f210-no-root", "no-anchor", true);
+    let main = current(&td);
+    orphan_column(&td, "f", "床は別", Some('f'), true);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f", "f");
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert_eq!(out.status.code(), Some(1), "{v:?}");
+    assert_eq!(count(&out, LOST), 3, "{v:?}");
+}
+
+#[test]
+fn f210_head_list_failure_is_unknown() {
+    let td = copy_fixture("f210-head-list-fails", "root-digest-drift", true);
+    // --all を持たない rev-list（先頭の祖先の一覧）だけを失敗させ、ほかの命令は本物の git へ渡す git を PATH の先頭に置く
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    let real = std::env::split_paths(&path)
+        .map(|d| d.join("git"))
+        .find(|g| g.is_file())
+        .expect("git が PATH に無い");
+    let bin = td.join("fakebin");
+    fs::create_dir_all(&bin).unwrap();
+    let fake = bin.join("git");
+    fs::write(
+        &fake,
+        format!(
+            "#!/bin/sh\nr=; a=\nfor x in \"$@\"; do [ \"$x\" = rev-list ] && r=1; [ \"$x\" = --all ] && a=1; done\n[ -n \"$r\" ] && [ -z \"$a\" ] && exit 128\nexec '{}' \"$@\"\n",
+            real.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&fake, fs::Permissions::from_mode(0o755)).unwrap();
+    let mut paths = vec![bin];
+    paths.extend(std::env::split_paths(&path));
+    let out = Command::new(env!("CARGO_BIN_EXE_folio"))
+        .arg("check")
+        .arg("--dir")
+        .arg(td.join("design-intent"))
+        .env("PATH", std::env::join_paths(paths).unwrap())
+        .output()
+        .expect("folio を起動できない");
+    let _ = fs::remove_dir_all(&td);
+    assert!(
+        stderr(&out)
+            .lines()
+            .any(|l| l.starts_with("# まだ分からない: ")
+                && l.contains("版管理を読めない（ls-tree / log / rev-list が失敗）")),
+        "{}",
+        stderr(&out)
+    );
+    assert_eq!(count(&out, LOST) + count(&out, SWAPPED), 0);
+}
+
+#[test]
+fn f210_schema_notes_name_the_other_root() {
+    let text = fs::read_to_string(repo_root().join("design-intent/adr/schema.yaml")).unwrap();
+    for want in [
+        "今の列の根の anchor（first_version の anchor と digest の欄が同じ anchor）を足した commit のどれとも共通の祖先を持たない commit（別の repo から取り込んだ別の根の列）の履歴は数えない（今の置き場に根の anchor が無い・読めない・先頭の祖先の履歴に足した commit が無いときは狭めない・判断の記録 ADR-36）",
+        "別の根の列を見分けるのは今の列の根の anchor の digest の欄で、根の digest を固定するのは列の根の表である",
+        "sub-dir へ取り込んだ置き場の床は、取り込む前の履歴を移す前の path では数えず、取り込みの commit が足した anchor も履歴に数えない",
+    ] {
+        assert_eq!(text.matches(want).count(), 1, "{want}");
+    }
+}
