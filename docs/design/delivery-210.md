@@ -6,7 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `he` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 7 本（src 2・設計文書の正本の生成区間 1・凍結 anchor 1・歯の file 3〔本文不変 1〕）。新しい file・縮む file・消す file・新しい dir は無い。
 - 門: `folio ceiling --gate --dir design-intent --write-set …`（本流 0c910db の binary・write-set 7 本・枝 docs/f1 の ADR-36 を置いた木）は **0（通す・印の周 2026-09-27-round51〔判定 合格〕に書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）**。
 - 前提: **base = 本流 0c910db（便 209 の着地の後）**。この契約の数はすべてその写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d210`（commit **21a64cf**・親 0c910db）。`git diff 0c910db 21a64cf` が便の全体の差分（6 file・+321 −19・47,519 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 21a64cf -- <write-set の file>`）。write-set の外は変えない。
+- 実装の見本: origin の枝 `impl/d210`（commit **1b3fdfa**・親 21a64cf・その親 0c910db）。`git diff 0c910db 1b3fdfa` が便の全体の差分（6 file・+354 −19・48,906 byte）。**作業者は write-set の file をこの commit の中身にしてよい**（`git checkout 1b3fdfa -- <write-set の file>`）。write-set の外は変えない。
 - 並行の便との重なり: (f) の 5。
 
 ## 1. 設計
@@ -21,7 +21,7 @@
    - (v) 別の列 2 つを `f1/` と `f2/` へ取り込む → 偽の違反 2。
    - 書き換えの細工 3 形（列 T と同じ digest の欄のまま v1.0 の題を変えた根の無い枝 x）は base で「中身が違う」1 で落ちる: (ii) x を最初の親にして本流を `-s ours` で取り込み、本流を x へ早送り・(iii) x を 2 本目の親として同じ path のまま `-X theirs` で取り込む・(vi) x の上で本流を sub-dir `junk/` へ取り込み（本流の元の列を移す）、本流を x へ早送り。
 4. **判断の記録。** ADR-34 決定 (1) の字では、別の根から取り込みの commit で入った履歴は (a) 先頭から辿れる commit に入る＝偽の違反は字どおりの帰結。ADR-36（proposed）が (a) を狭める（ADR-34 の本文は変えない・ADR-30 決定 (1)）。今の規範の字は `design-intent/adr/schema.yaml` の生成区間の注 anchor_note（版管理の項）と limits_note が持つ（床の定数 `crates/folio/src/floor_adr.rs` の写し）。
-5. **base の歯（参考値）。** workspace の nextest 〔TBD-base〕・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --out <dir> --write` 〔TBD-build〕 file。`git grep -n f210_ -- crates` は 0 件・行 id `he` は 0 件。
+5. **base の歯（参考値）。** workspace の nextest **1182 / 1182**（`--test-threads 2`・起草の記録の nextest-base.log）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0）・`folio build --out <dir> --write` **40** file（要約 b84ced30d75bd123）。`git grep -n f210_ -- crates` は 0 件・行 id `he` は 0 件。
 
 ### (b) 直す先
 
@@ -35,7 +35,7 @@
 
 ### (c) 歯（f210_・base で 0 件）
 
-binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末尾・助けの関数 4 つ = 根の無い枝に列を置く `orphan_column`・共通の祖先を持たない履歴を取り込む `merge_unrelated`・sub-dir へ取り込む `subtree`・今の枝の名 `current`、と土台の違反 1 行だけを見る `only_the_base`）。今の歯と同じく `tests/fixtures/anchor/` の組を一時 dir の `design-intent/` に写し、根で git init と 1 commit にする。別の列は根の無い枝で、組 root-digest-drift を写して v1.0 の題と digest の欄の先頭の字を変えた最初の commit（と v1.1 を足す commit）で作る。期待の数と字は歯の側の手書き。
+binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末尾・11 本・助けの関数 4 つ = 根の無い枝に列を置く `orphan_column`・共通の祖先を持たない履歴を取り込む `merge_unrelated`・sub-dir へ取り込む `subtree`・今の枝の名 `current`、と土台の違反 1 行だけを見る `only_the_base`）。今の歯と同じく `tests/fixtures/anchor/` の組を一時 dir の `design-intent/` に写し、根で git init と 1 commit にする。別の列は根の無い枝で、組 root-digest-drift を写して v1.0 の題と digest の欄の先頭の字を変えた最初の commit（と v1.1 を足す commit）で作る。期待の数と字は歯の側の手書き。
 
 1. **f210_imported_root_under_a_subdir_is_not_counted（(a) 3 の (i)）。** 別の列 f を `f/` へ取り込む。違反は土台の 1 行だけで、「履歴に在ったが」と「中身が違う」は 0。
 2. **f210_premoved_import_is_not_counted（(i')）。** f の側で先に `f/design-intent` へ移す commit を置き、同じ path のまま取り込む。土台の 1 行だけ。
@@ -45,10 +45,11 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 6. **f210_relocated_original_line_still_fails（(vi)・席の案 C の穴）。** x の上で本流を `junk/` へ取り込み（本流の元の列を移す）、本流を x へ早送り。「中身が違う」がちょうど 1。
 7. **f210_deletion_after_import_still_fails。** f を `f/` へ取り込んだ後、本流の v1.0 の削除を commit。終了コード 1・constitution-v1.0.yaml の「履歴に在ったが」の行が在る。
 8. **f210_head_without_root_anchor_keeps_counting（ADR-36 決定 (2)）。** 組 no-anchor（根の anchor が無い置き場）に f を `f/` へ取り込む。狭めないので終了コード 1・「履歴に在ったが」がちょうど 3（f の v1.0・v1.1・索引）。
-9. **f210_head_list_failure_is_unknown（条 P-4.1）。** 引数に rev-list を持ち `--all` を持たないとき（先頭の祖先の一覧）だけ終了コード 128 で終え、ほかは本物の git へ渡す shell の git を、folio の子の処理の PATH の先頭に置く。標準エラーに「# まだ分からない: 」で始まり「版管理を読めない（ls-tree / log / rev-list が失敗）」を含む行が在り、「履歴に在ったが」と「中身が違う」は 0。
-10. **f210_schema_notes_name_the_other_root。** 実の `design-intent/adr/schema.yaml` に、(b) 4 の新しい字の 3 句（anchor_note の範囲の文の括弧まで・limits_note の最初の文の頭・「sub-dir へ取り込んだ置き場の床は…履歴に数えない」）がちょうど 1 回ずつ在る。
-11. **単体の歯 f210_apart_takes_only_lines_without_a_common_ancestor（`crates/folio/src/gitcheck.rs` の tests の区間）。** 手書きの親の表 13 行（本流 t0〜t2 と根の commit k・t0 から切って取り込んだ枝 s1・別の根の列 f0〜f1 と g0〜g1 を取り込む m と m3・本流の続き x と m2）で、`apart` がちょうど f0・f1・g0・g1 を返す。根の commit が空・表に無い commit だけなら空。別の根の列の f1 も根の commit なら、残りは g0・g1 の 2 つ。
-12. **RED の実測。** 〔TBD-red〕
+9. **f210_unreadable_root_anchors_do_not_narrow（ADR-36 決定 (2)・変異 M3 を落とす）。** 本流で v1.1 を足す commit を置き、digest の欄の無い v1.0（`kind: constitution-anchor` の 1 行だけ）を持つ根の無い枝 f を `f/` へ取り込み、本流の v1.1 の削除を commit し、本流の v1.0 を作業ツリーから外す（commit しない）。今の根の anchor が無いので狭めず、v1.1 の「履歴に在ったが」の行が在る。
+10. **f210_head_list_failure_is_unknown（条 P-4.1）。** 引数に rev-list を持ち `--all` を持たないとき（先頭の祖先の一覧）だけ終了コード 128 で終え、ほかは本物の git へ渡す shell の git を、folio の子の処理の PATH の先頭に置く。標準エラーに「# まだ分からない: 」で始まり「版管理を読めない（ls-tree / log / rev-list が失敗）」を含む行が在り、「履歴に在ったが」と「中身が違う」は 0。
+11. **f210_schema_notes_name_the_other_root。** 実の `design-intent/adr/schema.yaml` に、(b) 4 の新しい字の 3 句（anchor_note の範囲の文の括弧まで・limits_note の最初の文の頭・「sub-dir へ取り込んだ置き場の床は…履歴に数えない」）がちょうど 1 回ずつ在る。
+12. **単体の歯 f210_apart_takes_only_lines_without_a_common_ancestor（`crates/folio/src/gitcheck.rs` の tests の区間）。** 手書きの親の表 13 行（本流 t0〜t2 と根の commit k・t0 から切って取り込んだ枝 s1・別の根の列 f0〜f1 と g0〜g1 を取り込む m と m3・本流の続き x と m2）で、`apart` がちょうど f0・f1・g0・g1 を返す。根の commit が空・表に無い commit だけなら空。別の根の列の f1 も根の commit なら、残りは g0・g1 の 2 つ。
+13. **RED の実測。** 歯の file だけ（r210-teeth.patch＝見本 1b3fdfa の `tests/gitcheck.rs` の差分）を base に当てると、`tests/gitcheck.rs` の 29 本のうち f210_ の 5 本（1・2・3・10・11）が落ちる（1〜3 は base が別の根の列を数えて偽の違反 2〔中身が違う 1・履歴に在ったが 1〕・10 は base が先頭の祖先の一覧を撃たないので「まだ分からない」の行が無い・11 は base の生成区間に新しい字が無い・nextest の rc 100・落ちた歯の本文は起草の記録の red-210-bin.log）。4〜9 の 6 本は base でも緑（本物の違反を今までどおり落とすことと、見分けられないときに狭めないことの固定・4・6・8 は変異 M9、9 は変異 M3 が落とす・5 と 7 は今の振る舞いを保つ歯）。便 8 の 4 本と便 190 の 14 本も緑。base の `--bin folio f210_` は 0 本（関数 `apart` が無い・nextest の rc 4・起草の記録の red-210-unit.log）。
 
 ### (d) 採らなかった形（ADR-36 の案 b〜f）
 
@@ -59,8 +60,26 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 〔TBD-nextest〕
-2. **突然変異（見本 21a64cf の写しの src だけを 1 通りずつ変え、f210_ の 11 本を撃つ・M11 は tests/floor_cases と tests/schema も撃つ）。** 〔TBD-mut〕
+1. **既存の歯。** 見本 1b3fdfa の写しで workspace の nextest **1194 / 1194**（base 1182 + f210_ の 12 本〔`tests/gitcheck.rs` の 11 本と単体の 1 本〕・`--test-threads 4`・起草の記録の nextest-impl2.log。最初の見本 21a64cf は 1193 / 1193）・clippy 0 警告・床 4 本 rc 0（check 合格 違反 0・まだ分からない 0・schema --check 一致〔adr/schema.yaml 30,048 byte〕）・`folio build --write` 40 file（base と全 file が byte で同じ・要約 b84ced30d75bd123）。字の期待を直した既存の歯は `tests/schema.rs` の凍結 anchor の定数 3 つだけ（(b) 6）。便 8 の 4 本と便 190 の 14 本は字も数も変えずに緑。
+2. **突然変異（見本 1b3fdfa の写しの src だけを 1 通りずつ変え、f210_ の 12 本〔`tests/gitcheck.rs` の 11 本と単体の 1 本〕を撃つ・M11 は tests/floor_cases と tests/schema も撃つ）。** 13 通りとも落ちる（生き残り 0・起草の記録の mut-210-summary.log と mut-210.log）。番号は (c) の歯の番号。
+
+| 変異 | 変えたところ | 落ちた歯 |
+| --- | --- | --- |
+| M1 | `apart` を空にする（別の根の列も数える＝base と同じ） | 1・2・3 |
+| M2 | 根の anchor の digest を比べない（v1.0 を足した commit を全部根にする） | 1・2・3 |
+| M3 | 今の根の anchor が無くても狭める（digest の欄の無い v1.0 を足すか消した commit を根にする） | 9 |
+| M4 | 根の commit の祖先を辿らない（自分だけ） | 12 |
+| M5 | 子へ辿った commit を引かない（祖先の外を全部別の列にする） | 12 |
+| M6 | 別の列を `ever` からだけ外す（`hist` は数える） | 1・2・3 |
+| M7 | 別の列を `hist` からだけ外す（`ever` は数える） | 1・2・3 |
+| M8 | 先頭の祖先の一覧の失敗を見ない | 10 |
+| M9 | 最初の親の列の根を根にする（席の案 A） | 4・6・8 |
+| M10 | 数える向きを逆にする（別の列だけを数える） | 1・2・3 |
+| M11 | 欄の決まりの注を元の字に戻す（実装だけ変える） | f210_ は 0・`tests/schema` と `tests/floor_cases` の 8 本（生成区間が凍結 anchor と実の正本に合わない） |
+| M12 | 今の根の anchor を索引の file から読む（別の file） | 1・2・3 |
+| M13 | 先頭の祖先の一覧を全ての参照にする（`rev-list --all`） | 10 |
+
+   M3 は最初の見本 21a64cf（歯 9 の無い f210_ の 11 本）では生き残った。M3 は今の根の anchor が無い・読めないときだけ振る舞いが変わり、digest の欄の無い v1.0 を足した commit（と v1.0 を消した commit）を根の commit にして狭めるので、取り込んだ列がそういう v1.0 を持つと本流の元の列のほうが「別の根の列」になり、本流の本物の削除が黙って通る（ADR-36 決定 (2)「今の根の anchor が無い・読めないときは狭めない」に反する＝等価でない）。歯 9 がその形を撃ち、見本 1b3fdfa で緑・M3 で落ちる。
 3. **外の置き場（tsuzuri の写し・参考値）。** (a) 2 の写しで、base の binary の違反 9 が見本の binary で **0（合格・まだ分からない 0）**。`folio2/design-intent` の床は両方とも合格。案 A と案 C の見本の binary も 0。着地の後に tsuzuri の置き場で `folio schema --write` を 1 回（判断の記録の欄の決まりの注 2 つ）撃つまで `folio schema --check` が落ちる（床は注を数えないので落ちない）。
 4. **列の根の表に頼る所（ADR-36 決定 (4)・`tests/fixtures/floor_base` の写し・iiib-real.sh）。** 根の無い枝 x が digest の違う v1.0（と索引の最初の項）を持ち、本流が `-X theirs` で取り込む形は、見本では本流の元の列を数えない（「中身が違う」0）が、列の根の表の違反「列の根 v1.0 の digest が床の定数（列の根の表の folio2-constitution の行）と違う」で落ちる（base・案 A・案 C・見本とも終了コード 0 でない）。
 5. **取り込んだ置き場の床（変えない所・ADR-36 決定 (6)）。** tsuzuri の写しで `folio2/design-intent/anchors/constitution-v1.4.yaml` の削除を commit すると、base も見本も `folio2/design-intent` の床は終了コード 2（索引の照らしの「まだ分からない」）・版管理の違反 0。案 b の写しでは両方とも違反 1（「履歴に在ったが」）。本便はこの形を変えない。
@@ -68,7 +87,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 ### (f) 大きさ・余地・verify と done の対応
 
-1. **write-set の印。** 新しい file は無い。`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分 47,519 byte（`git diff 0c910db 21a64cf | wc -c`・6 file・+321 −19）。
+1. **write-set の印。** 新しい file は無い。`crates/folio/tests/floor_cases.rs` は本文を変えない（verify の `--test` の scope）。差分 48,906 byte（`git diff 0c910db 1b3fdfa | wc -c`・6 file・+354 −19）。
 2. **余地（CapHeadroom）。** 測るのは write-set の src の 2 本（python と awk の 2 実装で一致・cap-210.log）。
 
 | file | base の正規化行数（参考値） | base の余地 | 本便の後 | 本便の後の余地 |
@@ -77,12 +96,12 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 | `crates/folio/src/floor_adr.rs` | 514 | 986 | 519（+5） | 981 |
 
 3. **size は S。** src の増分は +78 で S の見積 100 の内。余地の最小（floor_adr.rs の base 986）は S の 100 を超える。
-4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。〔TBD-verify〕
-   1. `cargo nextest run -p folio --test gitcheck f210_` = (c) の 1〜10（10 本）。
-   2. `cargo nextest run -p folio --bin folio f210_` = (c) の 11（1 本）。
-   3. `cargo nextest run -p folio --test gitcheck` = 便 8 の 4 本・便 190 の 14 本と (c) の 10 本（今の違反の字と数が同じ）。
-   4. `cargo nextest run -p folio --test schema` = 生成区間と凍結 anchor の一致（(b) 5・6）。
-   5. `cargo nextest run -p folio --test floor_cases` = 床の fixture（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む）。
+4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。どの行も見本 1b3fdfa の写しで数えられる歯を持つ（本数は見本の写しの実測）。
+   1. `cargo nextest run -p folio --test gitcheck f210_` = (c) の 1〜11（11 本）。
+   2. `cargo nextest run -p folio --bin folio f210_` = (c) の 12（1 本・base では 0 本で rc 4＝(c) 13・便 190 の `--bin folio f190_` と同じ形）。
+   3. `cargo nextest run -p folio --test gitcheck` = 便 8 の 4 本・便 190 の 14 本と (c) の 11 本（29 本・今の違反の字と数が同じ）。
+   4. `cargo nextest run -p folio --test schema` = 生成区間と凍結 anchor の一致（(b) 5・6・21 本）。
+   5. `cargo nextest run -p folio --test floor_cases` = 床の fixture（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む・12 本）。
    6. `cargo clippy --workspace --all-targets -- -D warnings` = 0 警告。
 5. **verify の歯の file と write-set。** `--test` で名指す歯の file（gitcheck・schema・floor_cases）は全部 write-set に在る。`--bin folio` の歯の在り処（gitcheck.rs）も write-set に在る。
 6. **並行の便との重なり（2026-09-29 19:5x の時点・origin の impl/* と docs/* の枝の 0c910db との差分の file を読んだ）。** write-set の file に触れる枝は、着地済みの便（190・196・198・209 ほか）と止めた便の控え（impl/d172〜d185・impl/f2-648.254-run1）だけで、走っている便の枝（impl/d201・impl/d211）は write-set に触れない。着地の順は F1（本便）と F2（便 211）の後に tsuzuri が持ち込む（tsuzuri の決め）。
@@ -103,10 +122,10 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 起草の記録は持ち主の home の下の `.local/share/folio2/handoff-2026-09-28/f1-draft.md`、script と log は同じ dir の f1-scripts。
 
-1. 模擬: 見本 21a64cf（c210.patch = `git diff 0c910db 21a64cf`・歯だけ = r210-teeth.patch）。chain-210.sh（組み立て・workspace の nextest〔`--test-threads 2`・folio2 の全レーンで同時 1 本を待つ〕・clippy・床 4 本と build の差・RED・変異・余地）。floor4.sh（床 4 本と build）。
+1. 模擬: 見本 1b3fdfa（c210.patch = `git diff 0c910db 1b3fdfa`・歯だけ = r210-teeth.patch・21a64cf の版は logs の *-21a64cf.log）。chain-210.sh（組み立て・workspace の nextest〔`--test-threads 2`・folio2 の全レーンで同時 1 本を待つ〕・clippy・床 4 本と build の差・RED・変異・余地）。chain2-210.sh（見本 1b3fdfa の workspace の nextest と床 4 本・build の差の撃ち直し）。floor4.sh（床 4 本と build）。
 2. 最小の写し: repro-210.sh（(i)・(i')・(v)・(ii)・(iii)・(vi)・取り込んでいない枝・根の anchor の無い置き場・取り込みの後の削除・取り込んだ置き場の削除・digest の違う根の差し替えを、base と案 A・案 C・見本の binary で撃つ）。iiib-real.sh（列の根の表に行を持つ土台で digest の違う根の差し替え）。
 3. 外の置き場: tz-210.sh（tsuzuri の .git だけを写し、その写しの中では git を撃たず、clone --no-checkout の後に core.hooksPath が無く hook が sample だけなことを確かめてから checkout し、枝を局所の枝にしてから remote を外す。MODE=B で案 b の写し）。
-4. RED: red-210.sh。突然変異: mut-210.py。余地: cap-210.sh（lines.py と lines.awk）。
+4. RED: red-210.sh。突然変異: mut-210.py（13 通り）。余地: cap-210.sh（lines.py と lines.awk）。
 
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
@@ -116,7 +135,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 
 ## 2. 範囲
 
-- 入れる: `gitcheck.rs` の `check_git` の命令 1 本（`rev-list --parents HEAD`）と行の列・根の commit・関数 `apart`・単体の歯 1 本、`floor_adr.rs` の注 2 つ、`adr/schema.yaml` の生成区間の書き直し、凍結 anchor `adr-region.txt` と `tests/schema.rs` の定数 3 つ、`tests/gitcheck.rs` の f210_ の 10 本と助け 5 つ。
+- 入れる: `gitcheck.rs` の `check_git` の命令 1 本（`rev-list --parents HEAD`）と行の列・根の commit・関数 `apart`・単体の歯 1 本、`floor_adr.rs` の注 2 つ、`adr/schema.yaml` の生成区間の書き直し、凍結 anchor `adr-region.txt` と `tests/schema.rs` の定数 3 つ、`tests/gitcheck.rs` の f210_ の 11 本と助け 5 つ。
 - 入れない: 違反の字・ADR-34 の範囲・先頭の木との照合・除外・未追跡・浅い写し・環境変数・列の根・凍結の命令・`toplevel`・憲法と要件書と判断の記録の字・床の fixture の字・取り込んだ置き場の床・外の置き場・台帳への記帳・外部 crate・新しい dir。
 
 ## 3. 部品
@@ -128,7 +147,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 | apart | 別の根の列 | `gitcheck.rs` の `apart`・命令 `rev-list --parents HEAD`・`aside` と同じ組み方 |
 | note | 今の規範の字 | `floor_adr.rs` の注 2 つ → `adr/schema.yaml` の生成区間 |
 | anchor | 凍結 anchor | `adr-region.txt`・`tests/schema.rs` の定数 |
-| teeth | 歯 | `tests/gitcheck.rs` の f210_ の 10 本と `gitcheck.rs` の単体の 1 本 |
+| teeth | 歯 | `tests/gitcheck.rs` の f210_ の 11 本と `gitcheck.rs` の単体の 1 本 |
 
 ## 4. 検査（歯）
 
@@ -145,11 +164,11 @@ schema = 1
 
 [[contract]]
 id = "he"
-title = "床の版管理の照合は、別の repo から取り込んだ別の根の列の履歴を数えない（判断の記録 ADR-36・tsuzuri の持ち込みの予行の違反 9）: crates/folio/src/gitcheck.rs の check_git に命令 rev-list --parents HEAD を足し（起動できない・失敗は今と同じまだ分からない）、log の行をいったん行の列に集め、今の作業ツリーの最初の版の anchor の digest の欄と同じ digest の欄の最初の版の anchor を足すか変えた commit（根の commit）を組み、新しい関数 apart で根の commit のどれとも共通の祖先を持たない先頭の祖先（別の根の列）の集合を組んで、その commit の行を ever にも hist にも入れない（根の anchor が無い・読めない・根の commit が先頭の祖先に無いときは狭めない・ADR-34 の範囲と違反の字は変えない）。crates/folio/src/floor_adr.rs の注 anchor_note に 1 文と limits_note に 1 項を足し、folio schema --write で design-intent/adr/schema.yaml の生成区間を書き直し、凍結 anchor tests/fixtures/schema/adr-region.txt と crates/folio/tests/schema.rs の定数 REGION_LINES と REGION_BYTES と REGION_SHA256 を測り直す。歯は crates/folio/tests/gitcheck.rs の f210_ の 10 本（別の列を sub-dir へ取り込む・先に移してから取り込む・2 つ取り込むの 3 形で偽の違反が出ない・根の無い枝の書き換えを最初の親にして早送りする・同じ path のまま取り込む・本流の元の列を sub-dir へ移すの 3 形と取り込みの後の削除は今までどおり落ちる・根の anchor の無い置き場は狭めない・先頭の祖先の一覧の失敗はまだ分からない・注の字）と gitcheck.rs の単体の 1 本（apart の親の表）"
+title = "床の版管理の照合は、別の repo から取り込んだ別の根の列の履歴を数えない（判断の記録 ADR-36・tsuzuri の持ち込みの予行の違反 9）: crates/folio/src/gitcheck.rs の check_git に命令 rev-list --parents HEAD を足し（起動できない・失敗は今と同じまだ分からない）、log の行をいったん行の列に集め、今の作業ツリーの最初の版の anchor の digest の欄と同じ digest の欄の最初の版の anchor を足すか変えた commit（根の commit）を組み、新しい関数 apart で根の commit のどれとも共通の祖先を持たない先頭の祖先（別の根の列）の集合を組んで、その commit の行を ever にも hist にも入れない（根の anchor が無い・読めない・根の commit が先頭の祖先に無いときは狭めない・ADR-34 の範囲と違反の字は変えない）。crates/folio/src/floor_adr.rs の注 anchor_note に 1 文と limits_note に 1 項を足し、folio schema --write で design-intent/adr/schema.yaml の生成区間を書き直し、凍結 anchor tests/fixtures/schema/adr-region.txt と crates/folio/tests/schema.rs の定数 REGION_LINES と REGION_BYTES と REGION_SHA256 を測り直す。歯は crates/folio/tests/gitcheck.rs の f210_ の 11 本（別の列を sub-dir へ取り込む・先に移してから取り込む・2 つ取り込むの 3 形で偽の違反が出ない・根の無い枝の書き換えを最初の親にして早送りする・同じ path のまま取り込む・本流の元の列を sub-dir へ移すの 3 形と取り込みの後の削除は今までどおり落ちる・根の anchor の無い置き場は狭めない・今の根の anchor が無く取り込んだ列の根の anchor も digest の欄を持たないときも狭めない・先頭の祖先の一覧の失敗はまだ分からない・注の字）と gitcheck.rs の単体の 1 本（apart の親の表）"
 req = ["FR5"]
 section = "1"
 write-set = ["crates/folio/src/gitcheck.rs", "crates/folio/src/floor_adr.rs", "design-intent/adr/schema.yaml", "tests/fixtures/schema/adr-region.txt", "crates/folio/tests/gitcheck.rs", "crates/folio/tests/schema.rs", "crates/folio/tests/floor_cases.rs"]
 verify = ["cargo nextest run -p folio --test gitcheck f210_", "cargo nextest run -p folio --bin folio f210_", "cargo nextest run -p folio --test gitcheck", "cargo nextest run -p folio --test schema", "cargo nextest run -p folio --test floor_cases", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "crates/folio/tests/gitcheck.rs の f210_ の 10 本（別の列を sub-dir へ取り込む・先に sub-dir へ移してから取り込む・別の根を 2 つ取り込むの 3 形で先頭の床に版管理の違反が出ない・根の無い枝で v1.0 を書き換えて最初の親にし本流を早送りする・2 本目の親として同じ path のまま取り込む・本流の元の列を sub-dir へ移して書き換えを元の path に置くの 3 形は中身が違うで落ちる・取り込みの後の本流の削除は落ちる・根の anchor の無い置き場は狭めず取り込んだ列の anchor を数える・先頭の祖先の一覧だけが失敗するとまだ分からない・判断の記録の欄の決まりの注が ADR-36 の範囲の字）が緑、binary の単体の f210_ の 1 本（apart の親の表）が緑、tests/gitcheck.rs の歯の全部（便 8 の 4 本と便 190 の 14 本を含む）が緑、tests/schema.rs の歯の全部（生成区間と凍結 anchor の一致）が緑、tests/floor_cases.rs の歯の全部（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む床の fixture）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check が 0・folio derive --dir design-intent --out ../contracts --check が一致"
+done = "crates/folio/tests/gitcheck.rs の f210_ の 11 本（別の列を sub-dir へ取り込む・先に sub-dir へ移してから取り込む・別の根を 2 つ取り込むの 3 形で先頭の床に版管理の違反が出ない・根の無い枝で v1.0 を書き換えて最初の親にし本流を早送りする・2 本目の親として同じ path のまま取り込む・本流の元の列を sub-dir へ移して書き換えを元の path に置くの 3 形は中身が違うで落ちる・取り込みの後の本流の削除は落ちる・根の anchor の無い置き場は狭めず取り込んだ列の anchor を数える・今の根の anchor が作業ツリーに無く取り込んだ列の根の anchor も digest の欄を持たないときも狭めず本流の v1.1 の削除を落とす・先頭の祖先の一覧だけが失敗するとまだ分からない・判断の記録の欄の決まりの注が ADR-36 の範囲の字）が緑、binary の単体の f210_ の 1 本（apart の親の表）が緑、tests/gitcheck.rs の歯の全部（便 8 の 4 本と便 190 の 14 本を含む）が緑、tests/schema.rs の歯の全部（生成区間と凍結 anchor の一致）が緑、tests/floor_cases.rs の歯の全部（根の無い枝の場合 git-orphan-branch-refreeze を今の字のまま・環境変数・浅い写しの場合を含む床の fixture）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check が 0・folio derive --dir design-intent --out ../contracts --check が一致"
 <!-- contracts:end -->
