@@ -7,8 +7,8 @@
   - 承認（席が埋める）: 逐語「　」・日付 　・台帳の notes の所 　
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `hg` が指す §1 だけ。write-set 3 本（manifest 1・解いた依存の一覧 1・新しい歯の file 1）・新しい dir は無い・src は無い。
 - 門: **0（通す）**。本流の binary で `folio ceiling --gate --dir design-intent --write-set crates/folio/Cargo.toml Cargo.lock +crates/folio/tests/deps.rs` の答えは「通す（設計文書の正本を書き換えない便）」。
-- 前の便: **base = 本流 0c910db**。数は base と見本の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/f3-scripts/`（chain.sh・run.sh・mut.py・count.sh・tree.sh）。便 211（行 hf）の契約の取り込みとは file が重ならない（§1 (g)）。
-- 見本: origin の枝 `impl/d212`（**8b24827**・親 0c910db・1 commit）。`git diff 0c910db 8b24827` が便の全体の差分（3 file）。作業者は write-set の file をこの commit の中身にしてよい。
+- 前の便: **base = 本流 0c910db**（起草の時点）。受付の前に本流は b99daea（便 211 の契約 6b4ba70 と着地 b99daea・serve.rs と tests/serve.rs）へ進んだが、write-set の 3 本・workspace の Cargo.toml・Cargo.lock は 0c910db と b99daea で byte で同じ＝数え直しは要らない（検証役が b99daea に差分を当てて衝突 0・組み立ての後の Cargo.lock は見本と byte で同じ・verify 3 行 緑を確かめた）。数は base と見本の写しの実測（参考値・行 D-13）。組み直す手順は控え `~/.local/share/folio2/handoff-2026-09-28/f3-scripts/`（chain.sh・run.sh・mut.py・count.sh・tree.sh）。便 211（行 hf）の契約の取り込みとは file が重ならない（§1 (g)）。
+- 見本: origin の枝 `impl/d212`（**8b24827**・親 0c910db・1 commit）。`git diff 0c910db 8b24827` が便の全体の差分（3 file）。作業者は**受付の時点の本流にこの差分を当てる**（write-set の file を見本の file の中身へ置き換えない）。`Cargo.lock` は見本の file で置き換えず、manifest を直した後に cargo に解き直させる（受付までに本流の `Cargo.lock` が動いていれば、その変化を消さないため）。
 
 ## 1. 設計
 
@@ -16,21 +16,21 @@
 
 1. `crates/folio/Cargo.toml` は yaml-rust2 を 2 か所で `yaml-rust2 = "0.10"` と書く（10 行の `[dependencies]` と 13 行の `[build-dependencies]`・組み立ての script `build.rs` も部品目録と憲法を読むのに使う）。この書き方は yaml-rust2 の既定の機能（default）を入れ、既定の機能は `encoding` 1 つで、`encoding` は外の部品 encoding_rs を引く（yaml-rust2 0.10.4 の Cargo.toml の `[features]`）。
 2. 解いた依存の一覧 `Cargo.lock` の package は 36 本で、folio を除く外の部品は **35 本**（`cargo tree --workspace --target all -e normal,build,dev` の重複を除いた名の数も 35）。encoding_rs を引くのは yaml-rust2 だけで（`cargo tree -i encoding_rs`）、encoding_rs だけが引く部品が 8 本在る: cfg-if・core_detect・multiversion・multiversion-macros・multiversion_no_op・rustversion・scopeguard・simdutf8（multiversion-macros は multiversion から）。
-3. 使ってよい条件（ライセンス）: 35 本のうち MIT か Apache-2.0 の選び以外の条件が要るのは encoding_rs（`(Apache-2.0 OR MIT) AND BSD-3-Clause`）と foldhash（`Zlib`・yaml-rust2 が必ず引く hashlink から）の 2 本（`cargo metadata` の license の欄）。
-4. folio の src と build.rs が使う yaml-rust2 の口は、`Yaml`・`YamlLoader::load_from_str`・`YamlEmitter`・`yaml::Hash`・`parser::{Event, MarkedEventReceiver, Parser}`・`scanner::{Marker, TScalarStyle}` だけ。字の符号を見分けて読む口（`YamlDecoder`・`YAMLDecodingTrap`）は 0 か所（`git grep`）。
+3. 使ってよい条件（ライセンス）: 35 本のうち MIT か Apache-2.0 の選びだけでは満たせない条件を持つのは 3 本（`cargo metadata` の resolve の node の license の欄）: encoding_rs（`(Apache-2.0 OR MIT) AND BSD-3-Clause`・本便で消える）・foldhash（`Zlib`・yaml-rust2 が必ず引く hashlink → hashbrown から・残る）・unicode-ident（`(MIT OR Apache-2.0) AND Unicode-3.0`・proc-macro2 → quote / syn → clap_derive の道で組み立ての時だけ使い folio の binary には入らない・本便の前後で変わらず残る）。
+4. folio が使う yaml-rust2 の口は、src が `parser::{Event, MarkedEventReceiver, Parser}`・`scanner::{Marker, TScalarStyle}`、build.rs が `Yaml`・`YamlLoader`・`yaml::Hash`、tests が `YamlLoader::load_from_str`・`YamlEmitter` ほか（読みと書きの口）だけ。字の符号を見分けて読む口（`YamlDecoder`・`YAMLDecodingTrap`）は 0 か所（`git grep`）。
 5. **振る舞いが同じ根拠（yaml-rust2 0.10.4 の source）**: 機能 `encoding` が切り替えるのは `src/yaml.rs` の `mod encoding`（`YamlDecoder`・`YAMLDecodingTrap`・`YAMLDecodingTrapFn` とその再公開）と、その機能が在るときだけ組む歯だけ。folio が使う読み（scanner・parser・`YamlLoader`）と書き（`YamlEmitter`）には機能の有無で組み方を変える印（cfg の feature の条件）が 1 つも無く、読みは既定の機能の有無に依らず UTF-8 の字だけを受ける。見本の写しで床 4 本の答えと `folio build` の出力（40 file の sha）が base と同じだった（(h)）。
 
 ### (b) 直す先（変えないもの）
 
 1. `crates/folio/Cargo.toml` の yaml-rust2 の 2 行を、2 か所とも `yaml-rust2 = { version = "0.10", default-features = false }` にする（同じ 1 行の形・機能を名指さない）。
-2. `Cargo.lock` を cargo に解き直させる（`cargo build` が manifest に合わせて使わない package を消す）。差分は**消すだけ**: package 9 本（encoding_rs と (a) 2. の 8 本）と、yaml-rust2 の依存の列の `encoding_rs` の 1 行。ほかの package の版は変えない（`cargo update` は撃たない）。外の部品は **35 → 26 本**（Cargo.lock の package の数・cargo tree の名の数とも・参考値）。foldhash（Zlib）は残る。
+2. `Cargo.lock` を cargo に解き直させる（`cargo build` が manifest に合わせて使わない package を消す）。差分は**消すだけ**: package 9 本（encoding_rs と (a) 2. の 8 本）と、yaml-rust2 の依存の列の `encoding_rs` の 1 行。ほかの package の版は変えない（`cargo update` は撃たない）。外の部品は **35 → 26 本**（Cargo.lock の package の数・cargo tree の名の数とも・参考値）。foldhash（Zlib）と unicode-ident（Unicode-3.0 を AND で持つ）は残る。解いた機能の差は、yaml-rust2 の `default`・`encoding` が消えることのほかに、syn の機能 3 つ（extra-traits・visit・visit-mut・入れていたのは消える multiversion-macros だけ）が減ること（`cargo tree -e features`）。syn は clap_derive の組み立ての時の依存で、機能は API を足すだけ＝clap_derive が生む code は変わらない（`folio build` の出力の byte の比べで確かめる・(h)）。
 3. 変えないもの: src・build.rs・clap の行・workspace の Cargo.toml・ほかの歯。行 R-6 の値（未定）。
 
 ### (c) 歯（f212_・base で 0 件）
 
 新しい file `crates/folio/tests/deps.rs`（binary を撃たない・file を読むだけ）に 2 本。
 
-1. **f212_manifest_turns_off_yaml_rust2_default_features**: `crates/folio/Cargo.toml` を行ごとに読み、`[dependencies]` と `[build-dependencies]` の節のそれぞれで `yaml-rust2 =` で始まる行がちょうど 1 つ在り、その値（空白を除いた字）が `default-features=false` を含み、機能 `"encoding"` を名指さないこと。行の形は (b) 1. の 1 行の形（`[dependencies.yaml-rust2]` の表の形は数えない＝作業者は 1 行の形で書く）。
+1. **f212_manifest_turns_off_yaml_rust2_default_features**: `crates/folio/Cargo.toml` を行ごとに読み、`[dependencies]` と `[build-dependencies]` の節のそれぞれで `yaml-rust2 =` で始まる行がちょうど 1 つ在り、その値（空白を除いた字）が `default-features=false` を含み、機能 `"encoding"` を名指さないこと。行の形は (b) 1. の 1 行の形（`[dependencies.yaml-rust2]` の表の形・鍵を引用する形 `"yaml-rust2" =`・節の見出しの後ろに注を付ける形 `[dependencies] # …` は数えない＝同じ意味でも歯が落ちる。作業者は (b) 1. の字のとおり、鍵を引用せず、節の見出しに注を付けずに書く）。
 2. **f212_lockfile_resolves_no_encoding_rs**: `Cargo.lock` の package ごとの名と依存の名の列を読み、一覧が読めていること（folio と yaml-rust2 が在り、yaml-rust2 の依存に hashlink が在る・読めない一覧を合格にしない・P-4.1）を先に確かめてから、yaml-rust2 の依存に encoding_rs が無く、package にも encoding_rs が無いこと。
 3. **RED**: base（0c910db）に歯の file だけを当てると 2 本とも落ちる（1 本目 =「[dependencies] の yaml-rust2 は既定の機能を外すはず: "0.10"」・2 本目 =「yaml-rust2 の依存に encoding_rs が残る: ["arraydeque", "encoding_rs", "hashlink"]」）。見本 8b24827 では 2 本とも緑。
 4. 歯は外の部品の本数（26）も、消えた 8 本の名も固定しない（(d) 3.）。
