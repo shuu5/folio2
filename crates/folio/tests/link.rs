@@ -5,9 +5,12 @@
 //! `retreat-kind-drift/` は便 122 から違反 0・まだ分からない（撤退条件の種類は部分集合で数える）。
 //! 便 203: 写しの憲法の名（fixture-constitution）は folio2 の置き場の名でなく条 N-4 を持たないので、名札は検査の名（改訂の承認）で、
 //! まだ分からない の行の要件の id（FR25）は落ちる。
+//! 編集時の口のつながりの行（網の中の A-2・N-4）も同じ名札で出す（歯 f203_）。
 
+use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -103,4 +106,39 @@ fn link_amended_by_orphan_fails() {
         "{name}: {v:?}"
     );
     assert!(stdout(&out).contains("不合格"), "{name}");
+}
+
+/// 便 203: 外の置き場（写しの名 fixture-constitution）の編集時の口は、つながりに数える違反の行も素の床と同じ検査の名で出す。
+/// 要件の平易文に実在しない判断の記録の id を書こうとすると、つながりの行は [改訂と判断の記録] の 1 行だけ（置き場は書かない）。
+#[test]
+fn f203_abroad_proposed_link_lines_name_the_check() {
+    let dir = repo_root().join("tests/fixtures/link/adr-id-missing");
+    let srs = fs::read_to_string(dir.join("srs.yaml")).unwrap();
+    let text = srs.replacen("    plain: 書類を作ります。\n", "    plain: 書類を作ります（ADR-99）。\n", 1);
+    assert_ne!(srs, text, "置き換える字が無い（前提が崩れた）");
+    let mut child = Command::new(env!("CARGO_BIN_EXE_folio"))
+        .args(["check", "--dir"])
+        .arg(&dir)
+        .args(["--proposed", "srs.yaml"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("folio を起動できない");
+    child.stdin.take().unwrap().write_all(text.as_bytes()).unwrap();
+    let out = child.wait_with_output().unwrap();
+    let all = stdout(&out);
+    assert_eq!(out.status.code(), Some(0), "{all}{}", String::from_utf8_lossy(&out.stderr));
+    assert!(violations(&out).is_empty(), "{all}");
+    assert!(
+        all.lines()
+            .any(|l| l.starts_with("folio check --proposed: 通す（新しい違反 0・つながり 1・まだ分からない 0・")),
+        "{all}"
+    );
+    let links: Vec<&str> = all.lines().filter(|l| l.starts_with("# つながり")).collect();
+    assert_eq!(
+        links,
+        ["# つながり（編集は止めない・事後の床が数える）: [改訂と判断の記録] srs.yaml: requirements[0].plain: 判断の記録 ADR-99 が実在しない"],
+        "{all}"
+    );
 }
