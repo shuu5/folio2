@@ -43,7 +43,7 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. 既存の歯で落ちるものは無い。見本 8b24827 の workspace の nextest は 1182 / 1182（参考値・base より f212_ の 2 本多い）・clippy 0 警告。
+1. 既存の歯で落ちるものは無い。見本 8b24827 の workspace の nextest は 1184 / 1184（参考値・host で同時 1 本・base 0c910db の本数 1182 より f212_ の 2 本多い）・clippy 0 警告。base の workspace の nextest は host の負荷を減らすため撃っていない（base の verify の 3 行は撃った・(f) 4.）。
 2. 突然変異 9 通り（控えの mut.py・見本の木で 1 つずつ当てて f212_ の 2 本を撃つ）: 期待と違う 0。
 
 | 変異 | 期待 |
@@ -63,7 +63,7 @@
 1. **write-set 3 本**: `crates/folio/Cargo.toml`・`Cargo.lock`（縮む・印 `-`）・`crates/folio/tests/deps.rs`（新規・印 `+`）。差分は +105 −75・8,194 byte（参考値）。
 2. **余地**: write-set に `crates/folio/src/` の file が無い＝余地を数える file は 0 本。
 3. **size は S**（src の変更なし・manifest 4 行と歯 103 行）。
-4. **verify は 3 行**で、done の塊と 1 対 1: `--locked --test deps f212_`（本便の歯 2 本・`--locked` で `Cargo.lock` が manifest と揃っていないと cargo が撃つ前に断る）・`--locked --test floor_cases`（床の 134 の組を folio に読ませる歯・YAML の読みが同じことの確かめ）・clippy。見本では 3 行とも rc 0。base では f212_ の行が 0 件で終了コード 4、ほかは緑（控えの verify.sh）。
+4. **verify は 3 行**で、done の塊と 1 対 1: `--locked --test deps f212_`（本便の歯 2 本・`--locked` で `Cargo.lock` が manifest と揃っていないと cargo が撃つ前に断る）・`--locked --test floor_cases`（凍結 fixture の 134 の組を YAML で読み書きして folio check に掛ける歯の file・12 本・YAML の読み書きが同じことの確かめ）・clippy。見本では 3 行とも rc 0（2・12 本と 0 警告）。base では歯の file tests/deps.rs が無いので f212_ の行は cargo が歯の file を見つけられず終了コード 101、ほかは緑（12 本と 0 警告）（控えの verify.sh・logs/verify-*.log）。
 
 ### (g) 受付・並行の便・運ばないもの
 
@@ -110,5 +110,5 @@ section = "1"
 write-set = ["crates/folio/Cargo.toml", "-Cargo.lock", "+crates/folio/tests/deps.rs"]
 verify = ["cargo nextest run -p folio --locked --test deps f212_", "cargo nextest run -p folio --locked --test floor_cases", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "tests/deps.rs の f212_ の歯 2 本（crates/folio/Cargo.toml の yaml-rust2 の 2 か所が既定の機能を外していること・Cargo.lock に encoding_rs が無いこと）が --locked で緑（Cargo.lock が manifest と揃っている）、床の 134 の組の歯（tests/floor_cases.rs）が --locked で緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、Cargo.lock の差分は消すだけ（package 9 本と yaml-rust2 の依存の encoding_rs の 1 行）で、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
+done = "tests/deps.rs の f212_ の歯 2 本（crates/folio/Cargo.toml の yaml-rust2 の 2 か所が既定の機能を外していること・Cargo.lock に encoding_rs が無いこと）が --locked で緑（Cargo.lock が manifest と揃っている）、凍結 fixture の 134 の組を回す歯の file（tests/floor_cases.rs の全部）が --locked で緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、Cargo.lock の差分は消すだけ（package 9 本と yaml-rust2 の依存の encoding_rs の 1 行）で、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 を返し、folio build の出力は着地の直前の main と byte で同じ"
 <!-- contracts:end -->
