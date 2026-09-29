@@ -188,10 +188,10 @@
 
 ### (g) 門・受付・ほかのレーンとの重なり
 
-1. **門。** 冒頭のとおり対象外・0（通す）。本流の binary（`target/debug/folio`・06:30 の組み立て・1c7f927）に write-set の 16 本を渡した答え「folio ceiling: 通す（設計文書の正本を書き換えない便）」（gate-203c.log）。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d203 の本契約で 契約に起因する断り 0（起草の記録の precheck-203c.log）。見本の写しで verify の 12 行とも rc 0。
+1. **門。** 冒頭のとおり対象外・0（通す）。本流の binary（`target/debug/folio`・06:30 の組み立て・1c7f927）に write-set の 16 本を渡した答え「folio ceiling: 通す（設計文書の正本を書き換えない便）」（gate-203c.log・改訂 3 で撃ち直して同じ＝gate-203d.log）。
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d203 の本契約で 契約に起因する断り 0（起草の記録の precheck-203c.log・改訂 3 の precheck-203d.log）。見本の写しで verify の 12 行とも rc 0。
 3. **ほかのレーンとの重なり。** 起草の時点（2026-09-29 07:2x）の origin の impl/* の枝で write-set の file を書き換え、本流に着地していないのは impl/d201（`crates/folio/src/main.rs`・取り下げ済み）だけで、見本との `git merge-tree` は衝突 0。impl/d184〜d202 は本流に squash で着地済み。契約の枝だけで見本の無い docs/d162（write-set に rules.rs・adr.rs・link.rs）と docs/d164（anchor.rs・adr.rs）は base が古く、着地の順が来たら数え直しが要る（本便が先に着地したら、あちらが数え直す）。改訂 3（2026-09-29 10:2x）の実測: 便 204 の見本 impl/d204 1bc273b と本便の見本 3782890 の `git merge-tree` は衝突 0 で、重なる file は `crates/folio/src/check.rs` と `crates/folio/src/rules.rs` だけ（便 204 の歯の file は tests/ruling.rs と tests/schema_docs.rs で、改訂 3 の歯の file tests/vocab.rs・tests/link.rs と重ならない）。重ねた木で check.rs 1206（余地 294）・rules.rs 644（余地 856）、tests/vocab.rs・tests/link.rs・tests/ruling.rs・tests/schema_docs.rs の 46 本が緑（起草の記録の c35-nextest.log・cap-203-c35.log）。着地の順が 203 → 204 なら 204 の受付時の check.rs の余地は 320（S の 100 の内）、逆なら 203 の受付時の余地は 302（M の 300 を 2 だけ超える＝数え直しの時の注意）。
-4. **数え直し。** 受付の時点の本流で write-set の file か、`floor.rs` の `abroad`・`val_for`・`text_for`、`adr::place_name`、`rules::label` が base と違えば、見本を本流に取り込み、verify と骨格と tsuzuri の写しの答え（(e) 3）を数え直してから運ぶ。
+4. **数え直し。** 改訂 3 の時点（2026-09-29 10:3x）の本流は 001c865（要件書 第 1.56 版・変わった file は design-intent/srs.yaml と design-intent/anchors/ids-v1.56.yaml だけ）で、write-set の file と下の関数は 1c7f927 と同じ（req の FR5・FR22・FR25 は第 1.56 版にも在る）。受付の時点の本流で write-set の file か、`floor.rs` の `abroad`・`val_for`・`text_for`、`adr::place_name`、`rules::label` が base と違えば、見本を本流に取り込み、verify と骨格と tsuzuri の写しの答え（(e) 3）を数え直してから運ぶ。
 5. **着地の後（外の置き場）。** 生成区間も床の判定も変わらないので、外の置き場の file の書き直しは要らない。tsuzuri では 9 つの名札（A-2・N-4・P-7・P-7.1・P-8・R-3・R-9・R-10・R-11）が検査の名（改訂と判断の記録・改訂の承認・id の再利用と改番・撤退条件・部品目録・語彙・平易文・強度と文末）で出て、まだ分からない の行が出たときは（P-10.3）と FR25 の片が落ちる。行 R-17 の名札と、行 R-8・R-16 を名指す字は変わらない。席は tsuzuri へこの 1 行を返す。folio2 の側では、行 R-9〜R-11 を持たず名が folio2-constitution か読めない置き場（本流の置き場には無い・歯の写しと骨格だけ）の名札 R-9〜R-11 が id になる（(b) 1）。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
