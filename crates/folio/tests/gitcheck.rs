@@ -537,7 +537,8 @@ fn merge_unrelated(td: &Path, args: &[&str]) {
 /// 枝 `branch` を sub-dir `prefix` へ取り込む（commit id を保つ・tsuzuri の予行と同じ形）。
 fn subtree(td: &Path, branch: &str, prefix: &str) {
     merge_unrelated(td, &["-s", "ours", "--no-commit", branch]);
-    git(td, &["read-tree", &format!("--prefix={prefix}/"), "-u", branch]);
+    let prefix = format!("--prefix={prefix}/");
+    git(td, &["read-tree", &prefix, "-u", branch]);
     git(td, &["commit", "-q", "-m", "import"]);
 }
 
@@ -663,6 +664,38 @@ fn f210_head_without_root_anchor_keeps_counting() {
     let v = violations(&out);
     assert_eq!(out.status.code(), Some(1), "{v:?}");
     assert_eq!(count(&out, LOST), 3, "{v:?}");
+}
+
+#[test]
+fn f210_unreadable_root_anchors_do_not_narrow() {
+    // 今の根の anchor が作業ツリーに無く、取り込んだ列の根の anchor も digest の欄を持たないなら狭めない
+    // （無いどうしを同じ列に数えて本流の列を外さない＝本流の v1.1 の削除を今までどおり落とす・ADR-36 決定 (2)）
+    let td = copy_fixture("f210-unreadable", "root-digest-drift", true);
+    let main = current(&td);
+    add_v11(&td);
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "v1.1"]);
+    git(&td, &["checkout", "-q", "--orphan", "f"]);
+    git(&td, &["rm", "-q", "-r", "-f", "."]);
+    fs::create_dir_all(td.join("design-intent/anchors")).unwrap();
+    fs::write(td.join(V10), "kind: constitution-anchor\n").unwrap();
+    git(&td, &["add", "-A"]);
+    git(&td, &["commit", "-q", "-m", "f"]);
+    git(&td, &["checkout", "-q", &main]);
+    subtree(&td, "f", "f");
+    git(
+        &td,
+        &["rm", "-q", "design-intent/anchors/constitution-v1.1.yaml"],
+    );
+    git(&td, &["commit", "-q", "-m", "del"]);
+    fs::remove_file(td.join(V10)).unwrap();
+    let out = folio_check(&td);
+    let v = violations(&out);
+    assert!(
+        v.iter()
+            .any(|l| l.contains("anchors/constitution-v1.1.yaml") && l.contains(LOST)),
+        "{v:?}"
+    );
 }
 
 #[test]
