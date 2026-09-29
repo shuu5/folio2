@@ -10,31 +10,58 @@
 
 #![allow(dead_code)]
 
+use std::path::Path;
+
+use crate::adr;
 use crate::constitution_enums::{MechanismKind, Stage};
-use crate::floor::Floor;
+use crate::floor::{self, Floor};
 use crate::yaml::Node;
 
 /// 規則の表の最上位の節の閉じた一覧（`FLOOR` の top_level・thresholds と discipline は人が書き、schema は生成区間・ほかの名は未知の節）。
 pub const RULES_TOP_LEVEL: [&str; 3] = ["schema", "thresholds", "discipline"];
 
-/// 違反の名札の閉じた一覧（便 156）: 行 id と、置き場の規則の表にその行が無いときの検査の名。名札は文言の字面（行 D-11 の写しの外）。
-pub const LABELS: [(&str, &str); 3] = [("R-9", "語彙"), ("R-10", "平易文"), ("R-11", "強度と文末")];
+/// 違反の名札の閉じた一覧（便 156・便 203・台帳 f2-648.236）: folio2 の id の名札と、外の置き場で出す検査の名。外の置き場に
+/// folio2 の id を出してよいのは、床が置き場の規則の表の行をその id の字で引いて値か対象を読むときだけ（行 R-8・R-16・R-17・
+/// 名札に出るのは R-17）。この一覧の検査は
+/// folio2 の条と規範文の意味から来るか（A-2・N-4・P-7・P-7.1・P-8）、行の値も対象も読まない（R-3・R-9・R-10・R-11）ので、外では
+/// 置き場の表に同じ id が在っても検査の名（同じ id が置き場で別の意味を持ちうる・外の利用者は tsuzuri・持ち主の裁定 2026-09-27）。
+/// folio2 の置き場は id のまま（便 156 の「表に行が無ければ検査の名」は外の置き場の規則に寄せた）。名札は文言の字面（行 D-11 の写しの外）。
+pub const ABROAD_LABELS: [(&str, &str); 9] = [
+    ("A-2", "改訂と判断の記録"),
+    ("N-4", "改訂の承認"),
+    ("P-7", "id の再利用と改番"),
+    ("P-7.1", "id の再利用と改番"),
+    ("P-8", "撤退条件"),
+    ("R-3", "部品目録"),
+    ("R-9", "語彙"),
+    ("R-10", "平易文"),
+    ("R-11", "強度と文末"),
+];
 
-/// 違反の名札（便 156）。置き場の規則の表（thresholds か discipline）に行 `row` が在れば行 id、無ければ検査の名。
-pub fn label(rules: &Node, row: &'static str) -> &'static str {
-    let has = RULES_TOP_LEVEL[1..]
-        .iter()
-        .filter_map(|s| rules.get(s))
-        .filter_map(Node::as_seq)
-        .flatten()
-        .any(|r| r.get("id").and_then(Node::as_str) == Some(row));
-    if has {
-        return row;
+/// 置き場の違反の名札の読み（便 203）。folio2 の置き場と名の無い口（`floor::abroad` が偽）は名札の字のまま、外の置き場は
+/// `ABROAD_LABELS` の id を検査の名にする（出力の口で 1 度だけ引く・書く前と後の突き合わせは元の字で数える）。
+pub struct Labels {
+    abroad: bool,
+}
+
+impl Labels {
+    /// 置き場 `dir` の読み（名は `adr::place_name`・外の判定は便 202 と同じ `floor::abroad`）。
+    pub fn of(dir: &Path) -> Labels {
+        Labels {
+            abroad: floor::abroad(adr::place_name(dir).ok().as_deref()),
+        }
     }
-    LABELS
-        .iter()
-        .find(|(id, _)| *id == row)
-        .map_or(row, |(_, name)| name)
+
+    /// 出力に出す名札。
+    pub fn shown<'a>(&self, kind: &'a str) -> &'a str {
+        if !self.abroad {
+            return kind;
+        }
+        ABROAD_LABELS
+            .iter()
+            .find(|(id, _)| *id == kind)
+            .map_or(kind, |(_, name)| name)
+    }
 }
 
 /// 閾値の行（R-n）が必ず持つ欄。
@@ -50,6 +77,26 @@ pub const ROW_REFS: &str = "refs";
 /// 行の欄 key の字（便 179）。行の id は置き場ごとに意味が違うので、道具は値を読む閾値の行を id でなくこの欄で引く。
 /// 値は `KEYS` の閉じた一覧の 1 つで、同じ値の閾値の行は置き場に 1 本まで（床は `key_violations`）。
 pub const ROW_KEY: &str = "key";
+
+/// 行の欄 ruled_at の字（便 204・条 P-17.1）。行の裁定の時刻で、形は `TIME_FORMAT`（床は `check.rs` の `check_times`）。
+pub const ROW_TIME: &str = "ruled_at";
+
+/// 裁定の時刻の形の写し（人が読む字面・床は `is_time` の字の走査で判定する）。年-月-日か、UTC の分（年-月-日T時:分Z）。
+pub const TIME_FORMAT: &str = r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$";
+
+/// 裁定の時刻の形か（`TIME_FORMAT`・便 204）。年-月-日は判断の記録の日付と同じ `adr::is_date`、UTC の分はその後ろに「T」時 2 桁
+/// 「:」分 2 桁「Z」。暦に在る日かは見ない。
+pub fn is_time(s: &str) -> bool {
+    let Some(date) = s.get(..10) else {
+        return false;
+    };
+    crate::adr::is_date(date)
+        && match &s.as_bytes()[10..] {
+            [] => true,
+            [b'T', h1, h2, b':', m1, m2, b'Z'] => [h1, h2, m1, m2].iter().all(|c| c.is_ascii_digit()),
+            _ => false,
+        }
+}
 
 /// 閾値の行が持ってよい欄。
 pub const THRESHOLD_OPTIONAL: [&str; 7] = [
@@ -169,6 +216,32 @@ pub fn key_violations(rules: &Node) -> Vec<String> {
         }
     }
     out
+}
+
+/// 閾値の行の種別の床（便 204）: 種別が値域の中で、種別と憲法の機構の対応（`FLOOR` の kind_map_to_constitution・閾値の行に
+/// だけ適用する）の左辺に無い閾値の行の字（human-review は開発規律の行の作法・種別 schema の違反・`check.rs` が出す）。
+/// 値域の外の種別は面の床が数える（重ねない）。
+pub fn kind_violations(rules: &Node) -> Vec<String> {
+    let rows = rules.get(RULES_TOP_LEVEL[1]).and_then(Node::as_seq).unwrap_or_default();
+    rows.iter()
+        .filter_map(|row| {
+            let kind = row.get("kind").and_then(Node::as_str)?;
+            let id = row.get("id").and_then(Node::as_str).unwrap_or("?");
+            (RuleKind::from_name(kind).is_some() && !maps_to_constitution(kind)).then(|| {
+                format!("行 {id} の kind「{kind}」は閾値の行に置けない（kind_map_to_constitution の左辺に無い＝開発規律の行の作法）")
+            })
+        })
+        .collect()
+}
+
+/// 種別が `FLOOR` の kind_map_to_constitution の左辺に在るか（生成区間と同じ木から引く・便 204）。
+fn maps_to_constitution(kind: &str) -> bool {
+    let Floor::Map(fields) = &FLOOR else {
+        return false;
+    };
+    fields
+        .iter()
+        .any(|(key, map)| *key == "kind_map_to_constitution" && matches!(map, Floor::Map(m) if m.iter().any(|(left, _)| *left == kind)))
 }
 
 /// 作法の行（D-n）が必ず持つ欄。
@@ -307,6 +380,13 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
             "その行の散文が依っている、article の条以外の id の一覧（ほかの行・要件書の id・判断の記録・別の条と規範文）。各項は id の形（P-5.2）で、その行自身の id と article の値は書かない。未解決は行 R-4 の 1 つ目の数えが拾い、判断の記録の未実在は A-2 の網が拾う（R-4 の what と値と母集団は変えない）",
         ),
     ),
+    ("ruled_at_format", Floor::Val(TIME_FORMAT)),
+    (
+        "ruled_at_note",
+        Floor::Val(
+            "行の裁定の時刻の欄 ruled_at の形（ruled_at_format）。年-月-日か、UTC の分（年-月-日T時:分Z）。床（folio check）は全行で、裁定の欄 ruling と同じ歩き手で数え（条 P-17.1）、欄が無い・空・字でない（一覧・表）・形の違う は違反とする。裁定の欄が骨格の印（未記入）の行は裁定の前として時刻を数えず（条 P-17.3）、裁定の欄が埋まった行の時刻が骨格の印なら違反とする。暦に在る日かと、裁定の欄の日時との一致は見ない",
+        ),
+    ),
     (
         "enums",
         Floor::Map(&[
@@ -361,7 +441,7 @@ pub(crate) const FLOOR: Floor = Floor::Map(&[
     (
         "kind_map_to_constitution_note",
         Floor::Val(
-            "R 行にだけ適用する（D 行は作法＝条の機構とは別）。右辺は憲法の値域 mechanism_kind の値",
+            "R 行にだけ適用する（D 行は作法＝条の機構とは別）。右辺は憲法の値域 mechanism_kind の値。閾値の行（R 行）の kind は左辺のどれかで、左辺に無い human-review（D 行の作法）を閾値の行に置けば床（folio check）が落とす",
         ),
     ),
     (
@@ -475,6 +555,41 @@ mod tests {
         assert_eq!(plan_note(&crate::yaml::parse(discipline).unwrap().root), Ok(None));
     }
 
+    /// 便 204 (c): 裁定の時刻は年-月-日か UTC の分だけを通し、字面の写しと欄の名は手書きの字と同じ（ASCII でない字の位置でも
+    /// 止まらない）。
+    #[test]
+    fn f204_the_time_is_the_date_or_the_utc_minute() {
+        assert_eq!(TIME_FORMAT, r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}Z)?$");
+        assert_eq!(ROW_TIME, "ruled_at");
+        for ok in ["2026-09-28", "2026-09-24T22:39Z", "0000-00-00T00:00Z"] {
+            assert!(is_time(ok), "{ok}");
+        }
+        let bad = [
+            "", "2026/09/28", "2026-9-28", "2026-09-28 07:18 JST", "2026-09-28T22:39", "2026-09-28T2:39Z", "2026-09-28T22:39:00Z",
+            "2026-09-28T22:39Zx", "2026-09-28t22:39z", "2026-09-28Tab:39Z", "2026-09-28T22:cdZ", " 2026-09-28", "2026-09-28 ",
+            "未記入", "２０２６-09-28", "2026-09-2８", "2026-09-28T22:3９Z",
+        ];
+        for s in bad {
+            assert!(!is_time(s), "{s}");
+        }
+    }
+
+    /// 便 204 (c): 閾値の行の種別は kind_map_to_constitution の左辺（deny・build-check・detect）だけを通し、human-review の閾値の
+    /// 行だけを字にする。値域の外の種別と開発規律の行は数えない（面の床と作法の行の持ち分）。
+    #[test]
+    fn f204_a_threshold_row_takes_only_a_kind_mapped_to_the_constitution() {
+        let v = |rows: &str| kind_violations(&crate::yaml::parse(rows).unwrap().root);
+        let row = |id: &str, k: &str| format!("  - {{id: {id}, kind: {k}}}\n");
+        let all: String = ["deny", "build-check", "detect", "bogus"].iter().enumerate().map(|(n, k)| row(&format!("R-{n}"), k)).collect();
+        assert!(v(&format!("thresholds:\n{all}discipline:\n{}", row("D-1", "human-review"))).is_empty());
+        assert_eq!(
+            v(&format!("thresholds:\n{}{}", row("R-1", "deny"), row("R-2", "human-review"))),
+            ["行 R-2 の kind「human-review」は閾値の行に置けない（kind_map_to_constitution の左辺に無い＝開発規律の行の作法）"]
+        );
+        let mapped: Vec<&str> = RuleKind::NAMES.into_iter().filter(|k| maps_to_constitution(k)).collect();
+        assert_eq!(mapped, ["deny", "build-check", "detect"]);
+    }
+
     /// 種別と憲法の機構の対応の右辺は憲法の値域 mechanism_kind の名（1 か所から出る）。
     #[test]
     fn rules_floor_kind_map_targets_are_constitution_mechanism_names() {
@@ -487,5 +602,29 @@ mod tests {
         }
         assert_eq!(KIND_DENY_MAPS_TO, ["reject", "build-check"]);
         assert_eq!(KIND_DETECT_MAPS_TO, ["none"]);
+    }
+
+    /// 違反の名札（便 203）: folio2 の置き場（外でない）は名札のまま、外の置き場は一覧の 9 つの id を検査の名にする（置き場の表を
+    /// 見ない＝同じ id を持つ置き場でも検査の名・期待の字は手書き）。一覧に無い名札（行を引く R-17 と検査の名）は変えない。
+    #[test]
+    fn f203_labels_name_the_check_abroad_even_where_the_place_has_the_id() {
+        let home = Labels { abroad: false };
+        let abroad = Labels { abroad: true };
+        for (id, name) in [
+            ("A-2", "改訂と判断の記録"),
+            ("N-4", "改訂の承認"),
+            ("P-7", "id の再利用と改番"),
+            ("P-7.1", "id の再利用と改番"),
+            ("P-8", "撤退条件"),
+            ("R-3", "部品目録"),
+            ("R-9", "語彙"),
+            ("R-10", "平易文"),
+            ("R-11", "強度と文末"),
+        ] {
+            assert_eq!((home.shown(id), abroad.shown(id)), (id, name));
+        }
+        for kind in ["adr", "schema", "R-8", "R-16", "R-17", "P-18", "polarity"] {
+            assert_eq!((home.shown(kind), abroad.shown(kind)), (kind, kind));
+        }
     }
 }
