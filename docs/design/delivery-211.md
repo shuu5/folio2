@@ -46,7 +46,7 @@
 
 ### (e) 既存の歯のうち落ちるもの・突然変異
 
-1. 既存の歯で落ちるものは無い。見本の workspace の nextest は全部緑（本数は (f)）。
+1. 既存の歯で落ちるものは無い。見本 2e4980b の workspace の nextest は 1183 / 1183（参考値・base の本数はこれより f211_ の 1 本少ない）・clippy 0 警告。
 2. 突然変異 16 通り（控えの mut.py・見本の木で 1 つずつ当てて絞り込んだ歯を撃つ）: 期待と違う 0。
    - 落ちる（捕まえる）14: 単体の歯を字の形へ戻す・便 17 の文の直しを戻す・in_tailnet の上の端を 1 つ縮める／下の端を 1 つ縮める／上の端を 1 つ広げる／頭の数を変える・inside から loopback を外す・追跡される新しい file に範囲の中の住所・歯の判定の上の端を縮める／後ろの `.` と数字の断りを外す／範囲そのものの字の断りを外す／前の数字か `.` の断りを外す／255 の上限を外す・歯の走査の根を crate の dir にずらす（一覧にこの歯の file が無い）。
    - 緑のまま（当たらない主張の確かめ）2: 追跡しない file に範囲の中の住所・追跡される file に範囲そのものの字と範囲の外の住所だけ。
@@ -61,7 +61,7 @@
 | serve.rs | 419 | 424 | 1076 |
 
 3. **size は S**（余地 1076 ≥ 100）。
-4. **verify は 4 行**で、done の塊と 1 対 1: `--test serve f211_`（本便の歯 1 本）・`--test serve`（serve の歯の file の全部 7 本）・`--bin folio serve_tests`（serve.rs の単体の歯 4 本）・clippy。base では f211_ の行が 0 件で終了コード 4、ほかは緑。
+4. **verify は 4 行**で、done の塊と 1 対 1: `--test serve f211_`（本便の歯 1 本）・`--test serve`（serve の歯の file の全部 7 本）・`--bin folio serve_tests`（serve.rs の単体の歯 4 本）・clippy。見本では 4 行とも rc 0（1・7・4 本と 0 警告）。base（fdd4326）では f211_ の行が 0 件で終了コード 4、ほかは緑（6・4 本と 0 警告）（控えの verify.sh）。
 
 ### (g) 受付・並行の便・運ばないもの
 
@@ -72,7 +72,7 @@
 
 ### (h) 床・面・天井が変わらないこと
 
-設計文書の正本も生成器も触らない。見本で床 4 本（check・inject --check・schema --check・derive --check）は base と同じく rc 0、`folio build` の出力は base と file の数も sha も同じ（控えの chain.sh）。門は「通す（設計文書の正本を書き換えない便）」。
+設計文書の正本も生成器も触らない。見本で床 4 本（check・inject --check・schema --check・derive --check）は base と同じく rc 0（check は合格・違反 0・まだ分からない 0）、`folio build` の出力は base と file の数（40）も sha も同じ（参考値・控えの run.sh と chain2.sh）。門は「通す（設計文書の正本を書き換えない便）」。
 
 ## 2. 範囲
 
