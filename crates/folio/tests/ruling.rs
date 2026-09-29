@@ -276,7 +276,7 @@ fn f204_a_rules_row_without_a_time_is_one_violation() {
 }
 
 /// 歯 9（便 204）: 裁定の時刻の形の違う字（区切りが「/」・空の字・JST の時刻付き・時が 1 桁・秒付き・Z の無い分）と、字でない
-/// 値（一覧・null）は、どれも違反がちょうど 1 つ。
+/// 値（一覧・表・null）は、どれも違反がちょうど 1 つ。
 #[test]
 fn f204_a_time_out_of_form_is_one_violation() {
     let (file, marker, _) = R10;
@@ -293,7 +293,8 @@ fn f204_a_time_out_of_form_is_one_violation() {
         w.set(file, marker, "ruled_at", Some(value));
         assert_eq!(w.check().0, [format!("[裁定 id] rules.yaml: 行 R-10 の ruled_at{shown}{BAD_TIME}")], "{value}");
     }
-    for (value, want) in [("[2026-09-12]", "が字でない（一覧か表）＝裁定の時刻が無い"), ("null", NO_TIME)] {
+    let listed = "が字でない（一覧か表）＝裁定の時刻が無い";
+    for (value, want) in [("[2026-09-12]", listed), ("{at: 2026-09-12}", listed), ("null", NO_TIME)] {
         let w = Work::new("f204-shape");
         w.set(file, marker, "ruled_at", Some(value));
         assert_eq!(w.check().0, [format!("[裁定 id] rules.yaml: 行 R-10 の ruled_at {want}")], "{value}");
