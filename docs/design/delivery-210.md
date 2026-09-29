@@ -115,7 +115,7 @@ binary 経由の歯は `crates/folio/tests/gitcheck.rs`（既存の file の末�
 ### (g) 門と受付
 
 1. **門。** 冒頭のとおり 0（通す）。
-2. **受付。** ADR-36 の発効（持ち主の承認・枝 docs/f1 の取り込み）の後。受付の先撃ち（precheck）は 〔TBD-precheck〕。
+2. **受付。** ADR-36 の発効（持ち主の承認・枝 docs/f1 の取り込み）の後。受付の先撃ち（`precheck.sh <worktree> docs/design/delivery-210.md#he`・器 scribe2 0.1.0（4c95a64391ad）・枝 docs/f1 の d726c12）は **preflight: ok・契約に起因する断り 0**（write-set は宣言どおり 7 本・歯の接頭辞 f210_ は本流でまだ 0 本＝着地の前の形）。
 3. **着地の後。** 席は tsuzuri へ「床の版管理の照合は別の repo から取り込んだ別の根の列の履歴を数えない（ADR-36）・`folio schema --write` を 1 回（判断の記録の欄の決まりの注 2 つ）・持ち込む commit は本便と便 211 の着地の後の先頭」を返す。
 
 ### (h) 数え直す手順（誰でも撃ち直せる形・規則の表の行 D-13）
