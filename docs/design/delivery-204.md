@@ -6,7 +6,7 @@
 - 置き場: この文書は folio2 の設計ノート。契約表は末尾の区間。審査の材料は行 `gy` が指す §1 だけなので、判定に要る材料は §1 に全部置く。write-set は 23 本（src 3・歯の file 2・凍結 anchor 1・設計文書の生成区間 1・床の歯の fixture 16）。新しい file・縮む file・消す file・新しい dir は無い。
 - 門: **0（通す）**。本流の binary（main root の `target/debug/folio`・1c7f927 の組み立て）に write-set の 23 本を渡した `folio ceiling --gate --dir design-intent --write-set …` の答え「folio ceiling: 通す（印の周 2026-09-27-round51（判定 合格）に、書き換える file を場所とする反証で支持された 止める は無い・印の後の変更は審査していない）」（起草の記録の gate.log）。
 - 前提: **base = 本流 1c7f927**（便 202 の着地）。この契約の数はすべて 1c7f927 の写しの実測（参考値・規則の表の行 D-13）。
-- 実装の見本: origin の枝 `impl/d204`（親 1c7f927・2 commit: 6635999 が最初の形・25d6460 が層の決まりと便 203 との重なりに合わせて時刻の形を rules.rs へ移し、床の関数を分け、fixture 16 本に時刻を足した形）。`git diff 1c7f927 impl/d204` が便の全体の差分。**作業者は write-set の file をこの枝の先端 25d6460 の中身にしてよい**。write-set の外は変えない。`design-intent/rules.yaml` は手で書かず、見本の binary の `folio schema --dir design-intent --write` で書く。
+- 実装の見本: origin の枝 `impl/d204`（親 1c7f927・3 commit: 6635999 が最初の形・25d6460 が層の決まりと便 203 との重なりに合わせて時刻の形を rules.rs へ移し、床の関数を分け、fixture 16 本に時刻を足した形・1bc273b が検証役の非 blocking 1 で歯に表の 1 通りを足しただけ）。`git diff 1c7f927 impl/d204` が便の全体の差分。**作業者は write-set の file をこの枝の先端 1bc273b の中身にしてよい**。write-set の外は変えない。`design-intent/rules.yaml` は手で書かず、見本の binary の `folio schema --dir design-intent --write` で書く。
 - 並行の便との重なり: §1 (g) の表（便 203 と `crates/folio/src/check.rs`・`crates/folio/src/rules.rs` が重なる・見本どうしの `git merge-tree` は衝突 0）。
 
 ## 1. 設計
@@ -54,7 +54,7 @@
 1. **単体 f204_the_time_is_the_date_or_the_utc_minute（`rules.rs` の tests）。** `TIME_FORMAT` と `ROW_TIME` が手書きの字と同じ。年-月-日・UTC の分（「2026-09-24T22:39Z」）は真、「/」区切り・月が 1 桁・JST の時刻付き・Z の無い分・時が 1 桁・秒付き・後ろに字・小字の t と z・時分が英字・前後の空白・未記入・全角の数字（字の境でない位置を含む）は偽。
 2. **単体 f204_a_threshold_row_takes_only_a_kind_mapped_to_the_constitution（同）。** 手書きの規則の表で、閾値の行の deny・build-check・detect・値域の外（bogus）と開発規律の行の human-review は字 0、閾値の行の human-review はちょうど 1 つの字（手書き）。`kind_map_to_constitution` の左辺として真になる種別は deny・build-check・detect の 3 つ。
 3. **`tests/ruling.rs` f204_a_rules_row_without_a_time_is_one_violation。** 床の土台の写し（`tests/fixtures/floor_base/design-intent/`）の閾値の行 R-10 と開発規律の行 D-8 から `ruled_at` を外すと、種別 裁定 id の違反がちょうど「…行 <id> の ruled_at が無い＝裁定の時刻が無い」の 1 つ。base は面の床にも届かない（土台は版管理が無く まだ分からない が在る）ので 裁定 id の行が 0 で **RED**。
-4. **同 f204_a_time_out_of_form_is_one_violation。** 行 R-10 の `ruled_at` を「2026/09/12」・空の字・「2026-09-12 20:25 JST」・「2026-09-12T1:25Z」・「2026-09-12T11:25:00Z」・「2026-09-12T11:25」にすると形の違反がちょうど 1 つ、一覧と null はそれぞれの字の違反がちょうど 1 つ。base は形の 6 通りで 0 行（**RED**）。
+4. **同 f204_a_time_out_of_form_is_one_violation。** 行 R-10 の `ruled_at` を「2026/09/12」・空の字・「2026-09-12 20:25 JST」・「2026-09-12T1:25Z」・「2026-09-12T11:25:00Z」・「2026-09-12T11:25」にすると形の違反がちょうど 1 つ、一覧・表・null はそれぞれの字の違反がちょうど 1 つ（表は検証役の非 blocking 1）。base は形の 6 通りで 0 行（**RED**）。
 5. **同 f204_the_two_forms_pass_and_the_mark_waits_only_with_the_ruling。** 年-月-日と UTC の分は違反 0。`ruling` と `ruled_at` をどちらも骨格の印にすると違反 0・まだ分からない は `ruling` の 1 行だけ増える。`ruling` が埋まったまま `ruled_at` だけ骨格の印にすると形の違反がちょうど 1 つ（base は 0 行で **RED**）。
 6. **同 f204_a_threshold_row_of_human_review_is_one_violation。** 行 R-10 の kind を human-review にすると標準出力の違反の行がちょうど `[schema] rules.yaml: 行 R-10 の kind「human-review」は…` の 1 行、deny・build-check・detect は 0 行（base は human-review で 0 行・**RED**）。
 7. **既存の歯の期待の直し。** `tests/schema_docs.rs` の規則の表の生成区間の凍結 anchor の行数・byte 数・sha256 の 3 つの定数（anchor を手で直した後に sha256sum と wc で測り直した値・注に便 204 の 1 文）。`rules.rs` の単体の `rules_floor_derives_the_frozen_anchor_byte_for_byte` は本文を変えず、新しい anchor と床の木の導出が byte で一致する。
@@ -70,8 +70,8 @@
 
 ### (e) 既存の歯・突然変異・外の置き場
 
-1. **既存の歯。** 見本の写しで workspace の nextest 1153 / 1153（base 1147 + f204_ の 6 本）・clippy 0 警告・床 4 本 rc 0（folio2 の素の床の標準出力と標準エラーと `--emit-rulings` の出力は base と byte で同じ）・`folio build --write` 39 file が base と全 file で byte で同じ（起草の記録の impl-25d6460-*.log・base-site-sha.txt と impl-25d6460-site-sha.txt）。字の期待を直した既存の歯は (c) 7 の 3 つの定数だけ。fixture 16 本に時刻を足さないと、その fixture を使う 25 本（check 3・gitcheck 8・anchor 2・freeze_root 1・link 3・adr 3・refs 3・vocab 2）が時刻の欠けの違反で落ちる（最初の見本 6635999 の実測・impl-nextest.log）。
-2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体の f204_ と rules::tests と ruling::tests・tests/ruling.rs・tests/schema_docs.rs・tests/check.rs を撃つ）。** 20 通りとも落ちる（生き残り 0・起草の記録の mut.log・落ちた歯の本文は mut-M*.log・25d6460 で撃った）。
+1. **既存の歯。** 見本の写しで workspace の nextest 1153 / 1153（base 1147 + f204_ の 6 本）・clippy 0 警告・床 4 本 rc 0（folio2 の素の床の標準出力と標準エラーと `--emit-rulings` の出力は base と byte で同じ）・`folio build --write` 39 file が base と全 file で byte で同じ（起草の記録の impl-1bc273b-*.log・base-site-sha.txt と impl-1bc273b-site-sha.txt・25d6460 でも同じ数）。字の期待を直した既存の歯は (c) 7 の 3 つの定数だけ。fixture 16 本に時刻を足さないと、その fixture を使う 25 本（check 3・gitcheck 8・anchor 2・freeze_root 1・link 3・adr 3・refs 3・vocab 2）が時刻の欠けの違反で落ちる（最初の見本 6635999 の実測・impl-nextest.log）。
+2. **突然変異（見本の写しの src だけを 1 通りずつ変え、単体の f204_ と rules::tests と ruling::tests・tests/ruling.rs・tests/schema_docs.rs・tests/check.rs を撃つ）。** 21 通りとも落ちる（生き残り 0・起草の記録の mut.log〔M1〜M20・25d6460〕と mut-M8-M21.log〔M8 と M21・1bc273b〕・落ちた歯の本文は mut-M*.log）。
 
 | 変異 | 落ちる歯 |
 | --- | --- |
@@ -95,6 +95,7 @@
 | M18 字の境で止まらない | 単体の形（全角の数字で panic） |
 | M19 違反の在り処を裁定の欄の字にする | f204_ の 3 本 |
 | M20 時刻の骨格の印を通す | f204_ の 2 つの形と骨格の印 |
+| M21 表の時刻だけを数えない（検証役の Y4） | f204_ の形の違う（表・1bc273b で足した 1 通り） |
 
 3. **外の置き場（tsuzuri の写し・起草の記録の tz.log と probe-tz.log・本物の tsuzuri では何も撃たない）。** 写しは本物の `.git` だけを写して clone した木（hook なし）で、本物の main 947fb4a（依頼の 79c8608 の 1 つ後・計画の第 0.51 版で規則の表は同じ）と 79c8608 の 2 つで撃ち、答えは同じ。
    - 書き直す前: 見本の素の床は合格 0（29 行とも UTC の分）・`folio schema --check` は rc 1（`rules.yaml: 生成区間 … byte ≠ 導出 … byte`）・derive --check 0・build 72 file が base と byte で同じ。
@@ -114,7 +115,7 @@
 | `crates/folio/src/ruling.rs` | 515 | 985 | 521（+6） | 979 |
 
 3. **size は S。** file ごとの増分の最大は rules.rs の +95（単体の歯を含む）で S の見積 100 の内。余地の最小（check.rs の base 328）は S の 100 を超える。便 203 が先に着地しても check.rs の余地は S の 100 を超える見込み（(g) 3）。
-4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の先端で 6 行とも rc 0（起草の記録の verify-impl-25d6460.log）。
+4. **verify は 6 行**で、done の 6 つの塊と 1 対 1 に揃える。見本の先端 1bc273b で 6 行とも rc 0（起草の記録の verify-impl-1bc273b.log）。
    1. `cargo nextest run -p folio --bin folio f204_` = (c) 1・2（2 本）。
    2. `cargo nextest run -p folio --test ruling f204_` = (c) 3〜6（4 本）。
    3. `cargo nextest run -p folio --test ruling` = 便 181・182 の決定の欄の歯（裁定 id の違反と まだ分からない の字と数が変わらない）と (c) 3〜6。
@@ -126,8 +127,8 @@
 ### (g) 門・受付・ほかのレーンとの重なり
 
 1. **門。** 冒頭のとおり 0（通す）。write-set に `design-intent/rules.yaml`（生成区間だけ）が在るので門の対象（規則の表の行 D-12）。
-2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d204 の本契約で 契約に起因する断り 0・preflight ok（起草の記録の precheck.log）。見本の先端 25d6460 で verify の 6 行とも rc 0。
-3. **便 203 との重なり（起草の時点 2026-09-29 07:4x・便 203 の見本は origin に未 push で、起草役 p184-draft の scratch の枝 impl/d203 ec92308〔親 1c7f927〕を読んだ）。**
+2. **受付。** 受付の先撃ち（precheck）は、枝 docs/d204 の本契約で 契約に起因する断り 0・preflight ok（起草の記録の precheck.log）。見本の先端 1bc273b で verify の 6 行とも rc 0。
+3. **便 203 との重なり（起草の時点 2026-09-29 07:4x・便 203 の見本は origin に未 push で、起草役 p184-draft の scratch の枝 impl/d203 ec92308〔親 1c7f927〕を読んだ。2026-09-29 09:2x に origin の impl/d203 d41ba90 と見本 1bc273b でも衝突 0）。**
 
 | file | 便 203 | 便 204 | 重なり |
 | --- | --- | --- | --- |
@@ -143,7 +144,7 @@
 起草の記録は `.local/share/folio2/handoff-2026-09-28/ruledat-draft.md`、script と log は同じ dir の `ruledat-scripts/`。
 1. `run.sh <木> <印>`: 組み立て・workspace の nextest（--test-threads 2）・clippy・床 4 本・`folio build --write` の file 数と sha。
 2. `red.sh <base の木> <見本の rev>`: 歯の file 3 本だけを base に当てて RED（落ちた歯の本文を log に残す）。
-3. `mut.py <見本の clone>`: 変異 20 通り。
+3. `mut.py <見本の clone>`: 変異 21 通り。
 4. `cap.sh <clone> <base> <見本>`: 余地（lines.py と lines.awk）。
 5. `verify.sh <木> <印>`: 契約の verify の 6 行。
 6. `probe.sh <folio> <木> <印>`・`probe-tz.sh <folio> <印>`: 規則の表の変異の写しで素の床の答え（(a) 2 と (e) 3）。`tz.sh <base の folio> <見本の folio> <rev…>`: tsuzuri の写し（`prep-tz.sh` で作る・hook なし）で base と見本の床・生成区間・build を比べる。
@@ -151,7 +152,8 @@
 ### (i) 本便が運ばないもの・言えないこと・撤退条件
 
 1. **運ばないもの。** 要件書・憲法・判断の記録・値域・必須と任意の欄の一覧・決定の欄の閉じた一覧・folio2 と外の置き場の規則の表の行・台帳への記帳（席）・外部 crate・新しい dir。
-2. **言えないこと。** 本便は時刻の在ることと形だけを数え、時刻が裁定 id の日時と合うか、行を変えた commit で時刻も変えたか（条 P-17.1 の「変更に付ける」）は数えない（差分を数える口は無い）。開発規律の行に human-review でない種別（例 deny）を置いた写しも床は通す（欄の決まりの字は「D 行は作法」と書くが、開発規律の行の種別を human-review に限る字は無い・席へ返す）。憲法の条 P-17 の機構の注の「床が数えるのは、今在る各行の裁定の欄（ruling）に台帳の裁定 id が 1 つ以上在る形までである」は、本便の後は時刻の在ることと形も数える（憲法は本便で変えない・席へ返す）。
+2. **言えないこと。** 本便は時刻の在ることと形だけを数え、時刻が裁定 id の日時と合うか、行を変えた commit で時刻も変えたか（条 P-17.1 の「変更に付ける」）は数えない（差分を数える口は無い）。開発規律の行に human-review でない種別（例 deny）を置いた写しも床は通す（欄の決まりの字は「D 行は作法」と書くが、開発規律の行の種別を human-review に限る字は無い・席へ返す）。憲法の条 P-17 の機構の注の「床が数えるのは、今在る各行の裁定の欄（ruling）に台帳の裁定 id が 1 つ以上在る形までである」は、本便の後は時刻の在ることと形も数える（憲法は本便で変えない・席へ返す）。本便の「暦に在る日かは見ない」は `check_times` の話で、引用符の無い暦に無い日（例 2026-13-45）は、型付きの読み（面の段）が正規化できない値として床全体を まだ分からない にする（base も同じ・引用符付きなら通す）。
+   **骨格の印の判定は 2 か所に残す。** 「骨格が書く欄の値が骨格の印」の判定は `check_rulings` の腕と `check_times` の条件の 2 か所に同じ関数の組（`Site::skeleton` と `adr::unfilled`）で在る。1 つの関数に寄せると `check_rulings` の腕の条件の行が変わり、便 203 がすぐ下の 2 行（骨格の印の行の字）を書き換えるので、origin の impl/d203 d41ba90 と `git merge-tree` で衝突する（試した差分は起草の記録の unify-attempt.patch）。寄せるのは便 203 の着地の後の小さな直し（席へ返す）。
 3. **撤退条件。** (1) 要件書・判断の記録・憲法・値域を変えないと書けないと分かったら、止めて席へ返す。(2) 本便の後に §1 (c) 7 の 3 つの定数と §1 (b) 6 の fixture 16 本のほかに既存の歯が落ちたら、その歯の本文も fixture も直さずに止めて席へ返す。(3) 本便の後に folio2 自身の床 4 本の結果か、folio2 の素の床の標準出力と標準エラーか、`folio build` の出力が 1 byte でも変われば、止めて席へ返す。(4) tsuzuri の写しで書き直した後の床が合格 0 でなければ、止めて席へ返す。
 
 ## 2. 範囲
@@ -185,11 +187,11 @@ schema = 1
 
 [[contract]]
 id = "gy"
-title = "床が規則の表の行の裁定の時刻 ruled_at の在ることと形を全行で数え、閾値の行に human-review を置かせない（台帳 f2-648.276.1・裁定 f2-648.276.1 notes 2026-09-29 07:16 JST・条 P-17.1）: crates/folio/src/ruling.rs の決定の欄の歩き手が規則の表の行の欄に行を添え、crates/folio/src/check.rs の新しい関数 check_times が同じ歩き手の出力で、裁定の欄が骨格の印の行を除いて ruled_at の欠け・null・字でない・形の違う（空の字と骨格の印を含む）を種別 裁定 id の違反にする。形は年-月-日か UTC の分で、crates/folio/src/rules.rs の ROW_TIME・TIME_FORMAT・is_time（年-月-日は adr::is_date）が持ち、床の木 FLOOR の ruled_at_format と ruled_at_note として規則の表の生成区間 design-intent/rules.yaml へ folio schema --write で写す（凍結 anchor tests/fixtures/schema/rules-region.txt は前の anchor に同じ字を手で足す）。rules.rs の kind_violations は閾値の行の種別が FLOOR の kind_map_to_constitution の左辺に無い（human-review）行を種別 schema の違反にし、対応の注に 1 文を足す。check_rulings の字・決定の欄の一覧・書き出し・値域は変えない。床の歯の fixture 16 本の各行に ruled_at: 2026-09-12 を足す。歯は rules.rs の単体の f204_ 2 本と tests/ruling.rs の f204_ 4 本と tests/schema_docs.rs の anchor の定数 3 つ。実装の見本は origin の枝 impl/d204 の commit 25d6460（親 1c7f927）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 1c7f927"
+title = "床が規則の表の行の裁定の時刻 ruled_at の在ることと形を全行で数え、閾値の行に human-review を置かせない（台帳 f2-648.276.1・裁定 f2-648.276.1 notes 2026-09-29 07:16 JST・条 P-17.1）: crates/folio/src/ruling.rs の決定の欄の歩き手が規則の表の行の欄に行を添え、crates/folio/src/check.rs の新しい関数 check_times が同じ歩き手の出力で、裁定の欄が骨格の印の行を除いて ruled_at の欠け・null・字でない・形の違う（空の字と骨格の印を含む）を種別 裁定 id の違反にする。形は年-月-日か UTC の分で、crates/folio/src/rules.rs の ROW_TIME・TIME_FORMAT・is_time（年-月-日は adr::is_date）が持ち、床の木 FLOOR の ruled_at_format と ruled_at_note として規則の表の生成区間 design-intent/rules.yaml へ folio schema --write で写す（凍結 anchor tests/fixtures/schema/rules-region.txt は前の anchor に同じ字を手で足す）。rules.rs の kind_violations は閾値の行の種別が FLOOR の kind_map_to_constitution の左辺に無い（human-review）行を種別 schema の違反にし、対応の注に 1 文を足す。check_rulings の字・決定の欄の一覧・書き出し・値域は変えない。床の歯の fixture 16 本の各行に ruled_at: 2026-09-12 を足す。歯は rules.rs の単体の f204_ 2 本と tests/ruling.rs の f204_ 4 本と tests/schema_docs.rs の anchor の定数 3 つ。実装の見本は origin の枝 impl/d204 の commit 1bc273b（親 1c7f927）で、作業者は write-set の file をその中身にしてよく、write-set の外は変えない。base = 本流 1c7f927"
 req = ["FR26", "FR19"]
 section = "1"
 write-set = ["crates/folio/src/ruling.rs", "crates/folio/src/rules.rs", "crates/folio/src/check.rs", "crates/folio/tests/ruling.rs", "crates/folio/tests/schema_docs.rs", "tests/fixtures/schema/rules-region.txt", "design-intent/rules.yaml", "tests/fixtures/adr/effective-no-approval/rules.yaml", "tests/fixtures/adr/schema-drift/rules.yaml", "tests/fixtures/adr/two-adopted/rules.yaml", "tests/fixtures/anchor/no-anchor/rules.yaml", "tests/fixtures/anchor/root-digest-drift/rules.yaml", "tests/fixtures/check/dup-key/rules.yaml", "tests/fixtures/check/empty-field/rules.yaml", "tests/fixtures/check/unknown-section/rules.yaml", "tests/fixtures/link/adr-id-missing/rules.yaml", "tests/fixtures/link/amended-by-orphan/rules.yaml", "tests/fixtures/link/retreat-kind-drift/rules.yaml", "tests/fixtures/refs/bad-counts/rules.yaml", "tests/fixtures/refs/dangling-id/rules.yaml", "tests/fixtures/refs/orphan-rule/rules.yaml", "tests/fixtures/vocab/exemptions/rules.yaml", "tests/fixtures/vocab/unknown-word/rules.yaml"]
 verify = ["cargo nextest run -p folio --bin folio f204_", "cargo nextest run -p folio --test ruling f204_", "cargo nextest run -p folio --test ruling", "cargo nextest run -p folio --test schema_docs", "cargo nextest run -p folio --bin folio rules::tests", "cargo clippy --workspace --all-targets -- -D warnings"]
 size = "S"
-done = "binary の単体の f204_ の 2 本（時刻の形は年-月-日と UTC の分だけが真で字の境でない位置でも止まらない・閾値の行の human-review だけが種別の字になり左辺は deny と build-check と detect）が緑、tests/ruling.rs の f204_ の 4 本（床の土台の写しで ruled_at の欠け・形の違う 6 通り・一覧と null・裁定の欄が埋まった行の時刻の骨格の印・閾値の行の human-review がそれぞれ違反ちょうど 1 つ、年-月-日と UTC の分と両方の骨格の印は違反 0）が緑、tests/ruling.rs の歯の全部（便 181・182 の決定の欄の違反と まだ分からない が変わらない）が緑、tests/schema_docs.rs の歯の全部（規則の表の生成区間が新しい凍結 anchor と byte で一致）が緑、binary の単体の rules::tests の全部（床の木の導出と凍結 anchor の byte 一致）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数は着地の直前の main と同じである"
+done = "binary の単体の f204_ の 2 本（時刻の形は年-月-日と UTC の分だけが真で字の境でない位置でも止まらない・閾値の行の human-review だけが種別の字になり左辺は deny と build-check と detect）が緑、tests/ruling.rs の f204_ の 4 本（床の土台の写しで ruled_at の欠け・形の違う 6 通り・一覧と表と null・裁定の欄が埋まった行の時刻の骨格の印・閾値の行の human-review がそれぞれ違反ちょうど 1 つ、年-月-日と UTC の分と両方の骨格の印は違反 0）が緑、tests/ruling.rs の歯の全部（便 181・182 の決定の欄の違反と まだ分からない が変わらない）が緑、tests/schema_docs.rs の歯の全部（規則の表の生成区間が新しい凍結 anchor と byte で一致）が緑、binary の単体の rules::tests の全部（床の木の導出と凍結 anchor の byte 一致）が緑、clippy が 0 警告で、workspace の nextest が全部緑で CI が通り、着地の後の main で folio check --dir design-intent が合格（違反 0・まだ分からない 0）・folio schema --dir design-intent --check が一致・folio inject --check と folio derive --dir design-intent --out ../contracts --check が 0 で、folio build の file 数は着地の直前の main と同じである"
 <!-- contracts:end -->
